@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "alefragnani.bookmarks",
+    "davidanson.vscode-markdownlint",
+    "github.codespaces",
+    "github.github-vscode-theme",
+    "github.remotehub",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "ms-python.python"
+  ],
+  "unwantedRecommendations": []
+}
