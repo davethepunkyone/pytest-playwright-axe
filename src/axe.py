@@ -1,15 +1,17 @@
 import logging
 import os
 import json
+import html
 from datetime import datetime
 from playwright.sync_api import Page
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 AXE_PATH = Path(__file__).parent / "resources" / "axe.js"
 PATH_FOR_REPORT = Path(__file__).parent.parent / "axe-reports"
-DEFAULT_WCAG_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
+
+WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
+OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + str(WCAG_22AA_RULESET) + "}}"
 
 
 class Axe:
@@ -21,7 +23,8 @@ class Axe:
     @staticmethod
     def run(page: Page,
             filename: str = "",
-            ruleset: list[str] = DEFAULT_WCAG_RULESET,
+            context: str = "",
+            options: str = "",
             report_on_violation_only: bool = False,
             strict_mode: bool = False,
             html_report_generated: bool = True,
@@ -31,8 +34,9 @@ class Axe:
 
         Args:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
-            filename (str): The filename to use for the outputted reports. If not provided, defaults to the URL under test.
-            ruleset (list[str]): [Optional] If provided, a list of strings to denote the ruleset tags axe-core should use. If not provided, defaults to the WCAG 2.2 AA standard (uses tags: 'wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice').
+            filename (str): [Optional] The filename to use for the outputted reports. If not provided, defaults to the URL under test.
+            context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
+            options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
@@ -44,7 +48,8 @@ class Axe:
 
         page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
 
-        response = page.evaluate("axe." + Axe._build_run_command(ruleset) + ".then(results => {return results;})")
+        response = page.evaluate("axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
+        # response = page.evaluate("axe.run().then(results => {return results;})")
 
         logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
                     Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
@@ -66,7 +71,8 @@ class Axe:
     def run_list(page: Page,
             page_list: list[str],
             use_list_for_filename: bool = True,
-            ruleset: list = DEFAULT_WCAG_RULESET,
+            context: str = "",
+            options: str = "",
             report_on_violation_only: bool = False,
             strict_mode: bool = False,
             html_report_generated: bool = True,
@@ -80,7 +86,8 @@ class Axe:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
             page_list (list[playwright.sync_api.Page): A list of URLs to execute against.
             use_list_for_filename (bool): If true, based filenames off the list provided. If false, use the full URL under test for the filename.
-            ruleset (list[str]): [Optional] If provided, a list of strings to denote the ruleset tags axe-core should use. If not provided, defaults to the WCAG 2.2 AA standard (uses tags: 'wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice').
+            context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
+            options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
@@ -96,7 +103,9 @@ class Axe:
             results[selected_page] = Axe.run(
                 page,
                 filename=filename,
-                ruleset=ruleset,
+                context=context,
+                options=options,
+                # ruleset=ruleset,
                 report_on_violation_only=report_on_violation_only,
                 strict_mode=strict_mode,
                 html_report_generated=html_report_generated,
@@ -105,9 +114,18 @@ class Axe:
         return results
 
 
+    # @staticmethod
+    # def _build_run_command(ruleset: list[str], ) -> str:
+    #     return "run({runOnly: { type: 'tag', values: " + str(ruleset) + " }})"
+    #     return "run({runOnly: { type: 'tag', values: " + str(ruleset) + " }})"
+
     @staticmethod
-    def _build_run_command(ruleset: list[str]) -> str:
-        return "run({runOnly: { type: 'tag', values: " + str(ruleset) + " }})"
+    def _build_run_command(context: str = "", options: str = "") -> str:
+        return_str = context if len(context) > 0 else ""
+        return_str += ", " if len(return_str) > 0 and len(options) > 0 else ""
+        return_str += options if len(options) > 0 else ""
+
+        return return_str
 
     @staticmethod
     def _modify_filename_for_report(filename_to_modify: str) -> str:
@@ -192,7 +210,6 @@ class Axe:
                 <tr><td>Date/Time Executed</td><td>{datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")}</td></tr>
                 <tr><td>Engine Version</td><td>{data["testEngine"]["name"]} {data["testEngine"]["version"]}</td></tr>
                 <tr><td>User Agent</td><td>{data["testEnvironment"]["userAgent"]}</td></tr>
-                <tr><td>Tags Used</td><td>{data["toolOptions"]["runOnly"]["values"]}</td></tr>
                 </table><br />'''
 
         # Summary

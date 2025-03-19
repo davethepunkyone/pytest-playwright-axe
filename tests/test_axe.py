@@ -17,7 +17,9 @@ def remove_files_before_test() -> None:
             os.remove(AXE_REPORTS_DIR / file)
 
 def test_build_run_command() -> None:
-    assert Axe._build_run_command(['test']) == "run({runOnly: { type: 'tag', values: ['test'] }})"
+    assert Axe._build_run_command('context', 'options') == "context, options"
+    assert Axe._build_run_command('context') == "context"
+    assert Axe._build_run_command('options') == "options"
 
 def test_modify_filename_for_report() -> None:
     assert Axe._modify_filename_for_report('https://www.test.com/1/2\\3/') == "www_test_com__1__2__3"
