@@ -5,9 +5,9 @@ from src.axe import Axe
 
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
-TEST_JSON_DEFAULT_FILENAME = "www_test_com__1.json"
+TEST_JSON_DEFAULT_FILENAME = "www_test_com_1.json"
 TEST_JSON_CUSTOM_FILENAME = "test_json_file.json"
-TEST_HTML_DEFAULT_FILENAME = "www_test_com__1.html"
+TEST_HTML_DEFAULT_FILENAME = "www_test_com_1.html"
 TEST_HTML_CUSTOM_FILENAME = "test_html_file.html"
 
 @pytest.fixture(scope="session", autouse=True)
@@ -22,7 +22,7 @@ def test_build_run_command() -> None:
     assert Axe._build_run_command(options='options') == "options"
 
 def test_modify_filename_for_report() -> None:
-    assert Axe._modify_filename_for_report('https://www.test.com/1/2\\3/') == "www_test_com__1__2__3"
+    assert Axe._modify_filename_for_report('https://www.test.com/1/2\\3/') == "www_test_com_1_2_3"
 
 def test_create_path_for_report() -> None:
     assert Axe._create_path_for_report('test123.html') == Path(__file__).parent.parent / "axe-reports" / "test123.html"

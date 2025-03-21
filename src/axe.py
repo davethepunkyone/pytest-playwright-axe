@@ -1,7 +1,8 @@
 import logging
 import os
 import json
-import html
+from html import escape
+import re
 from datetime import datetime
 from playwright.sync_api import Page
 from pathlib import Path
@@ -9,6 +10,17 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 AXE_PATH = Path(__file__).parent / "resources" / "axe.js"
 PATH_FOR_REPORT = Path(__file__).parent.parent / "axe-reports"
+
+WCAG_KEYS = {
+    'wcag2a': 'WCAG 2.0 A',
+    'wcag2aa': 'WCAG 2.0 AA',
+    'wcag2aaa': 'WCAG 2.0 AAA',
+    'wcag21a': 'WCAG 2.1 A',
+    'wcag21aa': 'WCAG 2.1 AA',
+    'wcag22a': 'WCAG 2.2 A',
+    'wcag22aa': 'WCAG 2.2 AA',
+    'best-practice': 'Best Practice'
+    }
 
 WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
 OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + str(WCAG_22AA_RULESET) + "}}"
@@ -49,7 +61,6 @@ class Axe:
         page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
 
         response = page.evaluate("axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
-        # response = page.evaluate("axe.run().then(results => {return results;})")
 
         logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
                     Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
@@ -133,7 +144,7 @@ class Axe:
             filename_to_modify = filename_to_modify[:-1]
         for item_to_remove in ["http://", "https://"]:
             filename_to_modify = filename_to_modify.replace(item_to_remove, "")
-        filename_to_modify = filename_to_modify.replace("/", "__").replace('\\', "__").replace(".", "_")
+        filename_to_modify = re.sub(r'[^a-zA-Z0-9-_]', '_', filename_to_modify)
 
         return filename_to_modify
 
@@ -160,7 +171,8 @@ class Axe:
         full_path = Axe._create_path_for_report(filename)
 
         with open(full_path, 'w') as file:
-            file.writelines(Axe._generate_html(data))
+            # file.writelines(Axe._generate_html(data))
+            file.writelines(Axe._generate_html_new(data))
 
         logger.info(f"HTML report generated: {full_path}")
 
@@ -224,6 +236,113 @@ class Axe:
 
         # Close tags
         html += '</body></html>'
+
+        return html
+    
+    @staticmethod
+    def _generate_html_new(data: dict) -> str:
+        # Example: https://lpelypenko.github.io/axe-html-reporter/
+
+        # HTML header
+        html = "<!DOCTYPE html><html><head><title>Axe Accessibility Report</title></head><body>"
+
+        # HTML body
+        # Title and URL
+        html += f"<h1>Axe Accessibility Report</h1>"
+        html += f"""<p>This is an axe-core accessibility summary generated on 
+                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")} 
+                    for: <strong>{data['url']}</strong></p>"""
+
+        # Violations
+        # Summary
+        html += "<h2>Violations Found</h2>"
+        html += f"<p>{len(data['violations'])} violations found.</p>"
+
+        html += "<table><tr>"
+        for header in [("#", "5"), ("Description", "45"), ("Axe Rule ID", "15"), ("WCAG", "23"), ("Impact", "7"), ("Count", "5")]:
+            html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+
+        violation_count = 1
+        violation_section = ""
+        for violation in data['violations']:
+            violations_table = ""
+
+            html += "<tr>"
+            html += f"<td>{violation_count}</td>"
+            html += f"<td>{escape(violation['description'])}</td>"
+            html += f"<td>{violation['id']}</td>"
+            tags = []
+            for tag in violation['tags']:
+                if tag in WCAG_KEYS:
+                    tags.append(WCAG_KEYS[tag])
+            html += f"<td>{", ".join(tags)}</td>"
+            html += f"<td>{violation['impact']}</td>"
+            html += f"<td>{len(violation['nodes'])}</td>"
+            html += "</tr>"
+
+            violation_count += 1
+
+            violations_table += "<table><tr>"
+            node_count = 1
+            for header in [("#", "2"), ("Description", "49"), ("Fix Information", "49")]:
+                violations_table += f'<th style="width: {header[1]}%">{header[0]}</th>'
+
+            for node in violation['nodes']:
+                violations_table += f"<tr><td>{node_count}</td>"
+                violations_table += f"<td><p>Element Location:</p>"
+                violations_table += f"<pre><code>{escape("<br>".join(node['target']))}</code></pre>"
+                violations_table += f"<p>HTML:</p><pre><code>{escape(node['html'])}</td>"
+                violations_table += f"<td>{str(escape(node['failureSummary'])).replace("\n", "<br />")}</td></tr>"
+                node_count += 1
+            violations_table += "</table>"
+
+            violation_section += f"<h3>{escape(violation['description'])}</h3>"
+            violation_section += f"<p><strong>Axe Rule ID:</strong> {violation['id']}</p>"
+            violation_section += f"<p><strong>WCAG:</strong> {', '.join(tags)}</p>"
+            violation_section += f"<p><strong>Impact:</strong> {violation['impact']}</p>"
+            violation_section += f"<p><strong>Tags:</strong> {", ".join(violation['tags'])}</p>"
+            violation_section += violations_table
+        
+        html += "</table>"
+        html += violation_section
+
+        # Passed Checks (Collapsible)
+        html += "<h2>Passed Checks</h2>"
+        html += "<table><tr>"
+        for header in [("#", "5"), ("Description", "50"), ("Axe Rule ID", "15"), ("Tags", "25"), ("Nodes Passed Count", "5")]:
+            html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+
+        pass_count = 1
+        for passed in data['passes']:
+            violations_table = ""
+
+            html += "<tr>"
+            html += f"<td>{pass_count}</td>"
+            html += f"<td>{escape(passed['description'])}</td>"
+            html += f"<td>{passed['id']}</td>"
+            tags = []
+            for tag in passed['tags']:
+                if tag in WCAG_KEYS:
+                    tags.append(WCAG_KEYS[tag])
+            html += f"<td>{", ".join(tags)}</td>"
+            html += f"<td>{len(passed['nodes'])}</td>"
+            html += "</tr>"
+
+            pass_count += 1
+        
+        html += "</table>"
+
+        # Incomplete Checks (Collapsible)
+        html += "<h2>Incomplete Checks</h2>"
+
+        # Inapplicable Checks (Collapsible)
+        html += "<h2>Inapplicable Checks</h2>"
+
+        # Rules Applied (Collapsible)
+        html += "<h2>Rules Applied Checks</h2>"
+
+        # Close tags
+        html += "</body></html>"
 
         return html
 
