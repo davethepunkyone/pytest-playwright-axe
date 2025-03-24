@@ -22,6 +22,15 @@ WCAG_KEYS = {
     'best-practice': 'Best Practice'
     }
 
+KEY_MAPPING = {
+    "testEngine": "Test Engine", 
+    "testRunner": "Test Runner", 
+    "testEnvironment": "Test Environment", 
+    "toolOptions": "Tool Options",
+    "timestamp": "Timestamp",
+    "url": "URL",
+}
+
 WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
 OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + str(WCAG_22AA_RULESET) + "}}"
 
@@ -173,6 +182,20 @@ class Axe:
     
     @staticmethod
     def _generate_html(data: dict) -> str:
+        def css_styling() -> str:
+            return """
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1, h2, h3 { color: #333; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                    th { background-color: #f4f4f4; }
+                    pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
+                    code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
+                    p { margin: 10px 0; }
+                    div { padding: 10px; border: 1px solid #ddd; }
+                </style>"""
+
         def wcag_tagging(tags: list[str]) -> str:
             wcag_tags = []
             for tag in tags:
@@ -183,7 +206,7 @@ class Axe:
         # --- HTML Generation ---
 
         # HTML header
-        html = "<!DOCTYPE html><html><head><title>Axe Accessibility Report</title></head><body>"
+        html = f"<!DOCTYPE html><html><head>{css_styling()}<title>Axe Accessibility Report</title></head><body>"
 
         # HTML body
         # Title and URL
@@ -195,12 +218,12 @@ class Axe:
         # Violations
         # Summary
         html += "<h2>Violations Found</h2>"
-        if len(data['violations']) == 0:
+        if len(data['violations']) > 0:
             html += f"<p>{len(data['violations'])} violations found.</p>"
 
             html += "<table><tr>"
-            for header in [("#", "5"), ("Description", "45"), ("Axe Rule ID", "15"), ("WCAG", "23"), ("Impact", "7"), ("Count", "5")]:
-                html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+            for header in [("#", "2", "text-align: center; "), ("Description", "53", ""), ("Axe Rule ID", "15", ""), ("WCAG", "15", ""), ("Impact", "10", ""), ("Count", "5", "text-align: center; ")]:
+                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
 
             violation_count = 1
             violation_section = ""
@@ -208,36 +231,37 @@ class Axe:
                 violations_table = ""
 
                 html += "<tr>"
-                html += f"<td>{violation_count}</td>"
+                html += f'<td style="text-align: center;">{violation_count}</td>'
                 html += f"<td>{escape(violation['description'])}</td>"
-                html += f"<td>{violation['id']}</td>"
+                html += f'<td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>'
                 html += f"<td>{wcag_tagging(violation['tags'])}</td>"
                 html += f"<td>{violation['impact']}</td>"
-                html += f"<td>{len(violation['nodes'])}</td>"
+                html += f'<td style="text-align: center;">{len(violation['nodes'])}</td>'
                 html += "</tr>"
 
                 violation_count += 1
 
                 violations_table += "<table><tr>"
                 node_count = 1
-                for header in [("#", "2"), ("Description", "49"), ("Fix Information", "49")]:
-                    violations_table += f'<th style="width: {header[1]}%">{header[0]}</th>'
+                for header in [("#", "2", "text-align: center; "), ("Description", "49", ""), ("Fix Information", "49", "")]:
+                    violations_table += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
 
                 for node in violation['nodes']:
-                    violations_table += f"<tr><td>{node_count}</td>"
+                    violations_table += f'<tr><td style="text-align: center;">{node_count}</td>'
                     violations_table += f'<td><p>Element Location:</p>'
                     violations_table += f"<pre><code>{escape("<br>".join(node['target']))}</code></pre>"
-                    violations_table += f'<p>HTML:</p><code style="overflow-wrap:break-word;">{escape(node['html'])}</code></td>'
-                    violations_table += f"<td>{str(escape(node['failureSummary'])).replace("\n", "<br />")}</td></tr>"
+                    violations_table += f'<p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>'
+                    violations_table += f"<td>{str(escape(node['failureSummary'])).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>"
                     node_count += 1
                 violations_table += "</table>"
 
-                violation_section += f"<h3>{escape(violation['description'])}</h3>"
-                violation_section += f'<p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}">{violation['id']}</a></p>'
-                violation_section += f"<p><strong>WCAG:</strong> {wcag_tagging(violation['tags'])}</p>"
-                violation_section += f"<p><strong>Impact:</strong> {violation['impact']}</p>"
-                violation_section += f"<p><strong>Tags:</strong> {", ".join(violation['tags'])}</p>"
+                violation_section += f'<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>'
+                violation_section += f'<p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />'
+                violation_section += f"<strong>WCAG:</strong> {wcag_tagging(violation['tags'])}<br />"
+                violation_section += f"<strong>Impact:</strong> {violation['impact']}<br />"
+                violation_section += f"<strong>Tags:</strong> {", ".join(violation['tags'])}</p>"
                 violation_section += violations_table
+                violation_section += "</td></tr></table>"
             
             html += "</table>"
             html += violation_section
@@ -248,19 +272,19 @@ class Axe:
         html += "<h2>Passed Checks</h2>"
         if len(data['passes']) > 0:
             html += "<table><tr>"
-            for header in [("#", "5"), ("Description", "50"), ("Axe Rule ID", "15"), ("WCAG", "25"), ("Nodes Passed Count", "5")]:
-                html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+            for header in [("#", "2", "text-align: center; "), ("Description", "50", ""), ("Axe Rule ID", "15", ""), ("WCAG", "18", ""), ("Nodes Passed Count", "15", "text-align: center; ")]:
+                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
 
             pass_count = 1
             for passed in data['passes']:
                 violations_table = ""
 
                 html += "<tr>"
-                html += f"<td>{pass_count}</td>"
+                html += f'<td style="text-align: center;">{pass_count}</td>'
                 html += f"<td>{escape(passed['description'])}</td>"
-                html += f'<td><a href="{passed['helpUrl']}">{passed['id']}</a></td>'
+                html += f'<td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>'
                 html += f"<td>{wcag_tagging(passed['tags'])}</td>"
-                html += f"<td>{len(passed['nodes'])}</td>"
+                html += f'<td style="text-align: center;">{len(passed['nodes'])}</td>'
                 html += "</tr>"
 
                 pass_count += 1
@@ -273,19 +297,19 @@ class Axe:
         html += "<h2>Incomplete Checks</h2>"
         if len(data['incomplete']) > 0:
             html += "<table><tr>"
-            for header in [("#", "5"), ("Description", "50"), ("Axe Rule ID", "15"), ("WCAG", "25"), ("Nodes Incomplete Count", "5")]:
-                html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+            for header in [("#", "2", "text-align: center; "), ("Description", "50", ""), ("Axe Rule ID", "15", ""), ("WCAG", "18", ""), ("Nodes Incomplete Count", "15", "text-align: center; ")]:
+                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
 
             incomplete_count = 1
             for incomplete in data['incomplete']:
                 violations_table = ""
 
                 html += "<tr>"
-                html += f"<td>{incomplete_count}</td>"
+                html += f'<td style="text-align: center;">{incomplete_count}</td>'
                 html += f"<td>{escape(incomplete['description'])}</td>"
-                html += f'<td><a href="{incomplete['helpUrl']}">{incomplete['id']}</a></td>'
+                html += f'<td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>'
                 html += f"<td>{wcag_tagging(incomplete['tags'])}</td>"
-                html += f"<td>{len(incomplete['nodes'])}</td>"
+                html += f'<td style="text-align: center;">{len(incomplete['nodes'])}</td>'
                 html += "</tr>"
 
                 incomplete_count += 1
@@ -298,16 +322,16 @@ class Axe:
         html += "<h2>Inapplicable Checks</h2>"
         if len(data['inapplicable']) > 0:
             html += "<table><tr>"
-            for header in [("#", "5"), ("Description", "50"), ("Axe Rule ID", "20"), ("WCAG", "30")]:
-                html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+            for header in [("#", "2", "text-align: center; "), ("Description", "60", ""), ("Axe Rule ID", "20", ""), ("WCAG", "18", "")]:
+                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
 
             inapplicable_count = 1
             for inapplicable in data['inapplicable']:
 
                 html += "<tr>"
-                html += f"<td>{inapplicable_count}</td>"
+                html += f'<td style="text-align: center;">{inapplicable_count}</td>'
                 html += f"<td>{escape(inapplicable['description'])}</td>"
-                html += f'<td><a href="{inapplicable['helpUrl']}">{inapplicable['id']}</a></td>'
+                html += f'<td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>'
                 html += f"<td>{wcag_tagging(inapplicable['tags'])}</td>"
                 html += "</tr>"
 
@@ -324,13 +348,16 @@ class Axe:
         for header in [("Data", "20"), ("Details", "80")]:
             html += f'<th style="width: {header[1]}%">{header[0]}</th>'
 
-        for key in ["testEngine", "testRunner", "testEnvironment", "toolOptions"]:
+        for key in ["testEngine", "testRunner", "testEnvironment", "toolOptions", "timestamp", "url"]:
             if key in data:
-                html += f"<tr><td>{key}</td>"
-                sub_data = ""
-                for sub_key in data[key]:
-                    sub_data += f"{sub_key}: <i>{escape(str(data[key][sub_key]))}</i><br />"
-                html += f"<td>{sub_data}</td></tr>"
+                html += f"<tr><td>{KEY_MAPPING[key]}</td>"
+                if type(data[key]) == dict:
+                    sub_data = ""
+                    for sub_key in data[key]:
+                        sub_data += f"{sub_key}: <i>{escape(str(data[key][sub_key]))}</i><br />"
+                    html += f"<td>{sub_data}</td></tr>"
+                else:
+                    html += f"<td>{escape(str(data[key]))}</td></tr>"
             
         html += "</table>"
 

@@ -1,7 +1,7 @@
 import pytest
 import os
 from pathlib import Path
-from src.axe import Axe
+from pytest_playwright_axe.axe import Axe
 
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
@@ -25,18 +25,18 @@ def test_modify_filename_for_report() -> None:
     assert Axe._modify_filename_for_report('https://www.test.com/1/2\\3/') == "www_test_com_1_2_3"
 
 def test_create_path_for_report() -> None:
-    assert Axe._create_path_for_report('test123.html') == Path(__file__).parent.parent / "axe-reports" / "test123.html"
+    assert Axe._create_path_for_report(AXE_REPORTS_DIR, 'test123.html') == Path(__file__).parent.parent / "axe-reports" / "test123.html"
 
 def test_create_json_report() -> None:
     test_data = {"url": "https://www.test.com/1"}
 
     # Default generation
-    Axe._create_json_report(test_data)
+    Axe._create_json_report(test_data, AXE_REPORTS_DIR)
     with open(AXE_REPORTS_DIR / TEST_JSON_DEFAULT_FILENAME, 'r') as file:
         assert file.read() == '{"url": "https://www.test.com/1"}'
 
     # With custom filename
-    Axe._create_json_report(test_data, TEST_JSON_CUSTOM_FILENAME.replace(".json", ""))
+    Axe._create_json_report(test_data, AXE_REPORTS_DIR, TEST_JSON_CUSTOM_FILENAME.replace(".json", ""))
     with open(AXE_REPORTS_DIR / TEST_JSON_CUSTOM_FILENAME, 'r') as file:
         assert file.read() == '{"url": "https://www.test.com/1"}'
 
@@ -56,12 +56,12 @@ def test_create_html_report() -> None:
     expected_file_data = Axe._generate_html(test_data)
 
     # Default generation
-    Axe._create_html_report(test_data)
+    Axe._create_html_report(test_data, AXE_REPORTS_DIR)
     with open(AXE_REPORTS_DIR / TEST_HTML_DEFAULT_FILENAME, 'r') as file:
         assert file.read() == expected_file_data
 
     # With custom filename
-    Axe._create_html_report(test_data, TEST_HTML_CUSTOM_FILENAME.replace(".html", ""))
+    Axe._create_html_report(test_data, AXE_REPORTS_DIR, TEST_HTML_CUSTOM_FILENAME.replace(".html", ""))
     with open(AXE_REPORTS_DIR / TEST_HTML_CUSTOM_FILENAME, 'r') as file:
         assert file.read() == expected_file_data
 
