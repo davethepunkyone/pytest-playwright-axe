@@ -20,7 +20,7 @@ WCAG_KEYS = {
     'wcag22a': 'WCAG 2.2 (A)',
     'wcag22aa': 'WCAG 2.2 (AA)',
     'best-practice': 'Best Practice'
-    }
+}
 
 KEY_MAPPING = {
     "testEngine": "Test Engine",
@@ -31,8 +31,10 @@ KEY_MAPPING = {
     "url": "URL",
 }
 
-WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
-OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + str(WCAG_22AA_RULESET) + "}}"
+WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa',
+                     'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
+OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + \
+    str(WCAG_22AA_RULESET) + "}}"
 
 
 class Axe:
@@ -70,7 +72,8 @@ class Axe:
 
         page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
 
-        response = page.evaluate("axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
+        response = page.evaluate(
+            "axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
 
         logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
                     Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
@@ -84,21 +87,22 @@ class Axe:
                 Axe._create_json_report(response, output_directory, filename)
 
         if violations_detected and strict_mode:
-            raise AxeAccessibilityException(f"Axe Accessibility Violation detected on page: {response["url"]}")
+            raise AxeAccessibilityException(
+                f"Axe Accessibility Violation detected on page: {response["url"]}")
 
         return response
 
     @staticmethod
     def run_list(page: Page,
-                    page_list: list[str],
-                    use_list_for_filename: bool = True,
-                    output_directory: str = PATH_FOR_REPORT,
-                    context: str = "",
-                    options: str = "",
-                    report_on_violation_only: bool = False,
-                    strict_mode: bool = False,
-                    html_report_generated: bool = True,
-                    json_report_generated: bool = True) -> dict:
+                 page_list: list[str],
+                 use_list_for_filename: bool = True,
+                 output_directory: str = PATH_FOR_REPORT,
+                 context: str = "",
+                 options: str = "",
+                 report_on_violation_only: bool = False,
+                 strict_mode: bool = False,
+                 html_report_generated: bool = True,
+                 json_report_generated: bool = True) -> dict:
         """
         This runs axe-core against a list of pages provided.
 
@@ -121,7 +125,8 @@ class Axe:
         results = {}
         for selected_page in page_list:
             page.goto(selected_page)
-            filename = Axe._modify_filename_for_report(selected_page) if use_list_for_filename else ""
+            filename = Axe._modify_filename_for_report(
+                selected_page) if use_list_for_filename else ""
             results[selected_page] = Axe.run(
                 page,
                 filename=filename,
@@ -132,7 +137,7 @@ class Axe:
                 strict_mode=strict_mode,
                 html_report_generated=html_report_generated,
                 json_report_generated=json_report_generated
-                )
+            )
         return results
 
     @staticmethod
@@ -179,7 +184,7 @@ class Axe:
             file.writelines(Axe._generate_html(data))
 
         logger.info(f"HTML report generated: {full_path}")
-    
+
     @staticmethod
     def _generate_html(data: dict) -> str:
         def css_styling() -> str:
@@ -202,7 +207,7 @@ class Axe:
                 if tag in WCAG_KEYS:
                     wcag_tags.append(WCAG_KEYS[tag])
             return ", ".join(wcag_tags)
-        
+
         # --- HTML Generation ---
 
         # HTML header
