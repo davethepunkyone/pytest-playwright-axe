@@ -23,9 +23,9 @@ WCAG_KEYS = {
     }
 
 KEY_MAPPING = {
-    "testEngine": "Test Engine", 
-    "testRunner": "Test Runner", 
-    "testEnvironment": "Test Environment", 
+    "testEngine": "Test Engine",
+    "testRunner": "Test Runner",
+    "testEnvironment": "Test Environment",
     "toolOptions": "Tool Options",
     "timestamp": "Timestamp",
     "url": "URL",
@@ -90,15 +90,15 @@ class Axe:
 
     @staticmethod
     def run_list(page: Page,
-            page_list: list[str],
-            use_list_for_filename: bool = True,
-            output_directory: str = PATH_FOR_REPORT,
-            context: str = "",
-            options: str = "",
-            report_on_violation_only: bool = False,
-            strict_mode: bool = False,
-            html_report_generated: bool = True,
-            json_report_generated: bool = True) -> dict:
+                    page_list: list[str],
+                    use_list_for_filename: bool = True,
+                    output_directory: str = PATH_FOR_REPORT,
+                    context: str = "",
+                    options: str = "",
+                    report_on_violation_only: bool = False,
+                    strict_mode: bool = False,
+                    html_report_generated: bool = True,
+                    json_report_generated: bool = True) -> dict:
         """
         This runs axe-core against a list of pages provided.
 
@@ -210,9 +210,9 @@ class Axe:
 
         # HTML body
         # Title and URL
-        html += f"<h1>Axe Accessibility Report</h1>"
-        html += f"""<p>This is an axe-core accessibility summary generated on 
-                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")} 
+        html += "<h1>Axe Accessibility Report</h1>"
+        html += f"""<p>This is an axe-core accessibility summary generated on
+                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")}
                     for: <strong>{data['url']}</strong></p>"""
 
         # Violations
@@ -248,7 +248,7 @@ class Axe:
 
                 for node in violation['nodes']:
                     violations_table += f'<tr><td style="text-align: center;">{node_count}</td>'
-                    violations_table += f'<td><p>Element Location:</p>'
+                    violations_table += '<td><p>Element Location:</p>'
                     violations_table += f"<pre><code>{escape("<br>".join(node['target']))}</code></pre>"
                     violations_table += f'<p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>'
                     violations_table += f"<td>{str(escape(node['failureSummary'])).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>"
@@ -262,7 +262,7 @@ class Axe:
                 violation_section += f"<strong>Tags:</strong> {", ".join(violation['tags'])}</p>"
                 violation_section += violations_table
                 violation_section += "</td></tr></table>"
-            
+
             html += "</table>"
             html += violation_section
         else:
@@ -288,7 +288,7 @@ class Axe:
                 html += "</tr>"
 
                 pass_count += 1
-            
+
             html += "</table>"
         else:
             html += "<p>No passed checks found.</p>"
@@ -313,7 +313,7 @@ class Axe:
                 html += "</tr>"
 
                 incomplete_count += 1
-            
+
             html += "</table>"
         else:
             html += "<p>No incomplete checks found.</p>"
@@ -336,7 +336,7 @@ class Axe:
                 html += "</tr>"
 
                 inapplicable_count += 1
-            
+
             html += "</table>"
         else:
             html += "<p>No inapplicable checks found.</p>"
@@ -351,14 +351,14 @@ class Axe:
         for key in ["testEngine", "testRunner", "testEnvironment", "toolOptions", "timestamp", "url"]:
             if key in data:
                 html += f"<tr><td>{KEY_MAPPING[key]}</td>"
-                if type(data[key]) == dict:
+                if isinstance(data[key], dict):
                     sub_data = ""
                     for sub_key in data[key]:
                         sub_data += f"{sub_key}: <i>{escape(str(data[key][sub_key]))}</i><br />"
                     html += f"<td>{sub_data}</td></tr>"
                 else:
                     html += f"<td>{escape(str(data[key]))}</td></tr>"
-            
+
         html += "</table>"
 
         # Close tags

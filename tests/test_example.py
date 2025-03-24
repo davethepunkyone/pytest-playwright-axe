@@ -1,5 +1,4 @@
-import pytest
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Page
 from pytest_playwright_axe.axe import Axe, OPTIONS_WCAG_22AA
 
 
