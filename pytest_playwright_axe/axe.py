@@ -9,7 +9,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 AXE_PATH = Path(__file__).parent / "resources" / "axe.js"
-PATH_FOR_REPORT = Path(__file__).parent.parent / "axe-reports"
+PATH_FOR_REPORT = Path(os.getcwd()) / "axe-reports"
 
 WCAG_KEYS = {
     'wcag2a': 'WCAG 2.0 (A)',

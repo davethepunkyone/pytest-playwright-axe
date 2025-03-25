@@ -1,7 +1,7 @@
 import pytest
 import os
 from pathlib import Path
-from pytest_playwright_axe.axe import Axe
+from pytest_playwright_axe import Axe
 
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
