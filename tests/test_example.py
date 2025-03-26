@@ -1,5 +1,5 @@
 from playwright.sync_api import Page
-from pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
+from src.pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
 
 
 def test_basic_example(page: Page) -> None:
