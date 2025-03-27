@@ -59,6 +59,7 @@ class Axe:
         Args:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
             filename (str): [Optional] The filename to use for the outputted reports. If not provided, defaults to the URL under test.
+            output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to /axe-reports directory.
             context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
             options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
@@ -112,6 +113,7 @@ class Axe:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
             page_list (list[playwright.sync_api.Page): A list of URLs to execute against.
             use_list_for_filename (bool): If true, based filenames off the list provided. If false, use the full URL under test for the filename.
+            output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to /axe-reports directory.
             context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
             options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
