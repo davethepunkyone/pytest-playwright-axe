@@ -25,5 +25,5 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: result-output
-          path: /**/axe-reports/
+          path: /home/runner/work/pytest-playwright-axe/pytest-playwright-axe/axe-reports/
           retention-days: 5
