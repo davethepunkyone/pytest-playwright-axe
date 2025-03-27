@@ -7,7 +7,6 @@ library used for scanning for accessibility issues and providing guidance on how
 
 - [Playwright Axe](#playwright-axe)
   - [Table of Contents](#table-of-contents)
-  - [Setup](#setup)
   - [Using the Axe class](#using-the-axe-class)
   - [.run(): Single page scan](#run-single-page-scan)
     - [Required arguments](#required-arguments)
@@ -21,16 +20,9 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Example usage](#example-usage-1)
   - [Rulesets](#rulesets)
   - [Example Reports](#example-reports)
+  - [Versioning](#versioning)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
-
-## Setup
-
-You can clone this whole repository using the code below:
-
-```shell
-git clone https://github.com/davethepunkyone/playwright-axe.git
-```
 
 ## Using the Axe class
 
@@ -184,9 +176,16 @@ The following are examples of the reports generated using this package:
 - HTML Format: [Example File](./examples/example_result_report.html)
 - JSON Format: [Example File](./examples/example_result_report.json)
 
+## Versioning
+
+The versioning for this project is designed to be directly linked to the releases from 
+the [axe-core](https://github.com/dequelabs/axe-core) project, to accurately reflect the
+version of axe-core that is being executed.
+
 ## Licence
 
-Unless stated otherwise, the codebase is released under the [MIT License](LICENCE.md). This covers both the codebase and any sample code in the documentation.
+Unless stated otherwise, the codebase is released under the [MIT License](LICENCE.md).
+This covers both the codebase and any sample code in the documentation.
 
 ## Acknowledgements
 
