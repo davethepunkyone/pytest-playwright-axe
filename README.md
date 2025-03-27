@@ -20,6 +20,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
   - [Rulesets](#rulesets)
+  - [Example Reports](#example-reports)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
 
@@ -175,6 +176,13 @@ Example:
     def test_axe_example(page: Page) -> None:
         page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
         Axe.run(page, options=OPTIONS_WCAG_22AA)
+
+## Example Reports
+
+The following are examples of the reports generated using this package:
+
+- HTML Format: [Example File](./examples/example_result_report.html)
+- JSON Format: [Example File](./examples/example_result_report.json)
 
 ## Licence
 
