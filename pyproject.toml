@@ -10,7 +10,7 @@ where = ["src"]
 
 [project]
 name = "pytest-playwright-axe"
-version = "0.0.2b0"
+version = "4.10.3"
 description = "An axe-core integration for accessibility testing using Playwright Python."
 readme = "README.md"
 authors = [
