@@ -18,12 +18,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Ensure browsers are installed
-        run: python -m playwright install --with-deps
+        run: python -m playwright install
       - name: Run tests
         run: pytest
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: result-output
-          path: test-results/
+          path: /home/runner/work/pytest-playwright-axe/pytest-playwright-axe/axe-reports/
           retention-days: 5

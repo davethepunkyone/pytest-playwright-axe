@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "pytest-playwright>=0.5.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"pytest_playwright_axe.resources" = ["*.js"]
+
+[project]
+name = "pytest-playwright-axe"
+version = "0.0.2b0"
+description = "An axe-core integration for accessibility testing using Playwright Python."
+readme = "README.md"
+authors = [
+  {name = "Dave Harding", email = "dave@punkamania.org"}
+]
+dependencies = [
+  "pytest-playwright>=0.5.1"
+]
+requires-python = ">= 3.12"
+license = "MIT"
+keywords = ["accessibility", "playwright", "axe", "axe-core", "pytest", "wcag", "testing"]
+classifiers = [
+  # How mature is this project? Common values are
+  "Development Status :: 4 - Beta",
+
+  # Indicate who your project is intended for
+  "Topic :: Software Development :: Testing",
+  "Framework :: Pytest",
+
+  # OS
+  "Operating System :: OS Independent",
+
+  # Python versions
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13"
+]
+
+[project.urls]
+Homepage = "https://github.com/davethepunkyone/pytest-playwright-axe"
+Repository = "https://github.com/davethepunkyone/pytest-playwright-axe"
+Issues = "https://github.com/davethepunkyone/pytest-playwright-axe/issues"

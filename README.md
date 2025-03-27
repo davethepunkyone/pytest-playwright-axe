@@ -19,6 +19,8 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Optional arguments](#optional-arguments-1)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
+  - [Rulesets](#rulesets)
+  - [Example Reports](#example-reports)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
 
@@ -34,7 +36,7 @@ git clone https://github.com/davethepunkyone/playwright-axe.git
 
 You can initialise the Axe class by using the following code in your test file:
 
-    from utils.axe import Axe
+    from pytest_playwright_axe import Axe
 
 This Axe module has been designed as a static class, so you do not need to instantiate it when you want to run a scan on a page you have navigated to using Playwright.
 
@@ -48,7 +50,7 @@ This will inject the axe-core code into the page and then execute the axe.run() 
 
 By default, the `Axe.run(page)` command will do the following:
 
-- Scan the page passed in to the WCAG 2.2 AA standard
+- Scan the page passed in with the default axe-core configuration
 - Generate a HTML and JSON report with the findings in the `axe-reports` directory, regardless of if any violations are found
 - Any steps after the `Axe.run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
 - Will return the full response from axe-core as a dict object if the call is set to a variable, e.g. `axe_results = Axe.run(page)` will populate `axe_results` to interact with as required
@@ -65,14 +67,16 @@ The following are required for `Axe.run()`:
 
 The `Axe.run(page)` has the following optional arguments that can be passed in:
 
-| Argument                   | Format      | Supported Values                                                                            | Default Value                                                                          | Description                                                                                                                                                      |
-| -------------------------- | ----------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ruleset`                  | `list[str]` | Any provided by [axe-core](https://www.deque.com/axe/core-documentation/api-documentation/) | `['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']` | The tags that axe-core uses to filter specific checks. Defaulted to rules used for the WCAG 2.2 AA standard.                                                     |
-| `filename`                 | `str`       | A string valid for a filename (e.g. `test_report`)                                          |                                                                                        | If provided, HTML and JSON reports will save with the filename provided. If not provided (default), the URL of the page under test will be used as the filename. |
-| `report_on_violation_only` | `bool`      | `True`, `False`                                                                             | `False`                                                                                | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                        |
-| `strict_mode`              | `bool`      | `True`, `False`                                                                             | `False`                                                                                | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                               |
-| `html_report_generated`    | `bool`      | `True`, `False`                                                                             | `True`                                                                                 | If True, a HTML report will be generated summarising the axe-core findings.                                                                                      |
-| `json_report_generated`    | `bool`      | `True`, `False`                                                                             | `True`                                                                                 | If True, a JSON report will be generated with the full axe-core findings.                                                                                        |
+| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `filename`                 | `str`  | A string valid for a filename (e.g. `test_report`)                                                                |               | If provided, HTML and JSON reports will save with the filename provided. If not provided (default), the URL of the page under test will be used as the filename.                                                                                                        |
+| `output_directory`         | `str`  | A string valid for a directory (e.g. `axe_reports`)                                                               |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `<root>/axe-reports`.                                                                                                                                |
+| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
+| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
+| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                               |
+| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
+| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
+| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
 
 ### Returns
 
@@ -80,12 +84,27 @@ This function can be used independently, but when set to a variable returns a `d
 
 ### Example usage
 
-    from utils.axe import Axe
+A default execution with no arguments:
+
+    from pytest_playwright_axe import Axe
     from playwright.sync_api import Page
 
     def test_axe_example(page: Page) -> None:
-        page.goto("https://github.com/nhs-england-tools/playwright-python-blueprint")
+        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
         Axe.run(page)
+
+A WCAG 2.2 (AA) execution, with a custom filename, strict mode enabled and only HTML output provided:
+
+    from pytest_playwright_axe import Axe
+    from playwright.sync_api import Page
+
+    def test_axe_example(page: Page) -> None:
+        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+        Axe.run(page, 
+                filename="test_report",
+                options="{runOnly: {type: 'tag', values: ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']}}",
+                strict_mode=True,
+                json_report_generated=False)
 
 ## .run_list(): Multiple page scan
 
@@ -93,16 +112,16 @@ To scan multiple URLs within your application, you can use the following method:
 
     Axe.run_list(page, page_list)
 
-This runs the `Axe.run()` function noted above against each URL provided in the `page_list` argument, and will generate reports as required.
+This runs the `Axe.run(page)` function noted above against each URL provided in the `page_list` argument, and will generate reports as required. This navigates by using the Playwright Page's `.goto()` method, so this only works for pages that can be directly accessed.
 
 ### Required arguments
 
 The following are required for `Axe.run_list()`:
 
-| Argument  | Format                   | Description                                                        |
-| --------- | ------------------------ | ------------------------------------------------------------------ |
-| page      | playwright.sync_api.Page | A Playwright Page object to drive navigation to each page to test. |
-| page_list | list[str]                | A list of URLs to execute against                                  |
+| Argument  | Format                     | Description                                                                    |
+| --------- | -------------------------- | ------------------------------------------------------------------------------ |
+| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test.             |
+| page_list | `list[str]`                | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`) |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
 
@@ -110,14 +129,16 @@ The following are required for `Axe.run_list()`:
 
 The `Axe.run_list(page, page_list)` function has the following optional arguments that can be passed in:
 
-| Argument                   | Format      | Supported Values                                                                            | Default Value                                                                          | Description                                                                                                     |
-| -------------------------- | ----------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `use_list_for_filename`    | `bool`      | `True`, `False`                                                                             | `True`                                                                                 | If True, the filename will be derived from the value provided in the list. If False, the full URL will be used. |
-| `ruleset`                  | `list[str]` | Any provided by [axe-core](https://www.deque.com/axe/core-documentation/api-documentation/) | `['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']` | The tags that axe-core uses to filter specific checks. Defaulted to rules used for the WCAG 2.2 AA standard.    |
-| `report_on_violation_only` | `bool`      | `True`, `False`                                                                             | `False`                                                                                | If True, HTML and JSON reports will only be generated if at least one violation is found.                       |
-| `strict_mode`              | `bool`      | `True`, `False`                                                                             | `False`                                                                                | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.              |
-| `html_report_generated`    | `bool`      | `True`, `False`                                                                             | `True`                                                                                 | If True, a HTML report will be generated summarising the axe-core findings.                                     |
-| `json_report_generated`    | `bool`      | `True`, `False`                                                                             | `True`                                                                                 | If True, a JSON report will be generated with the full axe-core findings.                                       |
+| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `use_list_for_filename`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, the filename will be derived from the value provided in the list. If False, the full URL will be used.                                                                                                                                                         |
+| `output_directory`         | `str`  | A string valid for a directory (e.g. `axe_reports`)                                                               |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `<root>/axe-reports`.                                                                                                                                |
+| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
+| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
+| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                               |
+| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
+| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
+| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
 
 ### Returns
 
@@ -127,18 +148,41 @@ This function can be used independently, but when set to a variable returns a `d
 
 When using the following command: `pytest --base-url https://www.github.com`:
 
-    from utils.axe import Axe
+    from pytest_playwright_axe import Axe
     from playwright.sync_api import Page
 
     def test_accessibility(page: Page) -> None:
         # A list of URLs to loop through
         urls_to_check = [
-            "nhs-england-tools/playwright-python-blueprint",
-            "nhs-england-tools/playwright-python-blueprint/wiki"
+            "davethepunkyone/pytest-playwright-axe",
+            "davethepunkyone/pytest-playwright-axe/issues"
             ]
 
         Axe.run_list(page, urls_to_check)
 
+## Rulesets
+
+The following rulesets can also be imported via the `pytest_playwright_axe` module:
+
+| Ruleset     | Import              | Rules Applied                                                                          |
+| ----------- | ------------------- | -------------------------------------------------------------------------------------- |
+| WCAG 2.2 AA | `OPTIONS_WCAG_22AA` | `['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']` |
+
+Example:
+
+    from pytest_playwright_axe import Axe, WCAG_22AA_RULESET
+    from playwright.sync_api import Page
+
+    def test_axe_example(page: Page) -> None:
+        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+        Axe.run(page, options=OPTIONS_WCAG_22AA)
+
+## Example Reports
+
+The following are examples of the reports generated using this package:
+
+- HTML Format: [Example File](./examples/example_result_report.html)
+- JSON Format: [Example File](./examples/example_result_report.json)
 
 ## Licence
 
