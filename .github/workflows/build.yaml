@@ -25,5 +25,5 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: result-output
-          path: /axe-reports/
+          path: /**/axe-reports/
           retention-days: 5
