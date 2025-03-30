@@ -1,7 +1,6 @@
 name: Check Axe Version
 
-on: 
-  workflow_dispatch:
+on: [workflow_dispatch]
 
 jobs:
   axe-dependency-check:
@@ -18,7 +17,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
             python-version: 3.13
-      - name: execute py script
+      - name: Execute Python script to check axe-core version
         id: check_results
         run: |
             python scripts/check_axe_core_version.py
