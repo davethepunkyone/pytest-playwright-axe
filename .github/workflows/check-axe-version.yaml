@@ -1,0 +1,28 @@
+name: Check Axe Version
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  axe-dependency-check:
+    name: "Axe Version Comparison Check"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - run: |
+          git checkout ${{ github.head_ref || github.ref_name }}
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+            python-version: 3.13
+      - name: execute py script
+        id: check_results
+        run: |
+            python scripts/check_axe_core_version.py
+      - name: Echo if check required
+        run: |
+            echo "Output from script: ${{ steps.check_results.outputs.update_required }}"
+        

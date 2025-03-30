@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
+import os
 import requests
 import logging
 from src.pytest_playwright_axe import __version__ as package_version
@@ -20,7 +21,14 @@ def axe_core_update_required() -> bool:
     current_version = f"v{package_version}" if "-" not in package_version else f"v{package_version.split('-')[0]}"
     logging.info(f"Current axe-core version: {current_version}")
     
-    return current_version != latest_version
+    result = current_version != latest_version
+    logging.info(f"Update required: {result}")
+
+    if 'GITHUB_OUTPUT' in os.environ:
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as gho:
+            gho.write(f"update_required={current_version != latest_version}")
+
+    return result
 
 
 if __name__ == "__main__":
