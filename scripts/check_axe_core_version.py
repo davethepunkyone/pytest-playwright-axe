@@ -18,7 +18,7 @@ def axe_core_update_required() -> bool:
     else:
         logging.error("Failed to fetch the latest axe-core version from GitHub.")
     
-    current_version = f"v{package_version}" if "-" not in package_version else f"v{package_version.split('-')[0]}"
+    current_version = str(f"v{package_version}" if "-" not in package_version else f"v{package_version.split('-')[0]}")
     logging.info(f"Current axe-core version: {current_version}")
     
     result = current_version != latest_version
@@ -27,8 +27,8 @@ def axe_core_update_required() -> bool:
     if 'GITHUB_OUTPUT' in os.environ:
         with open(os.environ['GITHUB_OUTPUT'], 'a') as gho:
             gho.write(f"update_required={current_version != latest_version}\n")
-            gho.write(f"new_version={latest_version.replace('v', '')}\n")
-            gho.write(f"current_version={current_version.replace('v', '')}")
+            gho.write(f"axe_core_version={latest_version.replace('v', '')}\n")
+            gho.write(f"package_version={current_version.replace('v', '')}")
 
     return result
 

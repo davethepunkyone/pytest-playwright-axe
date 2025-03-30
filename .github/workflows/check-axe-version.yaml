@@ -31,8 +31,8 @@ jobs:
       - name: Echo if check required
         run: |
             echo "Update required: ${{ steps.check_results.outputs.update_required }}"
-            echo "Current version of axe-core: ${{ steps.check_results.outputs.update_required }}"
-            echo "Current version of this package: ${{ steps.check_results.outputs.latest_version }}"
+            echo "Current version of axe-core: ${{ steps.check_results.outputs.axe_core_version }}"
+            echo "Current version of this package: ${{ steps.check_results.outputs.package_version }}"
       - name: Trigger workflow_dispatch if axe-core version is different
         if: steps.check_results.outputs.update_required == 'True'
         run: |
