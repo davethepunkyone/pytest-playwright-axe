@@ -13,7 +13,7 @@ def axe_core_update_required() -> bool:
     url = "https://api.github.com/repos/dequelabs/axe-core/releases/latest"
     response = requests.get(url)
     if response.status_code == 200:
-        latest_version = response.json()["tag_name"]
+        latest_version = str(response.json()["tag_name"])
         logging.info(f"Latest axe-core version: {latest_version}")
     else:
         logging.error("Failed to fetch the latest axe-core version from GitHub.")
@@ -26,7 +26,9 @@ def axe_core_update_required() -> bool:
 
     if 'GITHUB_OUTPUT' in os.environ:
         with open(os.environ['GITHUB_OUTPUT'], 'a') as gho:
-            gho.write(f"update_required={current_version != latest_version}")
+            gho.write(f"update_required={current_version != latest_version}\n")
+            gho.write(f"new_version={latest_version.replace('v', '')}\n")
+            gho.write(f"current_version={current_version.replace('v', '')}")
 
     return result
 

@@ -30,5 +30,15 @@ jobs:
             python scripts/check_axe_core_version.py
       - name: Echo if check required
         run: |
-            echo "Output from script: ${{ steps.check_results.outputs.update_required }}"
+            echo "Update required: ${{ steps.check_results.outputs.update_required }}"
+            echo "Current version of axe-core: ${{ steps.check_results.outputs.update_required }}"
+            echo "Current version of this package: ${{ steps.check_results.outputs.latest_version }}"
+      - name: Trigger workflow_dispatch if axe-core version is different
+        if: steps.check_results.outputs.update_required == 'True'
+        run: |
+            echo "Axe-core version is different. Triggering workflow_dispatch..."
+            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/axe-dependency-check.yaml/dispatches \
+            -d '{"ref": "${{ github.ref_name }}"}'
         
