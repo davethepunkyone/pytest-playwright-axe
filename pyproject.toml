@@ -24,7 +24,7 @@ license = "MIT"
 keywords = ["accessibility", "playwright", "axe", "axe-core", "pytest", "wcag", "testing"]
 classifiers = [
   # How mature is this project? Common values are
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
 
   # Indicate who your project is intended for
   "Topic :: Software Development :: Testing",
