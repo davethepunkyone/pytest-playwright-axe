@@ -47,7 +47,7 @@ jobs:
           script: |
             const { repo, owner } = context.repo;
             const result = await github.rest.pulls.create({
-              title: '[Example] Simple demo',
+              title: 'Update axe-core files',
               owner,
               repo,
               head: 'axe-dependency-check',
@@ -62,4 +62,10 @@ jobs:
               repo,
               issue_number: result.data.number,
               labels: ['feature', 'automated pr']
+            });
+            github.rest.issues.requestReviewers({
+              owner,
+              repo,
+              pull_number: result.data.number,
+              reviewers: ['davethepunkyone']
             });
