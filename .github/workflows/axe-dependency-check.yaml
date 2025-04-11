@@ -40,7 +40,7 @@ jobs:
           git add src/pytest_playwright_axe/resources/axe.js
           git add src/pytest_playwright_axe/resources/axe.min.js
           git commit -m "axe-core automated update"
-          git push
+          git push --set-upstream origin axe-dependency-check
       - name: Create Pull Request
         uses: actions/github-script@v6
         with:
