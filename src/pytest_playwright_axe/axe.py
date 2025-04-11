@@ -165,7 +165,7 @@ class Axe:
         if not os.path.exists(path_for_report):
             os.mkdir(path_for_report)
 
-        return path_for_report / filename
+        return Path(path_for_report) / filename
 
     @staticmethod
     def _create_json_report(data: dict, path_for_report: str, filename_override: str = "") -> None:

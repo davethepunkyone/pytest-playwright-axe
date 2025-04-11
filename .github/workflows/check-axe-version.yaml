@@ -12,16 +12,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - run: |
-          git checkout ${{ github.head_ref || github.ref_name }}
+          git checkout ${{ github.head_ref }}
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
             python-version: 3.13
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pip install poetry
+            poetry install --no-interaction --all-extras
+            poetry add requests
       - name: Execute Python script to check axe-core version
         id: check_results
         run: |
             python scripts/check_axe_core_version.py
       - name: Echo if check required
         run: |
-            echo "Output from script: ${{ steps.check_results.outputs.update_required }}"
+            echo "Update required: ${{ steps.check_results.outputs.update_required }}"
+            echo "Current version of axe-core: ${{ steps.check_results.outputs.axe_core_version }}"
+            echo "Current version of this package: ${{ steps.check_results.outputs.package_version }}"
+      - name: Trigger workflow_dispatch if axe-core version is different
+        if: steps.check_results.outputs.update_required == 'True'
+        run: |
+            echo "Axe-core version is different. Triggering workflow_dispatch..."
+            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/axe-dependency-check.yaml/dispatches \
+            -d '{"ref": "${{ github.ref_name }}"}'
         
