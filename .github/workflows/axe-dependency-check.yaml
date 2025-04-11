@@ -1,4 +1,4 @@
-name: Run Axe Dependency Check
+name: Build New Axe Version
 
 on: [workflow_dispatch]
 
@@ -19,17 +19,17 @@ jobs:
           node-version: 'latest'
       - name: Install axe-core in temp dir
         run: |
-          cd src/resources
+          cd src/pytest_playwright_axe/resources
           mkdir temp
           cd temp
           npm install axe-core
       - name: Retrieve axe.js file
         run: |
-          cd src/resources/temp/node_modules/axe-core
+          cd src/pytest_playwright_axe/resources/temp/node_modules/axe-core
           mv axe.js ../../../
       - name: Remove temp directory
         run: |
-          cd src/resources
+          cd src/pytest_playwright_axe/resources
           rm -rf temp
       - name: Commit to axe-dependency-check branch
         run: |
