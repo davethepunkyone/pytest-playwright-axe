@@ -27,6 +27,7 @@ jobs:
         run: |
           cd src/pytest_playwright_axe/resources/temp/node_modules/axe-core
           mv axe.js ../../../
+          mv axe.min.js ../../../
       - name: Remove temp directory
         run: |
           cd src/pytest_playwright_axe/resources
