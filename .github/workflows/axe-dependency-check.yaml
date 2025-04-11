@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - run: |
-          git checkout ${{ github.head_ref || github.ref_name }}
+          git checkout ${{ github.head_ref }}
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,6 +37,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b axe-dependency-check
           git add src/resources/axe.js
+          git add src/resources/axe.min.js
           git commit -m "axe-core automated update"
           git push
       - name: Create Pull Request
