@@ -36,8 +36,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b axe-dependency-check
-          git add src/resources/axe.js
-          git add src/resources/axe.min.js
+          git add src/pytest_playwright_axe/resources/axe.js
+          git add src/pytest_playwright_axe/resources/axe.min.js
           git commit -m "axe-core automated update"
           git push
       - name: Create Pull Request
