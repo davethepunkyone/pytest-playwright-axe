@@ -40,6 +40,5 @@ jobs:
             curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/axe-dependency-check.yaml/dispatches \
-            -d '{"ref": "${{ github.ref_name }}","inputs":{"current_version":"${{ steps.check_results.outputs.axe_core_version }}",\
-            "old_version":"${{ steps.check_results.outputs.package_version }}"}}'
+            -d '{"ref": "${{ github.ref_name }}","inputs":{"current_version":"${{ steps.check_results.outputs.axe_core_version }}","old_version":"${{ steps.check_results.outputs.package_version }}"}}'
             echo "Workflow dispatched successfully."
