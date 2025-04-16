@@ -1,6 +1,10 @@
 name: Check Axe Version
 
-on: [workflow_dispatch]
+on:
+  schedule:
+    - cron: "0 5 * * 5" # Every Friday at 5 AM UTC
+  workflow_dispatch:
+    # Manual trigger
 
 jobs:
   axe-dependency-check:

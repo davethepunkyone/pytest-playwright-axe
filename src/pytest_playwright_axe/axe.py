@@ -9,6 +9,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 AXE_PATH = Path(__file__).parent / "resources" / "axe.js"
+MIN_AXE_PATH = Path(__file__).parent / "resources" / "axe.min.js"
 PATH_FOR_REPORT = Path(os.getcwd()) / "axe-reports"
 
 WCAG_KEYS = {
@@ -52,7 +53,8 @@ class Axe:
             report_on_violation_only: bool = False,
             strict_mode: bool = False,
             html_report_generated: bool = True,
-            json_report_generated: bool = True) -> dict:
+            json_report_generated: bool = True,
+            use_minified_file: bool = False) -> dict:
         """
         This runs axe-core against the page provided.
 
@@ -66,12 +68,14 @@ class Axe:
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
+            use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
 
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
         """
-
-        page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
+        
+        axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
+        page.evaluate(axe_path.read_text(encoding="UTF-8"))
 
         response = page.evaluate(
             "axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
@@ -103,7 +107,8 @@ class Axe:
                  report_on_violation_only: bool = False,
                  strict_mode: bool = False,
                  html_report_generated: bool = True,
-                 json_report_generated: bool = True) -> dict:
+                 json_report_generated: bool = True,
+                 use_minified_file: bool = False) -> dict:
         """
         This runs axe-core against a list of pages provided.
 
@@ -120,6 +125,7 @@ class Axe:
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
+            use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
 
         Returns:
             dict: A Python dictionary with the axe-core output of all the pages scanned, with the page list used as the key for each report.
@@ -138,7 +144,8 @@ class Axe:
                 report_on_violation_only=report_on_violation_only,
                 strict_mode=strict_mode,
                 html_report_generated=html_report_generated,
-                json_report_generated=json_report_generated
+                json_report_generated=json_report_generated,
+                use_minified_file=use_minified_file
             )
         return results
 
@@ -219,7 +226,7 @@ class Axe:
         # Title and URL
         html += "<h1>Axe Accessibility Report</h1>"
         html += f"""<p>This is an axe-core accessibility summary generated on
-                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")}
+                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
                     for: <strong>{data['url']}</strong></p>"""
 
         # Violations
