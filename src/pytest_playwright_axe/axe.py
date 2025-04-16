@@ -226,7 +226,7 @@ class Axe:
         # Title and URL
         html += "<h1>Axe Accessibility Report</h1>"
         html += f"""<p>This is an axe-core accessibility summary generated on
-                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")}
+                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
                     for: <strong>{data['url']}</strong></p>"""
 
         # Violations
