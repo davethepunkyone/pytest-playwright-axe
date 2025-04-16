@@ -1,10 +1,16 @@
 name: Build New Axe Version
 
 on: 
-  schedule:
-    - cron: "0 5 * * 5" # Every Friday at 5 AM UTC
   workflow_dispatch:
-    # Manual trigger
+    inputs:
+      old_version:
+        description: 'The old axe-core version to be replaced'
+        required: true
+        type: string
+      current_version:
+        description: 'The new axe-core version to use'
+        required: true
+        type: string
 
 jobs:
   axe-dependency-check:
