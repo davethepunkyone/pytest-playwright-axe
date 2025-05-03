@@ -227,7 +227,7 @@ class Axe:
         return html
 
     @staticmethod
-    def _generate_violations_section(violations_data: dict) -> str:
+    def _generate_violations_section(violations_data: list) -> str:
         """Generate the violations section of the HTML report."""
 
         html = "<h2>Violations Found</h2>"
@@ -284,13 +284,13 @@ class Axe:
         return f"{html}</table>{violation_section}"
     
     @staticmethod
-    def _generate_passed_section(passed_data: dict) -> str:
+    def _generate_passed_section(passed_data: list) -> str:
         """Generate the passed section of the HTML report."""
 
         html = "<h2>Passed Checks</h2>"
 
         if len(passed_data) == 0:
-            return f"<p>{html}No passed checks found.</p>"
+            return f"{html}<p>No passed checks found.</p>"
             
         html += f"<table><tr>{Axe._generate_table_header([
             ("#", "2", True), ("Description", "50", False), 
@@ -314,7 +314,7 @@ class Axe:
         return f"{html}</table>"
 
     @staticmethod
-    def _generate_incomplete_section(incomplete_data: dict) -> str:
+    def _generate_incomplete_section(incomplete_data: list) -> str:
         """Generate the incomplete section of the HTML report."""
 
         html = "<h2>Incomplete Checks</h2>"
@@ -344,7 +344,7 @@ class Axe:
         return f"{html}</table>"
 
     @staticmethod
-    def _generate_inapplicable_section(inapplicable_data: dict) -> str:
+    def _generate_inapplicable_section(inapplicable_data: list) -> str:
         """This method generates the inapplicable section of the HTML report."""
 
         html = "<h2>Inapplicable Checks</h2>"
