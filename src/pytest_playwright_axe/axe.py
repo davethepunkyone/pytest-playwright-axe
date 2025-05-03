@@ -73,7 +73,7 @@ class Axe:
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
         """
-        
+
         axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
         page.evaluate(axe_path.read_text(encoding="UTF-8"))
 
@@ -195,172 +195,192 @@ class Axe:
         logger.info(f"HTML report generated: {full_path}")
 
     @staticmethod
-    def _generate_html(data: dict) -> str:
-        def css_styling() -> str:
-            return """
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1, h2, h3 { color: #333; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                    th { background-color: #f4f4f4; }
-                    pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
-                    code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
-                    p { margin: 10px 0; }
-                    div { padding: 10px; border: 1px solid #ddd; }
-                </style>"""
+    def _css_styling() -> str:
+        return """
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1, h2, h3 { color: #333; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f4f4f4; }
+                pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
+                code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
+                p { margin: 10px 0; }
+                div { padding: 10px; border: 1px solid #ddd; }
+            </style>"""
 
-        def wcag_tagging(tags: list[str]) -> str:
-            wcag_tags = []
-            for tag in tags:
-                if tag in WCAG_KEYS:
-                    wcag_tags.append(WCAG_KEYS[tag])
-            return ", ".join(wcag_tags)
+    @staticmethod
+    def _wcag_tagging(tags: list[str]) -> str:
+        wcag_tags = []
+        for tag in tags:
+            if tag in WCAG_KEYS:
+                wcag_tags.append(WCAG_KEYS[tag])
+        return ", ".join(wcag_tags)
 
-        # --- HTML Generation ---
+    @staticmethod
+    def _generate_table_header(headers: list[tuple[str, str, bool]]) -> str:
+        """Generate the header row for tables in the standard format."""
+        html = ""
+        for header in headers:
+            html += f'<th style="{"text-align: center; " if header[2] else ""}width: {header[1]}%">{header[0]}</th>'
 
-        # HTML header
-        html = f"<!DOCTYPE html><html><head>{css_styling()}<title>Axe Accessibility Report</title></head><body>"
+        return html
 
-        # HTML body
-        # Title and URL
-        html += "<h1>Axe Accessibility Report</h1>"
-        html += f"""<p>This is an axe-core accessibility summary generated on
-                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
-                    for: <strong>{data['url']}</strong></p>"""
+    @staticmethod
+    def _generate_violations_section(violations_data: list) -> str:
+        """Generate the violations section of the HTML report."""
 
-        # Violations
-        # Summary
-        html += "<h2>Violations Found</h2>"
-        if len(data['violations']) > 0:
-            html += f"<p>{len(data['violations'])} violations found.</p>"
+        html = "<h2>Violations Found</h2>"
 
-            html += "<table><tr>"
-            for header in [("#", "2", "text-align: center; "), ("Description", "53", ""), ("Axe Rule ID", "15", ""), ("WCAG", "15", ""), ("Impact", "10", ""), ("Count", "5", "text-align: center; ")]:
-                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
+        if len(violations_data) == 0:
+            return f"{html}<p>No violations found.</p>"
 
-            violation_count = 1
-            violation_section = ""
-            for violation in data['violations']:
-                violations_table = ""
+        html += f"<p>{len(violations_data)} violations found.</p>"
 
-                html += "<tr>"
-                html += f'<td style="text-align: center;">{violation_count}</td>'
-                html += f"<td>{escape(violation['description'])}</td>"
-                html += f'<td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>'
-                html += f"<td>{wcag_tagging(violation['tags'])}</td>"
-                html += f"<td>{violation['impact']}</td>"
-                html += f'<td style="text-align: center;">{len(violation['nodes'])}</td>'
-                html += "</tr>"
+        html += f"<table><tr>{Axe._generate_table_header([
+            ("#", "2", True), ("Description", "53", False),
+            ("Axe Rule ID", "15", False), ("WCAG", "15", False),
+            ("Impact", "10", False), ("Count", "5", True)
+        ])}"
 
-                violation_count += 1
+        violation_count = 1
+        violation_section = ""
+        for violation in violations_data:
+            violations_table = ""
 
-                violations_table += "<table><tr>"
-                node_count = 1
-                for header in [("#", "2", "text-align: center; "), ("Description", "49", ""), ("Fix Information", "49", "")]:
-                    violations_table += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
+            html += f'''<tr>
+                    <td style="text-align: center;">{violation_count}</td>
+                    <td>{escape(violation['description'])}</td>
+                    <td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>
+                    <td>{Axe._wcag_tagging(violation['tags'])}</td>
+                    <td>{violation['impact']}</td>
+                    <td style="text-align: center;">{len(violation['nodes'])}</td>
+                    </tr>'''
 
-                for node in violation['nodes']:
-                    violations_table += f'<tr><td style="text-align: center;">{node_count}</td>'
-                    violations_table += '<td><p>Element Location:</p>'
-                    violations_table += f"<pre><code>{escape("<br>".join(node['target']))}</code></pre>"
-                    violations_table += f'<p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>'
-                    violations_table += f"<td>{str(escape(node['failureSummary'])).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>"
-                    node_count += 1
-                violations_table += "</table>"
+            violation_count += 1
 
-                violation_section += f'<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>'
-                violation_section += f'<p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />'
-                violation_section += f"<strong>WCAG:</strong> {wcag_tagging(violation['tags'])}<br />"
-                violation_section += f"<strong>Impact:</strong> {violation['impact']}<br />"
-                violation_section += f"<strong>Tags:</strong> {", ".join(violation['tags'])}</p>"
-                violation_section += violations_table
-                violation_section += "</td></tr></table>"
+            node_count = 1
+            violations_table += f"<table><tr>{Axe._generate_table_header([
+                ("#", "2", True), ("Description", "49", False), 
+                ("Fix Information", "49", False)
+            ])}"
 
-            html += "</table>"
-            html += violation_section
-        else:
-            html += "<p>No violations found.</p>"
+            for node in violation['nodes']:
+                violations_table += f'''<tr><td style="text-align: center;">{node_count}</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>{escape("<br>".join(node['target']))}</code></pre>
+                                    <p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>
+                                    <td>{str(escape(node['failureSummary'])).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
+                node_count += 1
+            violations_table += "</table>"
 
-        # Passed Checks (Collapsible)
-        html += "<h2>Passed Checks</h2>"
-        if len(data['passes']) > 0:
-            html += "<table><tr>"
-            for header in [("#", "2", "text-align: center; "), ("Description", "50", ""), ("Axe Rule ID", "15", ""), ("WCAG", "18", ""), ("Nodes Passed Count", "15", "text-align: center; ")]:
-                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
+            violation_section += f'''<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>
+                                <p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />
+                                <strong>WCAG:</strong> {Axe._wcag_tagging(violation['tags'])}<br />
+                                <strong>Impact:</strong> {violation['impact']}<br />
+                                <strong>Tags:</strong> {", ".join(violation['tags'])}</p>
+                                {violations_table}
+                                </td></tr></table>'''
 
-            pass_count = 1
-            for passed in data['passes']:
-                violations_table = ""
+        return f"{html}</table>{violation_section}"
 
-                html += "<tr>"
-                html += f'<td style="text-align: center;">{pass_count}</td>'
-                html += f"<td>{escape(passed['description'])}</td>"
-                html += f'<td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>'
-                html += f"<td>{wcag_tagging(passed['tags'])}</td>"
-                html += f'<td style="text-align: center;">{len(passed['nodes'])}</td>'
-                html += "</tr>"
+    @staticmethod
+    def _generate_passed_section(passed_data: list) -> str:
+        """Generate the passed section of the HTML report."""
 
-                pass_count += 1
+        html = "<h2>Passed Checks</h2>"
 
-            html += "</table>"
-        else:
-            html += "<p>No passed checks found.</p>"
+        if len(passed_data) == 0:
+            return f"{html}<p>No passed checks found.</p>"
 
-        # Incomplete Checks (Collapsible)
-        html += "<h2>Incomplete Checks</h2>"
-        if len(data['incomplete']) > 0:
-            html += "<table><tr>"
-            for header in [("#", "2", "text-align: center; "), ("Description", "50", ""), ("Axe Rule ID", "15", ""), ("WCAG", "18", ""), ("Nodes Incomplete Count", "15", "text-align: center; ")]:
-                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
+        html += f"<table><tr>{Axe._generate_table_header([
+            ("#", "2", True), ("Description", "50", False),
+            ("Axe Rule ID", "15", False), ("WCAG", "18", False),
+            ("Nodes Passed Count", "15", True)
+        ])}"
 
-            incomplete_count = 1
-            for incomplete in data['incomplete']:
-                violations_table = ""
+        pass_count = 1
+        for passed in passed_data:
 
-                html += "<tr>"
-                html += f'<td style="text-align: center;">{incomplete_count}</td>'
-                html += f"<td>{escape(incomplete['description'])}</td>"
-                html += f'<td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>'
-                html += f"<td>{wcag_tagging(incomplete['tags'])}</td>"
-                html += f'<td style="text-align: center;">{len(incomplete['nodes'])}</td>'
-                html += "</tr>"
+            html += f'''<tr>
+                    <td style="text-align: center;">{pass_count}</td>
+                    <td>{escape(passed['description'])}</td>
+                    <td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>
+                    <td>{Axe._wcag_tagging(passed['tags'])}</td>
+                    <td style="text-align: center;">{len(passed['nodes'])}</td>
+                    </tr>'''
 
-                incomplete_count += 1
+            pass_count += 1
 
-            html += "</table>"
-        else:
-            html += "<p>No incomplete checks found.</p>"
+        return f"{html}</table>"
 
-        # Inapplicable Checks (Collapsible)
-        html += "<h2>Inapplicable Checks</h2>"
-        if len(data['inapplicable']) > 0:
-            html += "<table><tr>"
-            for header in [("#", "2", "text-align: center; "), ("Description", "60", ""), ("Axe Rule ID", "20", ""), ("WCAG", "18", "")]:
-                html += f'<th style="{header[2]}width: {header[1]}%">{header[0]}</th>'
+    @staticmethod
+    def _generate_incomplete_section(incomplete_data: list) -> str:
+        """Generate the incomplete section of the HTML report."""
 
-            inapplicable_count = 1
-            for inapplicable in data['inapplicable']:
+        html = "<h2>Incomplete Checks</h2>"
 
-                html += "<tr>"
-                html += f'<td style="text-align: center;">{inapplicable_count}</td>'
-                html += f"<td>{escape(inapplicable['description'])}</td>"
-                html += f'<td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>'
-                html += f"<td>{wcag_tagging(inapplicable['tags'])}</td>"
-                html += "</tr>"
+        if len(incomplete_data) == 0:
+            return f"{html}<p>No incomplete checks found.</p>"
 
-                inapplicable_count += 1
+        html += f"<table><tr>{Axe._generate_table_header([
+            ("#", "2", True), ("Description", "50", False),
+            ("Axe Rule ID", "15", False), ("WCAG", "18", False),
+            ("Nodes Incomplete Count", "15", True)
+        ])}"
 
-            html += "</table>"
-        else:
-            html += "<p>No inapplicable checks found.</p>"
+        incomplete_count = 1
+        for incomplete in incomplete_data:
 
-        # Execution Details (Collapsible)
-        html += "<h2>Execution Details</h2>"
+            html += f'''<tr>
+                    <td style="text-align: center;">{incomplete_count}</td>
+                    <td>{escape(incomplete['description'])}</td>
+                    <td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>
+                    <td>{Axe._wcag_tagging(incomplete['tags'])}</td>
+                    <td style="text-align: center;">{len(incomplete['nodes'])}</td>
+                    </tr>'''
 
-        html += "<table><tr>"
-        for header in [("Data", "20"), ("Details", "80")]:
-            html += f'<th style="width: {header[1]}%">{header[0]}</th>'
+            incomplete_count += 1
+
+        return f"{html}</table>"
+
+    @staticmethod
+    def _generate_inapplicable_section(inapplicable_data: list) -> str:
+        """This method generates the inapplicable section of the HTML report."""
+
+        html = "<h2>Inapplicable Checks</h2>"
+
+        if len(inapplicable_data) == 0:
+            return f"{html}<p>No inapplicable checks found.</p>"
+
+        html += f"<table><tr>{Axe._generate_table_header([
+            ("#", "2", True), ("Description", "60", False),
+            ("Axe Rule ID", "20", False), ("WCAG", "18", False)
+        ])}"
+
+        inapplicable_count = 1
+        for inapplicable in inapplicable_data:
+
+            html += f'''<tr>
+                    <td style="text-align: center;">{inapplicable_count}</td>
+                    <td>{escape(inapplicable['description'])}</td>
+                    <td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>
+                    <td>{Axe._wcag_tagging(inapplicable['tags'])}</td>
+                    </tr>'''
+
+            inapplicable_count += 1
+
+        return f"{html}</table>"
+
+    @staticmethod
+    def _generate_execution_details_section(data: dict) -> str:
+        """Generate the execution details section of the HTML report."""
+
+        html = "<h2>Execution Details</h2>"
+
+        html += f"<table><tr>{Axe._generate_table_header([
+            ("Data", "20", False), ("Details", "80", False)
+        ])}"
 
         for key in ["testEngine", "testRunner", "testEnvironment", "toolOptions", "timestamp", "url"]:
             if key in data:
@@ -373,7 +393,36 @@ class Axe:
                 else:
                     html += f"<td>{escape(str(data[key]))}</td></tr>"
 
-        html += "</table>"
+        return f"{html}</table>"
+
+    @staticmethod
+    def _generate_html(data: dict) -> str:
+
+        # HTML header
+        html = f"<!DOCTYPE html><html><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>"
+
+        # HTML body
+        # Title and URL
+        html += "<h1>Axe Accessibility Report</h1>"
+        html += f"""<p>This is an axe-core accessibility summary generated on
+                    {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
+                    for: <strong>{data['url']}</strong></p>"""
+
+        # Violations
+        # Summary
+        html += Axe._generate_violations_section(data['violations'])
+
+        # Passed Checks (Collapsible)
+        html += Axe._generate_passed_section(data['passes'])
+
+        # Incomplete Checks (Collapsible)
+        html += Axe._generate_incomplete_section(data['incomplete'])
+
+        # Inapplicable Checks (Collapsible)
+        html += Axe._generate_inapplicable_section(data['inapplicable'])
+
+        # Execution Details (Collapsible)
+        html += Axe._generate_execution_details_section(data)
 
         # Close tags
         html += "</body></html>"

@@ -18,16 +18,18 @@ def axe_core_update_required() -> bool:
         latest_version = str(response.json()["tag_name"])
         logging.info(f"Latest axe-core version: {latest_version}")
     else:
-        logging.error("Failed to fetch the latest axe-core version from GitHub.")
+        logging.error(
+            "Failed to fetch the latest axe-core version from GitHub.")
 
     with open(TOML_PATH, "rb") as f:
         toml_data = tomllib.load(f)
-    
+
     toml_version = toml_data["project"]["version"]
-    
-    current_version = str(f"v{toml_version}" if "-" not in toml_version else f"v{toml_version.split('-')[0]}")
+
+    current_version = str(
+        f"v{toml_version}" if "-" not in toml_version else f"v{toml_version.split('-')[0]}")
     logging.info(f"Current axe-core version: {current_version}")
-    
+
     result = current_version != latest_version
     logging.info(f"Update required: {result}")
 
