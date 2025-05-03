@@ -73,7 +73,7 @@ class Axe:
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
         """
-        
+
         axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
         page.evaluate(axe_path.read_text(encoding="UTF-8"))
 
@@ -223,7 +223,7 @@ class Axe:
         html = ""
         for header in headers:
             html += f'<th style="{"text-align: center; " if header[2] else ""}width: {header[1]}%">{header[0]}</th>'
-        
+
         return html
 
     @staticmethod
@@ -234,7 +234,7 @@ class Axe:
 
         if len(violations_data) == 0:
             return f"{html}<p>No violations found.</p>"
-        
+
         html += f"<p>{len(violations_data)} violations found.</p>"
 
         html += f"<table><tr>{Axe._generate_table_header([
@@ -261,8 +261,9 @@ class Axe:
 
             node_count = 1
             violations_table += f"<table><tr>{Axe._generate_table_header([
-                ("#", "2", True), ("Description", "49", False), ("Fix Information", "49", False)
-                ])}"
+                ("#", "2", True), ("Description", "49", False), 
+                ("Fix Information", "49", False)
+            ])}"
 
             for node in violation['nodes']:
                 violations_table += f'''<tr><td style="text-align: center;">{node_count}</td>
@@ -280,9 +281,9 @@ class Axe:
                                 <strong>Tags:</strong> {", ".join(violation['tags'])}</p>
                                 {violations_table}
                                 </td></tr></table>'''
-        
+
         return f"{html}</table>{violation_section}"
-    
+
     @staticmethod
     def _generate_passed_section(passed_data: list) -> str:
         """Generate the passed section of the HTML report."""
@@ -291,12 +292,12 @@ class Axe:
 
         if len(passed_data) == 0:
             return f"{html}<p>No passed checks found.</p>"
-            
+
         html += f"<table><tr>{Axe._generate_table_header([
-            ("#", "2", True), ("Description", "50", False), 
-            ("Axe Rule ID", "15", False), ("WCAG", "18", False), 
+            ("#", "2", True), ("Description", "50", False),
+            ("Axe Rule ID", "15", False), ("WCAG", "18", False),
             ("Nodes Passed Count", "15", True)
-            ])}"
+        ])}"
 
         pass_count = 1
         for passed in passed_data:
@@ -310,7 +311,7 @@ class Axe:
                     </tr>'''
 
             pass_count += 1
-        
+
         return f"{html}</table>"
 
     @staticmethod
@@ -321,16 +322,16 @@ class Axe:
 
         if len(incomplete_data) == 0:
             return f"{html}<p>No incomplete checks found.</p>"
-            
+
         html += f"<table><tr>{Axe._generate_table_header([
-            ("#", "2", True), ("Description", "50", False), 
-            ("Axe Rule ID", "15", False), ("WCAG", "18", False), 
+            ("#", "2", True), ("Description", "50", False),
+            ("Axe Rule ID", "15", False), ("WCAG", "18", False),
             ("Nodes Incomplete Count", "15", True)
-            ])}"
+        ])}"
 
         incomplete_count = 1
         for incomplete in incomplete_data:
-            
+
             html += f'''<tr>
                     <td style="text-align: center;">{incomplete_count}</td>
                     <td>{escape(incomplete['description'])}</td>
@@ -340,7 +341,7 @@ class Axe:
                     </tr>'''
 
             incomplete_count += 1
-        
+
         return f"{html}</table>"
 
     @staticmethod
@@ -353,9 +354,9 @@ class Axe:
             return f"{html}<p>No inapplicable checks found.</p>"
 
         html += f"<table><tr>{Axe._generate_table_header([
-            ("#", "2", True), ("Description", "60", False), 
+            ("#", "2", True), ("Description", "60", False),
             ("Axe Rule ID", "20", False), ("WCAG", "18", False)
-            ])}"
+        ])}"
 
         inapplicable_count = 1
         for inapplicable in inapplicable_data:
@@ -370,16 +371,16 @@ class Axe:
             inapplicable_count += 1
 
         return f"{html}</table>"
-    
+
     @staticmethod
     def _generate_execution_details_section(data: dict) -> str:
         """Generate the execution details section of the HTML report."""
 
         html = "<h2>Execution Details</h2>"
-        
+
         html += f"<table><tr>{Axe._generate_table_header([
-                ("Data", "20", False), ("Details", "80", False)
-                ])}"
+            ("Data", "20", False), ("Details", "80", False)
+        ])}"
 
         for key in ["testEngine", "testRunner", "testEnvironment", "toolOptions", "timestamp", "url"]:
             if key in data:
