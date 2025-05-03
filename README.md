@@ -1,6 +1,6 @@
-# Playwright Axe
+# Pytest Playwright Axe
 
-This is a utility for Playwright Python that allows for the execution of [axe-core](https://github.com/dequelabs/axe-core), a JavaScript
+`pytest-playwright-axe` is a package for Playwright Python that allows for the execution of [axe-core](https://github.com/dequelabs/axe-core), a JavaScript
 library used for scanning for accessibility issues and providing guidance on how to resolve these issues.
 
 ## Table of Contents
