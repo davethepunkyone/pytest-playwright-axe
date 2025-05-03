@@ -195,22 +195,22 @@ class Axe:
         logger.info(f"HTML report generated: {full_path}")
 
     @staticmethod
-    def css_styling() -> str:
-            return """
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1, h2, h3 { color: #333; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                    th { background-color: #f4f4f4; }
-                    pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
-                    code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
-                    p { margin: 10px 0; }
-                    div { padding: 10px; border: 1px solid #ddd; }
-                </style>"""
+    def _css_styling() -> str:
+        return """
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1, h2, h3 { color: #333; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f4f4f4; }
+                pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
+                code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
+                p { margin: 10px 0; }
+                div { padding: 10px; border: 1px solid #ddd; }
+            </style>"""
 
     @staticmethod
-    def wcag_tagging(tags: list[str]) -> str:
+    def _wcag_tagging(tags: list[str]) -> str:
         wcag_tags = []
         for tag in tags:
             if tag in WCAG_KEYS:
@@ -252,7 +252,7 @@ class Axe:
                     <td style="text-align: center;">{violation_count}</td>
                     <td>{escape(violation['description'])}</td>
                     <td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>
-                    <td>{Axe.wcag_tagging(violation['tags'])}</td>
+                    <td>{Axe._wcag_tagging(violation['tags'])}</td>
                     <td>{violation['impact']}</td>
                     <td style="text-align: center;">{len(violation['nodes'])}</td>
                     </tr>'''
@@ -275,7 +275,7 @@ class Axe:
 
             violation_section += f'''<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>
                                 <p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />
-                                <strong>WCAG:</strong> {Axe.wcag_tagging(violation['tags'])}<br />
+                                <strong>WCAG:</strong> {Axe._wcag_tagging(violation['tags'])}<br />
                                 <strong>Impact:</strong> {violation['impact']}<br />
                                 <strong>Tags:</strong> {", ".join(violation['tags'])}</p>
                                 {violations_table}
@@ -305,7 +305,7 @@ class Axe:
                     <td style="text-align: center;">{pass_count}</td>
                     <td>{escape(passed['description'])}</td>
                     <td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>
-                    <td>{Axe.wcag_tagging(passed['tags'])}</td>
+                    <td>{Axe._wcag_tagging(passed['tags'])}</td>
                     <td style="text-align: center;">{len(passed['nodes'])}</td>
                     </tr>'''
 
@@ -335,7 +335,7 @@ class Axe:
                     <td style="text-align: center;">{incomplete_count}</td>
                     <td>{escape(incomplete['description'])}</td>
                     <td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>
-                    <td>{Axe.wcag_tagging(incomplete['tags'])}</td>
+                    <td>{Axe._wcag_tagging(incomplete['tags'])}</td>
                     <td style="text-align: center;">{len(incomplete['nodes'])}</td>
                     </tr>'''
 
@@ -364,7 +364,7 @@ class Axe:
                     <td style="text-align: center;">{inapplicable_count}</td>
                     <td>{escape(inapplicable['description'])}</td>
                     <td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>
-                    <td>{Axe.wcag_tagging(inapplicable['tags'])}</td>
+                    <td>{Axe._wcag_tagging(inapplicable['tags'])}</td>
                     </tr>'''
 
             inapplicable_count += 1
@@ -398,7 +398,7 @@ class Axe:
     def _generate_html(data: dict) -> str:
 
         # HTML header
-        html = f"<!DOCTYPE html><html><head>{Axe.css_styling()}<title>Axe Accessibility Report</title></head><body>"
+        html = f"<!DOCTYPE html><html><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>"
 
         # HTML body
         # Title and URL
