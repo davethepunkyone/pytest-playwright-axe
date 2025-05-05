@@ -5,7 +5,7 @@ library used for scanning for accessibility issues and providing guidance on how
 
 ## Table of Contents
 
-- [Playwright Axe](#playwright-axe)
+- [Pytest Playwright Axe](#pytest-playwright-axe)
   - [Table of Contents](#table-of-contents)
   - [Using the Axe class](#using-the-axe-class)
   - [.run(): Single page scan](#run-single-page-scan)
@@ -18,6 +18,11 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Optional arguments](#optional-arguments-1)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
+  - [.get\_rules(): Return rules](#get_rules-return-rules)
+    - [Required Arguments](#required-arguments-2)
+    - [Optional Arguments](#optional-arguments-2)
+    - [Returns](#returns-2)
+    - [Example usage](#example-usage-2)
   - [Rulesets](#rulesets)
   - [Example Reports](#example-reports)
   - [Versioning](#versioning)
@@ -47,6 +52,8 @@ By default, the `Axe.run(page)` command will do the following:
 - Any steps after the `Axe.run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
 - Will return the full response from axe-core as a dict object if the call is set to a variable, e.g. `axe_results = Axe.run(page)` will populate `axe_results` to interact with as required
 
+This uses the [axe-core run method outlined in the axe-core documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun).
+
 ### Required arguments
 
 The following are required for `Axe.run()`:
@@ -69,7 +76,7 @@ The `Axe.run(page)` has the following optional arguments that can be passed in:
 | `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
 | `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
 | `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
-| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                                                                                      |
+| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | _This will be available in the next update (after 4.10.3)._ If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                          |
 
 ### Returns
 
@@ -132,7 +139,7 @@ The `Axe.run_list(page, page_list)` function has the following optional argument
 | `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
 | `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
 | `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
-| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                                                                                      |
+| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | _This will be available in the next update (after 4.10.3)._ If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                          |
 
 ### Returns
 
@@ -153,6 +160,46 @@ When using the following command: `pytest --base-url https://www.github.com`:
             ]
 
         Axe.run_list(page, urls_to_check)
+
+## .get_rules(): Return rules
+
+> _This will be available in the next update (after 4.10.3)._
+
+You can get the rules used for specific tags by using this method, or all rules if no ruleset is provided.
+
+This uses the [axe-core getRules method outlined in the axe-core documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axegetrules).
+
+### Required Arguments
+
+The following are required for `Axe.get_rules()`:
+
+| Argument | Format                     | Description                                              |
+| -------- | -------------------------- | -------------------------------------------------------- |
+| page     | `playwright.sync_api.Page` | A Playwright Page object.. This page can be empty/blank. |
+
+### Optional Arguments
+
+The `Axe.get_rules(page, page_list)` function has the following optional arguments that can be passed in:
+
+| Argument | Format      | Supported Values                                                                                                                    | Default Value | Description                                                                                               |
+| -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------- |
+| `rules`  | `list[str]` | A Python list with strings representing [valid tags](https://www.deque.com/axe/core-documentation/api-documentation/#axecore-tags). | `None`        | If provided, the list of rules to provide information on.  If not provided, return details for all rules. |
+
+### Returns
+
+A Python `list[dict]` object with all matching rules and their descriptors.
+
+### Example usage
+
+    import logging
+    from pytest_playwright_axe import Axe
+    from playwright.sync_api import Page
+
+    def test_get_rules(page: Page) -> None:
+
+        rules = Axe.get_rules(page, ['wcag21aa])
+        for rule in rules:
+            logging.info(rule)
 
 ## Rulesets
 
