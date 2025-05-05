@@ -222,7 +222,7 @@ Example:
 
 The following are examples of the reports generated using this package:
 
-- HTML Format: [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.html)
+- HTML Format (Use download file to see report): [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.html)
 - JSON Format: [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.json)
 
 ## Versioning
