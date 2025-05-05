@@ -150,6 +150,23 @@ class Axe:
         return results
 
     @staticmethod
+    def get_rules(page: Page, rules: list[str] = None) -> list[dict]:
+        """
+        This runs axe.getRules(), returning the specified rules (or all if no ruleset provided).
+
+        Args:
+            page (playwright.sync_api.Page): The page object to execute axe-core against.
+            rules (list[str]): [Optional] A list of rules to return. If not provided, all rules are returned.
+        
+        Returns:
+            list[dict]: A list of dictionaries containing the axe-core rules returned.
+        """
+        page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
+
+        return page.evaluate(
+            f"axe.getRules({"" if rules is None else str(rules)});")
+
+    @staticmethod
     def _build_run_command(context: str = "", options: str = "") -> str:
         return_str = context if len(context) > 0 else ""
         return_str += ", " if len(return_str) > 0 and len(options) > 0 else ""
