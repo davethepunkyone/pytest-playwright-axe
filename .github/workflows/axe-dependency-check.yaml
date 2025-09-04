@@ -24,7 +24,7 @@ jobs:
       - run: |
           git checkout ${{ github.head_ref }}
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 'latest'
       - name: Install axe-core in temp dir
