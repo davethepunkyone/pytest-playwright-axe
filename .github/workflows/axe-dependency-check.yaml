@@ -61,7 +61,7 @@ jobs:
           git commit -m "axe-core automated update for version ${{ inputs.current_version }}"
           git push --set-upstream origin axe-dependency-check-${{ inputs.current_version }}
       - name: Create Pull Request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { repo, owner } = context.repo;
