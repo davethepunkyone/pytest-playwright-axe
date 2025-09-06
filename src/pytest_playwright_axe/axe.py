@@ -187,7 +187,7 @@ class Axe:
     @staticmethod
     def _create_path_for_report(path_for_report: str, filename: str) -> Path:
         if not os.path.exists(path_for_report):
-            os.mkdir(path_for_report)
+            os.makedirs(path_for_report, exist_ok=True)
 
         return Path(path_for_report) / filename
 
@@ -197,7 +197,7 @@ class Axe:
         full_path = Axe._create_path_for_report(path_for_report, filename)
 
         with open(full_path, 'w') as file:
-            file.writelines(json.dumps(data))
+            json.dump(data, file, indent=4)
 
         logger.info(f"JSON report generated: {full_path}")
 
@@ -416,14 +416,14 @@ class Axe:
     def _generate_html(data: dict) -> str:
 
         # HTML header
-        html = f"<!DOCTYPE html><html><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>"
+        html = f'<!DOCTYPE html><html lang="en"><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>'
 
         # HTML body
         # Title and URL
-        html += "<h1>Axe Accessibility Report</h1>"
+        html += '<header role="banner"><h1>Axe Accessibility Report</h1>'
         html += f"""<p>This is an axe-core accessibility summary generated on
                     {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
-                    for: <strong>{data['url']}</strong></p>"""
+                    for: <strong>{data['url']}</strong></p></header><main role="main">"""
 
         # Violations
         # Summary
@@ -442,7 +442,7 @@ class Axe:
         html += Axe._generate_execution_details_section(data)
 
         # Close tags
-        html += "</body></html>"
+        html += "</main></body></html>"
 
         return html
 
