@@ -1,7 +1,7 @@
 import pytest
 import os
 from pathlib import Path
-from src.pytest_playwright_axe import Axe
+from src.pytest_playwright_axe import Axe, AxeAccessibilityException
 
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
@@ -29,6 +29,11 @@ def test_modify_filename_for_report() -> None:
         'https://www.test.com/1/2\\3/') == "www_test_com_1_2_3"
 
 
+def test_empty_filename_for_report() -> None:
+    with pytest.raises(AxeAccessibilityException):
+        Axe._modify_filename_for_report('')
+
+
 def test_create_path_for_report() -> None:
     assert Axe._create_path_for_report(AXE_REPORTS_DIR, 'test123.html') == Path(
         __file__).parent.parent / "axe-reports" / "test123.html"
@@ -40,13 +45,13 @@ def test_create_json_report() -> None:
     # Default generation
     Axe._create_json_report(test_data, AXE_REPORTS_DIR)
     with open(AXE_REPORTS_DIR / TEST_JSON_DEFAULT_FILENAME, 'r') as file:
-        assert file.read() == '{"url": "https://www.test.com/1"}'
+        assert file.read() == '''{\n    "url": "https://www.test.com/1"\n}'''
 
     # With custom filename
     Axe._create_json_report(test_data, AXE_REPORTS_DIR,
                             TEST_JSON_CUSTOM_FILENAME.replace(".json", ""))
     with open(AXE_REPORTS_DIR / TEST_JSON_CUSTOM_FILENAME, 'r') as file:
-        assert file.read() == '{"url": "https://www.test.com/1"}'
+        assert file.read() == '''{\n    "url": "https://www.test.com/1"\n}'''
 
 
 def test_create_html_report() -> None:

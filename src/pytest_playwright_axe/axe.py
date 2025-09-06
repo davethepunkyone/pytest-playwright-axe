@@ -93,7 +93,7 @@ class Axe:
 
         if violations_detected and strict_mode:
             raise AxeAccessibilityException(
-                f"Axe Accessibility Violation detected on page: {response["url"]}")
+                f"Axe Accessibility Violation detected on page: {response['url']}")
 
         return response
 
@@ -168,14 +168,18 @@ class Axe:
 
     @staticmethod
     def _build_run_command(context: str = "", options: str = "") -> str:
-        return_str = context if len(context) > 0 else ""
-        return_str += ", " if len(return_str) > 0 and len(options) > 0 else ""
-        return_str += options if len(options) > 0 else ""
+        """This builds the run command for axe-core based on the context and options provided."""
+        if context and options:
+            return f"{context}, {options}"
 
-        return return_str
+        return context or options
 
     @staticmethod
     def _modify_filename_for_report(filename_to_modify: str) -> str:
+        """This determines the filename to use for generated files."""
+        if not filename_to_modify:
+            raise AxeAccessibilityException("Filename to modify cannot be empty")
+        
         if filename_to_modify[-1] == "/":
             filename_to_modify = filename_to_modify[:-1]
         for item_to_remove in ["http://", "https://"]:
@@ -186,33 +190,35 @@ class Axe:
 
     @staticmethod
     def _create_path_for_report(path_for_report: str, filename: str) -> Path:
-        if not os.path.exists(path_for_report):
-            os.makedirs(path_for_report, exist_ok=True)
-
+        """This creates the report path (if it doesn't exist) and returns the full path."""
+        os.makedirs(path_for_report, exist_ok=True)
         return Path(path_for_report) / filename
 
     @staticmethod
     def _create_json_report(data: dict, path_for_report: str, filename_override: str = "") -> None:
+        """This creates a JSON report for the generated report data."""
         filename = f"{Axe._modify_filename_for_report(data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
         full_path = Axe._create_path_for_report(path_for_report, filename)
 
-        with open(full_path, 'w') as file:
+        with open(full_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4)
 
         logger.info(f"JSON report generated: {full_path}")
 
     @staticmethod
     def _create_html_report(data: dict, path_for_report: str, filename_override: str = "") -> None:
+        """This creates an HTML report for the generated report data."""
         filename = f"{Axe._modify_filename_for_report(data["url"])}.html" if filename_override == "" else f"{filename_override}.html"
         full_path = Axe._create_path_for_report(path_for_report, filename)
 
-        with open(full_path, 'w') as file:
-            file.writelines(Axe._generate_html(data))
+        with open(full_path, 'w', encoding='utf-8') as file:
+            file.write(Axe._generate_html(data))
 
         logger.info(f"HTML report generated: {full_path}")
 
     @staticmethod
     def _css_styling() -> str:
+        """This provides the CSS styling for the HTML report."""
         return """
             <style>
                 body { font-family: Arial, sans-serif; margin: 20px; }
@@ -228,6 +234,7 @@ class Axe:
 
     @staticmethod
     def _wcag_tagging(tags: list[str]) -> str:
+        """Convert axe-core tags to human-readable WCAG tags."""
         wcag_tags = []
         for tag in tags:
             if tag in WCAG_KEYS:
@@ -287,7 +294,7 @@ class Axe:
                                     <td><p>Element Location:</p>
                                     <pre><code>{escape("<br>".join(node['target']))}</code></pre>
                                     <p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>
-                                    <td>{str(escape(node['failureSummary'])).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
+                                    <td>{escape(node['failureSummary']).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
                 node_count += 1
             violations_table += "</table>"
 
@@ -414,6 +421,7 @@ class Axe:
 
     @staticmethod
     def _generate_html(data: dict) -> str:
+        """This generates the full HTML report based on the data provided."""
 
         # HTML header
         html = f'<!DOCTYPE html><html lang="en"><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>'
