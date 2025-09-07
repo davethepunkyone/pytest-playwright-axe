@@ -8,9 +8,13 @@ from playwright.sync_api import Page
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-AXE_PATH = Path(__file__).parent / "resources" / "axe.js"
-MIN_AXE_PATH = Path(__file__).parent / "resources" / "axe.min.js"
-PATH_FOR_REPORT = Path(os.getcwd()) / "axe-reports"
+
+RESOURCES_DIR = Path(__file__).parent / "resources"
+AXE_PATH = RESOURCES_DIR / "axe.js"
+MIN_AXE_PATH = RESOURCES_DIR / "axe.min.js"
+DEFAULT_CSS_PATH = RESOURCES_DIR / "default.css"
+
+DEFAULT_REPORT_PATH = Path(os.getcwd()) / "axe-reports"
 
 WCAG_KEYS = {
     'wcag2a': 'WCAG 2.0 (A)',
@@ -42,19 +46,26 @@ class Axe:
     """
     This utility allows for interaction with axe-core, to allow for accessibility scanning of pages
     under test to identify any accessibility concerns.
+
+    Args:
+        css_override (str): [Optional] If provided, overrides the default CSS used within the HTML report generated.
+        use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
     """
 
-    @staticmethod
-    def run(page: Page,
+    def __init__(self, css_override: str = "", use_minified_file: bool = False) -> None:
+        self.css_override = css_override
+        self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
+
+    def run(self,
+            page: Page,
             filename: str = "",
-            output_directory: str = PATH_FOR_REPORT,
+            output_directory: str = DEFAULT_REPORT_PATH,
             context: str = "",
             options: str = "",
             report_on_violation_only: bool = False,
             strict_mode: bool = False,
             html_report_generated: bool = True,
-            json_report_generated: bool = True,
-            use_minified_file: bool = False) -> dict:
+            json_report_generated: bool = True) -> dict:
         """
         This runs axe-core against the page provided.
 
@@ -68,17 +79,15 @@ class Axe:
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
-            use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
 
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
         """
 
-        axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
-        page.evaluate(axe_path.read_text(encoding="UTF-8"))
+        page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
 
         response = page.evaluate(
-            "axe.run(" + Axe._build_run_command(context, options) + ").then(results => {return results;})")
+            "axe.run(" + self._build_run_command(context, options) + ").then(results => {return results;})")
 
         logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
                     Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
@@ -87,9 +96,9 @@ class Axe:
         violations_detected = len(response["violations"]) > 0
         if not report_on_violation_only or (report_on_violation_only and violations_detected):
             if html_report_generated:
-                Axe._create_html_report(response, output_directory, filename)
+                self._create_html_report(response, output_directory, filename)
             if json_report_generated:
-                Axe._create_json_report(response, output_directory, filename)
+                self._create_json_report(response, output_directory, filename)
 
         if violations_detected and strict_mode:
             raise AxeAccessibilityException(
@@ -97,18 +106,17 @@ class Axe:
 
         return response
 
-    @staticmethod
-    def run_list(page: Page,
+    def run_list(self,
+                 page: Page,
                  page_list: list[str],
                  use_list_for_filename: bool = True,
-                 output_directory: str = PATH_FOR_REPORT,
+                 output_directory: str = DEFAULT_REPORT_PATH,
                  context: str = "",
                  options: str = "",
                  report_on_violation_only: bool = False,
                  strict_mode: bool = False,
                  html_report_generated: bool = True,
-                 json_report_generated: bool = True,
-                 use_minified_file: bool = False) -> dict:
+                 json_report_generated: bool = True) -> dict:
         """
         This runs axe-core against a list of pages provided.
 
@@ -125,7 +133,6 @@ class Axe:
             strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
-            use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
 
         Returns:
             dict: A Python dictionary with the axe-core output of all the pages scanned, with the page list used as the key for each report.
@@ -133,9 +140,9 @@ class Axe:
         results = {}
         for selected_page in page_list:
             page.goto(selected_page)
-            filename = Axe._modify_filename_for_report(
+            filename = self._modify_filename_for_report(
                 selected_page) if use_list_for_filename else ""
-            results[selected_page] = Axe.run(
+            results[selected_page] = self.run(
                 page,
                 filename=filename,
                 output_directory=output_directory,
@@ -144,13 +151,12 @@ class Axe:
                 report_on_violation_only=report_on_violation_only,
                 strict_mode=strict_mode,
                 html_report_generated=html_report_generated,
-                json_report_generated=json_report_generated,
-                use_minified_file=use_minified_file
+                json_report_generated=json_report_generated
             )
         return results
 
-    @staticmethod
-    def get_rules(page: Page, rules: list[str] = None) -> list[dict]:
+
+    def get_rules(self, page: Page, rules: list[str] = None) -> list[dict]:
         """
         This runs axe.getRules(), returning the specified rules (or all if no ruleset provided).
 
@@ -161,21 +167,21 @@ class Axe:
         Returns:
             list[dict]: A list of dictionaries containing the axe-core rules returned.
         """
-        page.evaluate(AXE_PATH.read_text(encoding="UTF-8"))
+        page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
 
         return page.evaluate(
             f"axe.getRules({"" if rules is None else str(rules)});")
 
-    @staticmethod
-    def _build_run_command(context: str = "", options: str = "") -> str:
+
+    def _build_run_command(self, context: str = "", options: str = "") -> str:
         """This builds the run command for axe-core based on the context and options provided."""
         if context and options:
             return f"{context}, {options}"
 
         return context or options
 
-    @staticmethod
-    def _modify_filename_for_report(filename_to_modify: str) -> str:
+
+    def _modify_filename_for_report(self, filename_to_modify: str) -> str:
         """This determines the filename to use for generated files."""
         if not filename_to_modify:
             raise AxeAccessibilityException("Filename to modify cannot be empty")
@@ -188,52 +194,40 @@ class Axe:
 
         return filename_to_modify
 
-    @staticmethod
-    def _create_path_for_report(path_for_report: str, filename: str) -> Path:
+    def _create_path_for_report(self, path_for_report: str, filename: str) -> Path:
         """This creates the report path (if it doesn't exist) and returns the full path."""
         os.makedirs(path_for_report, exist_ok=True)
         return Path(path_for_report) / filename
 
-    @staticmethod
-    def _create_json_report(data: dict, path_for_report: str, filename_override: str = "") -> None:
+    def _create_json_report(self, data: dict, path_for_report: str, filename_override: str = "") -> None:
         """This creates a JSON report for the generated report data."""
-        filename = f"{Axe._modify_filename_for_report(data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
-        full_path = Axe._create_path_for_report(path_for_report, filename)
+        filename = f"{self._modify_filename_for_report(data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
+        full_path = self._create_path_for_report(path_for_report, filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4)
 
         logger.info(f"JSON report generated: {full_path}")
-
-    @staticmethod
-    def _create_html_report(data: dict, path_for_report: str, filename_override: str = "") -> None:
+    
+    def _create_html_report(self, data: dict, path_for_report: str, filename_override: str = "") -> None:
         """This creates an HTML report for the generated report data."""
-        filename = f"{Axe._modify_filename_for_report(data["url"])}.html" if filename_override == "" else f"{filename_override}.html"
-        full_path = Axe._create_path_for_report(path_for_report, filename)
+        filename = f"{self._modify_filename_for_report(data["url"])}.html" if filename_override == "" else f"{filename_override}.html"
+        full_path = self._create_path_for_report(path_for_report, filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
-            file.write(Axe._generate_html(data))
+            file.write(self._generate_html(data))
 
         logger.info(f"HTML report generated: {full_path}")
 
-    @staticmethod
-    def _css_styling() -> str:
-        """This provides the CSS styling for the HTML report."""
-        return """
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                h1, h2, h3 { color: #333; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                th { background-color: #f4f4f4; }
-                pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
-                code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
-                p { margin: 10px 0; }
-                div { padding: 10px; border: 1px solid #ddd; }
-            </style>"""
+    def _css_styling(self) -> str:
+        """This provides the CSS styling for the HTML report, or overrides if CSS provided."""
+        if self.css_override:
+            return f"<style>{self.css_override}</style>"
 
-    @staticmethod
-    def _wcag_tagging(tags: list[str]) -> str:
+        return f"<style>{DEFAULT_CSS_PATH.read_text(encoding='UTF-8')}</style>"
+
+
+    def _wcag_tagging(self, tags: list[str]) -> str:
         """Convert axe-core tags to human-readable WCAG tags."""
         wcag_tags = []
         for tag in tags:
@@ -241,8 +235,8 @@ class Axe:
                 wcag_tags.append(WCAG_KEYS[tag])
         return ", ".join(wcag_tags)
 
-    @staticmethod
-    def _generate_table_header(headers: list[tuple[str, str, bool]]) -> str:
+
+    def _generate_table_header(self, headers: list[tuple[str, str, bool]]) -> str:
         """Generate the header row for tables in the standard format."""
         html = ""
         for header in headers:
@@ -250,8 +244,8 @@ class Axe:
 
         return html
 
-    @staticmethod
-    def _generate_violations_section(violations_data: list) -> str:
+
+    def _generate_violations_section(self, violations_data: list) -> str:
         """Generate the violations section of the HTML report."""
 
         html = "<h2>Violations Found</h2>"
@@ -261,7 +255,7 @@ class Axe:
 
         html += f"<p>{len(violations_data)} violations found.</p>"
 
-        html += f"<table><tr>{Axe._generate_table_header([
+        html += f"<table><tr>{self._generate_table_header([
             ("#", "2", True), ("Description", "53", False),
             ("Axe Rule ID", "15", False), ("WCAG", "15", False),
             ("Impact", "10", False), ("Count", "5", True)
@@ -276,7 +270,7 @@ class Axe:
                     <td style="text-align: center;">{violation_count}</td>
                     <td>{escape(violation['description'])}</td>
                     <td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>
-                    <td>{Axe._wcag_tagging(violation['tags'])}</td>
+                    <td>{self._wcag_tagging(violation['tags'])}</td>
                     <td>{violation['impact']}</td>
                     <td style="text-align: center;">{len(violation['nodes'])}</td>
                     </tr>'''
@@ -284,7 +278,7 @@ class Axe:
             violation_count += 1
 
             node_count = 1
-            violations_table += f"<table><tr>{Axe._generate_table_header([
+            violations_table += f"<table><tr>{self._generate_table_header([
                 ("#", "2", True), ("Description", "49", False), 
                 ("Fix Information", "49", False)
             ])}"
@@ -300,7 +294,7 @@ class Axe:
 
             violation_section += f'''<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>
                                 <p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />
-                                <strong>WCAG:</strong> {Axe._wcag_tagging(violation['tags'])}<br />
+                                <strong>WCAG:</strong> {self._wcag_tagging(violation['tags'])}<br />
                                 <strong>Impact:</strong> {violation['impact']}<br />
                                 <strong>Tags:</strong> {", ".join(violation['tags'])}</p>
                                 {violations_table}
@@ -308,8 +302,7 @@ class Axe:
 
         return f"{html}</table>{violation_section}"
 
-    @staticmethod
-    def _generate_passed_section(passed_data: list) -> str:
+    def _generate_passed_section(self, passed_data: list) -> str:
         """Generate the passed section of the HTML report."""
 
         html = "<h2>Passed Checks</h2>"
@@ -317,7 +310,7 @@ class Axe:
         if len(passed_data) == 0:
             return f"{html}<p>No passed checks found.</p>"
 
-        html += f"<table><tr>{Axe._generate_table_header([
+        html += f"<table><tr>{self._generate_table_header([
             ("#", "2", True), ("Description", "50", False),
             ("Axe Rule ID", "15", False), ("WCAG", "18", False),
             ("Nodes Passed Count", "15", True)
@@ -330,7 +323,7 @@ class Axe:
                     <td style="text-align: center;">{pass_count}</td>
                     <td>{escape(passed['description'])}</td>
                     <td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>
-                    <td>{Axe._wcag_tagging(passed['tags'])}</td>
+                    <td>{self._wcag_tagging(passed['tags'])}</td>
                     <td style="text-align: center;">{len(passed['nodes'])}</td>
                     </tr>'''
 
@@ -338,8 +331,7 @@ class Axe:
 
         return f"{html}</table>"
 
-    @staticmethod
-    def _generate_incomplete_section(incomplete_data: list) -> str:
+    def _generate_incomplete_section(self, incomplete_data: list) -> str:
         """Generate the incomplete section of the HTML report."""
 
         html = "<h2>Incomplete Checks</h2>"
@@ -347,7 +339,7 @@ class Axe:
         if len(incomplete_data) == 0:
             return f"{html}<p>No incomplete checks found.</p>"
 
-        html += f"<table><tr>{Axe._generate_table_header([
+        html += f"<table><tr>{self._generate_table_header([
             ("#", "2", True), ("Description", "50", False),
             ("Axe Rule ID", "15", False), ("WCAG", "18", False),
             ("Nodes Incomplete Count", "15", True)
@@ -360,7 +352,7 @@ class Axe:
                     <td style="text-align: center;">{incomplete_count}</td>
                     <td>{escape(incomplete['description'])}</td>
                     <td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>
-                    <td>{Axe._wcag_tagging(incomplete['tags'])}</td>
+                    <td>{self._wcag_tagging(incomplete['tags'])}</td>
                     <td style="text-align: center;">{len(incomplete['nodes'])}</td>
                     </tr>'''
 
@@ -368,8 +360,7 @@ class Axe:
 
         return f"{html}</table>"
 
-    @staticmethod
-    def _generate_inapplicable_section(inapplicable_data: list) -> str:
+    def _generate_inapplicable_section(self, inapplicable_data: list) -> str:
         """This method generates the inapplicable section of the HTML report."""
 
         html = "<h2>Inapplicable Checks</h2>"
@@ -377,7 +368,7 @@ class Axe:
         if len(inapplicable_data) == 0:
             return f"{html}<p>No inapplicable checks found.</p>"
 
-        html += f"<table><tr>{Axe._generate_table_header([
+        html += f"<table><tr>{self._generate_table_header([
             ("#", "2", True), ("Description", "60", False),
             ("Axe Rule ID", "20", False), ("WCAG", "18", False)
         ])}"
@@ -389,20 +380,19 @@ class Axe:
                     <td style="text-align: center;">{inapplicable_count}</td>
                     <td>{escape(inapplicable['description'])}</td>
                     <td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>
-                    <td>{Axe._wcag_tagging(inapplicable['tags'])}</td>
+                    <td>{self._wcag_tagging(inapplicable['tags'])}</td>
                     </tr>'''
 
             inapplicable_count += 1
 
         return f"{html}</table>"
 
-    @staticmethod
-    def _generate_execution_details_section(data: dict) -> str:
+    def _generate_execution_details_section(self, data: dict) -> str:
         """Generate the execution details section of the HTML report."""
 
         html = "<h2>Execution Details</h2>"
 
-        html += f"<table><tr>{Axe._generate_table_header([
+        html += f"<table><tr>{self._generate_table_header([
             ("Data", "20", False), ("Details", "80", False)
         ])}"
 
@@ -419,12 +409,11 @@ class Axe:
 
         return f"{html}</table>"
 
-    @staticmethod
-    def _generate_html(data: dict) -> str:
+    def _generate_html(self, data: dict) -> str:
         """This generates the full HTML report based on the data provided."""
 
         # HTML header
-        html = f'<!DOCTYPE html><html lang="en"><head>{Axe._css_styling()}<title>Axe Accessibility Report</title></head><body>'
+        html = f'<!DOCTYPE html><html lang="en"><head>{self._css_styling()}<title>Axe Accessibility Report</title></head><body>'
 
         # HTML body
         # Title and URL
@@ -435,19 +424,19 @@ class Axe:
 
         # Violations
         # Summary
-        html += Axe._generate_violations_section(data['violations'])
+        html += self._generate_violations_section(data['violations'])
 
         # Passed Checks (Collapsible)
-        html += Axe._generate_passed_section(data['passes'])
+        html += self._generate_passed_section(data['passes'])
 
         # Incomplete Checks (Collapsible)
-        html += Axe._generate_incomplete_section(data['incomplete'])
+        html += self._generate_incomplete_section(data['incomplete'])
 
         # Inapplicable Checks (Collapsible)
-        html += Axe._generate_inapplicable_section(data['inapplicable'])
+        html += self._generate_inapplicable_section(data['inapplicable'])
 
         # Execution Details (Collapsible)
-        html += Axe._generate_execution_details_section(data)
+        html += self._generate_execution_details_section(data)
 
         # Close tags
         html += "</main></body></html>"

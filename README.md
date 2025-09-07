@@ -8,19 +8,20 @@ library used for scanning for accessibility issues and providing guidance on how
 - [Pytest Playwright Axe](#pytest-playwright-axe)
   - [Table of Contents](#table-of-contents)
   - [Using the Axe class](#using-the-axe-class)
+    - [Optional arguments](#optional-arguments)
   - [.run(): Single page scan](#run-single-page-scan)
     - [Required arguments](#required-arguments)
-    - [Optional arguments](#optional-arguments)
+    - [Optional arguments](#optional-arguments-1)
     - [Returns](#returns)
     - [Example usage](#example-usage)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
-    - [Optional arguments](#optional-arguments-1)
+    - [Optional arguments](#optional-arguments-2)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
   - [.get\_rules(): Return rules](#get_rules-return-rules)
     - [Required Arguments](#required-arguments-2)
-    - [Optional Arguments](#optional-arguments-2)
+    - [Optional Arguments](#optional-arguments-3)
     - [Returns](#returns-2)
     - [Example usage](#example-usage-2)
   - [Rulesets](#rulesets)
@@ -35,28 +36,45 @@ You can initialise the Axe class by using the following code in your test file:
 
     from pytest_playwright_axe import Axe
 
-This Axe module has been designed as a static class, so you do not need to instantiate it when you want to run a scan on a page you have navigated to using Playwright.
+You can run the Axe instance either as a standalone instance or instantiate it as follows:
+
+    # Standalone execution
+    Axe().run(page)
+
+    # Instantiated execution
+    axe = Axe()
+    axe.run(page)
+
+### Optional arguments
+
+The `Axe()` has the following optional arguments that can be passed in:
+
+| Argument       | Format | Supported Values         | Default Value | Description                                                                                       |
+| -------------- | ------ | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------- |
+| `css_override` | `str`  | A string with valid CSS. |               | If provided, this will override the default CSS used in the report with the CSS styling provided. |
+| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | _This will be available in the next update (after 4.10.3)._ If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                          |
+
 
 ## .run(): Single page scan
 
 To conduct a scan, you can just use the following once the page you want to check is at the right location:
 
-    Axe.run(page)
+    Axe().run(page)
 
 This will inject the axe-core code into the page and then execute the axe.run() command, generating an accessibility report for the page being tested.
 
-By default, the `Axe.run(page)` command will do the following:
+By default, the `Axe().run(page)` command will do the following:
 
 - Scan the page passed in with the default axe-core configuration
 - Generate a HTML and JSON report with the findings in the `axe-reports` directory, regardless of if any violations are found
-- Any steps after the `Axe.run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
-- Will return the full response from axe-core as a dict object if the call is set to a variable, e.g. `axe_results = Axe.run(page)` will populate `axe_results` to interact with as required
+- Any steps after the `Axe().run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
+- Will return the full response from axe-core as a dict object if the call is set to a variable, e.g. `axe_results = Axe().run(page)` will populate `axe_results` to interact with as required
 
 This uses the [axe-core run method outlined in the axe-core documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun).
 
 ### Required arguments
 
-The following are required for `Axe.run()`:
+The following are required for `Axe().run()`:
 
 | Argument | Format                   | Description                                  |
 | -------- | ------------------------ | -------------------------------------------- |
@@ -64,7 +82,7 @@ The following are required for `Axe.run()`:
 
 ### Optional arguments
 
-The `Axe.run(page)` has the following optional arguments that can be passed in:
+The `Axe().run(page)` has the following optional arguments that can be passed in:
 
 | Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
 | -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +94,6 @@ The `Axe.run(page)` has the following optional arguments that can be passed in:
 | `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
 | `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
 | `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
-| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | _This will be available in the next update (after 4.10.3)._ If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                          |
 
 ### Returns
 
@@ -91,7 +108,7 @@ A default execution with no arguments:
 
     def test_axe_example(page: Page) -> None:
         page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe.run(page)
+        Axe().run(page)
 
 A WCAG 2.2 (AA) execution, with a custom filename, strict mode enabled and only HTML output provided:
 
@@ -100,7 +117,7 @@ A WCAG 2.2 (AA) execution, with a custom filename, strict mode enabled and only 
 
     def test_axe_example(page: Page) -> None:
         page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe.run(page, 
+        Axe().run(page, 
                 filename="test_report",
                 options="{runOnly: {type: 'tag', values: ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']}}",
                 strict_mode=True,
@@ -110,13 +127,13 @@ A WCAG 2.2 (AA) execution, with a custom filename, strict mode enabled and only 
 
 To scan multiple URLs within your application, you can use the following method:
 
-    Axe.run_list(page, page_list)
+    Axe().run_list(page, page_list)
 
-This runs the `Axe.run(page)` function noted above against each URL provided in the `page_list` argument, and will generate reports as required. This navigates by using the Playwright Page's `.goto()` method, so this only works for pages that can be directly accessed.
+This runs the `Axe().run(page)` function noted above against each URL provided in the `page_list` argument, and will generate reports as required. This navigates by using the Playwright Page's `.goto()` method, so this only works for pages that can be directly accessed.
 
 ### Required arguments
 
-The following are required for `Axe.run_list()`:
+The following are required for `Axe().run_list()`:
 
 | Argument  | Format                     | Description                                                                    |
 | --------- | -------------------------- | ------------------------------------------------------------------------------ |
@@ -127,7 +144,7 @@ The following are required for `Axe.run_list()`:
 
 ### Optional arguments
 
-The `Axe.run_list(page, page_list)` function has the following optional arguments that can be passed in:
+The `Axe().run_list(page, page_list)` function has the following optional arguments that can be passed in:
 
 | Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
 | -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -139,7 +156,6 @@ The `Axe.run_list(page, page_list)` function has the following optional argument
 | `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
 | `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
 | `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
-| `use_minified_file`        | `bool` | `True`, `False`                                                                                                   | `False`       | _This will be available in the next update (after 4.10.3)._ If True, use the minified version of axe-core (axe.min.js).  If not provided (default), use the full version of axe-core (axe.js).                                                                          |
 
 ### Returns
 
@@ -159,7 +175,7 @@ When using the following command: `pytest --base-url https://www.github.com`:
             "davethepunkyone/pytest-playwright-axe/issues"
             ]
 
-        Axe.run_list(page, urls_to_check)
+        Axe().run_list(page, urls_to_check)
 
 ## .get_rules(): Return rules
 
@@ -171,7 +187,7 @@ This uses the [axe-core getRules method outlined in the axe-core documentation](
 
 ### Required Arguments
 
-The following are required for `Axe.get_rules()`:
+The following are required for `Axe().get_rules()`:
 
 | Argument | Format                     | Description                                              |
 | -------- | -------------------------- | -------------------------------------------------------- |
@@ -179,7 +195,7 @@ The following are required for `Axe.get_rules()`:
 
 ### Optional Arguments
 
-The `Axe.get_rules(page, page_list)` function has the following optional arguments that can be passed in:
+The `Axe().get_rules(page, page_list)` function has the following optional arguments that can be passed in:
 
 | Argument | Format      | Supported Values                                                                                                                    | Default Value | Description                                                                                               |
 | -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------- |
@@ -197,7 +213,7 @@ A Python `list[dict]` object with all matching rules and their descriptors.
 
     def test_get_rules(page: Page) -> None:
 
-        rules = Axe.get_rules(page, ['wcag21aa])
+        rules = Axe().get_rules(page, ['wcag21aa])
         for rule in rules:
             logging.info(rule)
 
@@ -216,7 +232,7 @@ Example:
 
     def test_axe_example(page: Page) -> None:
         page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe.run(page, options=OPTIONS_WCAG_22AA)
+        Axe().run(page, options=OPTIONS_WCAG_22AA)
 
 ## Example Reports
 
