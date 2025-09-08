@@ -1,15 +1,707 @@
-<!DOCTYPE html><html><head>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; }
-                    h1, h2, h3 { color: #333; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                    th { background-color: #f4f4f4; }
-                    pre { background-color: #f9f9f9; padding: 10px; border: 1px solid #ddd; }
-                    code { background-color: #f9f9f9; padding: 2px 4px; border-radius: 4px; word-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
-                    p { margin: 10px 0; }
-                    div { padding: 10px; border: 1px solid #ddd; }
-                </style><title>Axe Accessibility Report</title></head><body><h1>Axe Accessibility Report</h1><p>This is an axe-core accessibility summary generated on
-                    27/03/2025 21:21
-                    for: <strong>https://github.com/davethepunkyone/pytest-playwright-axe</strong></p><h2>Violations Found</h2><p>2 violations found.</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 53%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 15%">WCAG</th><th style="width: 10%">Impact</th><th style="text-align: center; width: 5%">Count</th><tr><td style="text-align: center;">1</td><td>Ensure the order of headings is semantically correct</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/heading-order?application=axeAPI" target="_blank">heading-order</a></td><td>Best Practice</td><td>moderate</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">2</td><td>Ensure that the page, or at least one of its frames contains a level-one heading</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/page-has-heading-one?application=axeAPI" target="_blank">page-has-heading-one</a></td><td>Best Practice</td><td>moderate</td><td style="text-align: center;">1</td></tr></table><table><tr><td style="width: 100%"><h3>Ensure the order of headings is semantically correct</h3><p><strong>Axe Rule ID:</strong> <a href="https://dequeuniversity.com/rules/axe/4.10/heading-order?application=axeAPI" target="_blank">heading-order</a><br /><strong>WCAG:</strong> Best Practice<br /><strong>Impact:</strong> moderate<br /><strong>Tags:</strong> cat.semantics, best-practice</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th><tr><td style="text-align: center;">1</td><td><p>Element Location:</p><pre><code>h4</code></pre><p>HTML:</p><pre><code>&lt;h4 data-view-component=&quot;true&quot; class=&quot;color-fg-default mb-2&quot;&gt;                    Sign in to GitHub
-&lt;/h4&gt;</code></pre></td><td><strong>Fix any of the following:</strong><br /><br /> &bullet; Heading order invalid</td></tr></table></td></tr></table><table><tr><td style="width: 100%"><h3>Ensure that the page, or at least one of its frames contains a level-one heading</h3><p><strong>Axe Rule ID:</strong> <a href="https://dequeuniversity.com/rules/axe/4.10/page-has-heading-one?application=axeAPI" target="_blank">page-has-heading-one</a><br /><strong>WCAG:</strong> Best Practice<br /><strong>Impact:</strong> moderate<br /><strong>Tags:</strong> cat.semantics, best-practice</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th><tr><td style="text-align: center;">1</td><td><p>Element Location:</p><pre><code>html</code></pre><p>HTML:</p><pre><code>&lt;html lang=&quot;en&quot; data-color-mode=&quot;auto&quot; data-light-theme=&quot;light&quot; data-dark-theme=&quot;dark&quot; data-a11y-animated-images=&quot;system&quot; data-a11y-link-underlines=&quot;true&quot; data-turbo-loaded=&quot;&quot;&gt;</code></pre></td><td>Fix all of the following:<br /> &bullet; Page must have a level-one heading</td></tr></table></td></tr></table><h2>Passed Checks</h2><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 50%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 18%">WCAG</th><th style="text-align: center; width: 15%">Nodes Passed Count</th><tr><td style="text-align: center;">1</td><td>Ensure an element&#x27;s role supports its ARIA attributes</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-allowed-attr?application=axeAPI" target="_blank">aria-allowed-attr</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">2</td><td>Ensure role attribute has an appropriate value for the element</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-allowed-role?application=axeAPI" target="_blank">aria-allowed-role</a></td><td>Best Practice</td><td style="text-align: center;">11</td></tr><tr><td style="text-align: center;">3</td><td>Ensure ARIA attributes are used as described in the specification of the element&#x27;s role</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-conditional-attr?application=axeAPI" target="_blank">aria-conditional-attr</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">4</td><td>Ensure elements do not use deprecated roles</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-deprecated-role?application=axeAPI" target="_blank">aria-deprecated-role</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">5</td><td>Ensure aria-hidden=&quot;true&quot; is not present on the document body.</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-hidden-body?application=axeAPI" target="_blank">aria-hidden-body</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">6</td><td>Ensure aria-hidden elements are not focusable nor contain focusable elements</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-hidden-focus?application=axeAPI" target="_blank">aria-hidden-focus</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">46</td></tr><tr><td style="text-align: center;">7</td><td>Ensure ARIA attributes are not prohibited for an element&#x27;s role</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-prohibited-attr?application=axeAPI" target="_blank">aria-prohibited-attr</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">8</td><td>Ensure elements with ARIA roles have all required ARIA attributes</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-attr?application=axeAPI" target="_blank">aria-required-attr</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">9</td><td>Ensure all elements with a role attribute use a valid value</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-roles?application=axeAPI" target="_blank">aria-roles</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">10</td><td>Ensure all ARIA attributes have valid values</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr-value?application=axeAPI" target="_blank">aria-valid-attr-value</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">11</td><td>Ensure attributes that begin with aria- are valid ARIA attributes</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr?application=axeAPI" target="_blank">aria-valid-attr</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">12</td><td>Ensure the autocomplete attribute is correct and suitable for the form field</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/autocomplete-valid?application=axeAPI" target="_blank">autocomplete-valid</a></td><td>WCAG 2.1 (AA)</td><td style="text-align: center;">2</td></tr><tr><td style="text-align: center;">13</td><td>Ensure that text spacing set through style attributes can be adjusted with custom stylesheets</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/avoid-inline-spacing?application=axeAPI" target="_blank">avoid-inline-spacing</a></td><td>WCAG 2.1 (AA)</td><td style="text-align: center;">17</td></tr><tr><td style="text-align: center;">14</td><td>Ensure buttons have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/button-name?application=axeAPI" target="_blank">button-name</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">9</td></tr><tr><td style="text-align: center;">15</td><td>Ensure each page has at least one mechanism for a user to bypass navigation and jump straight to the content</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/bypass?application=axeAPI" target="_blank">bypass</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">16</td><td>Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI" target="_blank">color-contrast</a></td><td>WCAG 2.0 (AA)</td><td style="text-align: center;">76</td></tr><tr><td style="text-align: center;">17</td><td>Ensure each HTML document contains a non-empty &lt;title&gt; element</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/document-title?application=axeAPI" target="_blank">document-title</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">18</td><td>Ensure every id attribute value used in ARIA and in labels is unique</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/duplicate-id-aria?application=axeAPI" target="_blank">duplicate-id-aria</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">28</td></tr><tr><td style="text-align: center;">19</td><td>Ensure headings have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/empty-heading?application=axeAPI" target="_blank">empty-heading</a></td><td>Best Practice</td><td style="text-align: center;">8</td></tr><tr><td style="text-align: center;">20</td><td>Ensure form field does not have multiple label elements</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/form-field-multiple-labels?application=axeAPI" target="_blank">form-field-multiple-labels</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">21</td><td>Ensure the order of headings is semantically correct</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/heading-order?application=axeAPI" target="_blank">heading-order</a></td><td>Best Practice</td><td style="text-align: center;">7</td></tr><tr><td style="text-align: center;">22</td><td>Ensure every HTML document has a lang attribute</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/html-has-lang?application=axeAPI" target="_blank">html-has-lang</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">23</td><td>Ensure the lang attribute of the &lt;html&gt; element has a valid value</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/html-lang-valid?application=axeAPI" target="_blank">html-lang-valid</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">24</td><td>Ensure &lt;img&gt; elements have alternative text or a role of none or presentation</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/image-alt?application=axeAPI" target="_blank">image-alt</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">8</td></tr><tr><td style="text-align: center;">25</td><td>Ensure image alternative is not repeated as text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/image-redundant-alt?application=axeAPI" target="_blank">image-redundant-alt</a></td><td>Best Practice</td><td style="text-align: center;">8</td></tr><tr><td style="text-align: center;">26</td><td>Ensure input buttons have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/input-button-name?application=axeAPI" target="_blank">input-button-name</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">27</td><td>Ensure that every form element has a visible label and is not solely labeled using hidden labels, or the title or aria-describedby attributes</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/label-title-only?application=axeAPI" target="_blank">label-title-only</a></td><td>Best Practice</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">28</td><td>Ensure every form element has a label</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/label?application=axeAPI" target="_blank">label</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">3</td></tr><tr><td style="text-align: center;">29</td><td>Ensure the banner landmark is at top level</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-banner-is-top-level?application=axeAPI" target="_blank">landmark-banner-is-top-level</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">30</td><td>Ensure the contentinfo landmark is at top level</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-contentinfo-is-top-level?application=axeAPI" target="_blank">landmark-contentinfo-is-top-level</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">31</td><td>Ensure the main landmark is at top level</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-main-is-top-level?application=axeAPI" target="_blank">landmark-main-is-top-level</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">32</td><td>Ensure the document has at most one banner landmark</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-banner?application=axeAPI" target="_blank">landmark-no-duplicate-banner</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">33</td><td>Ensure the document has at most one contentinfo landmark</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-contentinfo?application=axeAPI" target="_blank">landmark-no-duplicate-contentinfo</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">34</td><td>Ensure the document has at most one main landmark</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-main?application=axeAPI" target="_blank">landmark-no-duplicate-main</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">35</td><td>Ensure the document has a main landmark</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-one-main?application=axeAPI" target="_blank">landmark-one-main</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">36</td><td>Ensure landmarks are unique</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI" target="_blank">landmark-unique</a></td><td>Best Practice</td><td style="text-align: center;">10</td></tr><tr><td style="text-align: center;">37</td><td>Ensure links are distinguished from surrounding text in a way that does not rely on color</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/link-in-text-block?application=axeAPI" target="_blank">link-in-text-block</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">38</td><td>Ensure links have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/link-name?application=axeAPI" target="_blank">link-name</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">55</td></tr><tr><td style="text-align: center;">39</td><td>Ensure that lists are structured correctly</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/list?application=axeAPI" target="_blank">list</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">7</td></tr><tr><td style="text-align: center;">40</td><td>Ensure &lt;li&gt; elements are used semantically</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/listitem?application=axeAPI" target="_blank">listitem</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">51</td></tr><tr><td style="text-align: center;">41</td><td>Ensure &lt;meta name=&quot;viewport&quot;&gt; can scale a significant amount</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-viewport-large?application=axeAPI" target="_blank">meta-viewport-large</a></td><td>Best Practice</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">42</td><td>Ensure &lt;meta name=&quot;viewport&quot;&gt; does not disable text scaling and zooming</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-viewport?application=axeAPI" target="_blank">meta-viewport</a></td><td>WCAG 2.0 (AA)</td><td style="text-align: center;">1</td></tr><tr><td style="text-align: center;">43</td><td>Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/nested-interactive?application=axeAPI" target="_blank">nested-interactive</a></td><td>WCAG 2.0 (A)</td><td style="text-align: center;">11</td></tr><tr><td style="text-align: center;">44</td><td>Elements marked as presentational should not have global ARIA or tabindex to ensure all screen readers ignore them</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/presentation-role-conflict?application=axeAPI" target="_blank">presentation-role-conflict</a></td><td>Best Practice</td><td style="text-align: center;">7</td></tr><tr><td style="text-align: center;">45</td><td>Ensure all page content is contained by landmarks</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/region?application=axeAPI" target="_blank">region</a></td><td>Best Practice</td><td style="text-align: center;">218</td></tr><tr><td style="text-align: center;">46</td><td>Ensure touch targets have sufficient size and space</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/target-size?application=axeAPI" target="_blank">target-size</a></td><td>WCAG 2.2 (AA)</td><td style="text-align: center;">62</td></tr></table><h2>Incomplete Checks</h2><p>No incomplete checks found.</p><h2>Inapplicable Checks</h2><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 60%">Description</th><th style="width: 20%">Axe Rule ID</th><th style="width: 18%">WCAG</th><tr><td style="text-align: center;">1</td><td>Ensure every accesskey attribute value is unique</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/accesskeys?application=axeAPI" target="_blank">accesskeys</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">2</td><td>Ensure &lt;area&gt; elements of image maps have alternative text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/area-alt?application=axeAPI" target="_blank">area-alt</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">3</td><td>Ensure aria-braillelabel and aria-brailleroledescription have a non-braille equivalent</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-braille-equivalent?application=axeAPI" target="_blank">aria-braille-equivalent</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">4</td><td>Ensure every ARIA button, link and menuitem has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-command-name?application=axeAPI" target="_blank">aria-command-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">5</td><td>Ensure every ARIA dialog and alertdialog node has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-dialog-name?application=axeAPI" target="_blank">aria-dialog-name</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">6</td><td>Ensure every ARIA input field has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-input-field-name?application=axeAPI" target="_blank">aria-input-field-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">7</td><td>Ensure every ARIA meter node has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-meter-name?application=axeAPI" target="_blank">aria-meter-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">8</td><td>Ensure every ARIA progressbar node has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-progressbar-name?application=axeAPI" target="_blank">aria-progressbar-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">9</td><td>Ensure elements with an ARIA role that require child roles contain them</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-children?application=axeAPI" target="_blank">aria-required-children</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">10</td><td>Ensure elements with an ARIA role that require parent roles are contained by them</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-parent?application=axeAPI" target="_blank">aria-required-parent</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">11</td><td>Ensure role=&quot;text&quot; is used on elements with no focusable descendants</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-text?application=axeAPI" target="_blank">aria-text</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">12</td><td>Ensure every ARIA toggle field has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-toggle-field-name?application=axeAPI" target="_blank">aria-toggle-field-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">13</td><td>Ensure every ARIA tooltip node has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-tooltip-name?application=axeAPI" target="_blank">aria-tooltip-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">14</td><td>Ensure every ARIA treeitem node has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-treeitem-name?application=axeAPI" target="_blank">aria-treeitem-name</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">15</td><td>Ensure &lt;blink&gt; elements are not used</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/blink?application=axeAPI" target="_blank">blink</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">16</td><td>Ensure &lt;dl&gt; elements are structured correctly</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/definition-list?application=axeAPI" target="_blank">definition-list</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">17</td><td>Ensure &lt;dt&gt; and &lt;dd&gt; elements are contained by a &lt;dl&gt;</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/dlitem?application=axeAPI" target="_blank">dlitem</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">18</td><td>Ensure table headers have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/empty-table-header?application=axeAPI" target="_blank">empty-table-header</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">19</td><td>Ensure &lt;frame&gt; and &lt;iframe&gt; elements with focusable content do not have tabindex=-1</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-focusable-content?application=axeAPI" target="_blank">frame-focusable-content</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">20</td><td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements contain the axe-core script</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-tested?application=axeAPI" target="_blank">frame-tested</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">21</td><td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements contain a unique title attribute</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-title-unique?application=axeAPI" target="_blank">frame-title-unique</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">22</td><td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements have an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-title?application=axeAPI" target="_blank">frame-title</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">23</td><td>Ensure that HTML elements with both valid lang and xml:lang attributes agree on the base language of the page</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/html-xml-lang-mismatch?application=axeAPI" target="_blank">html-xml-lang-mismatch</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">24</td><td>Ensure &lt;input type=&quot;image&quot;&gt; elements have alternative text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/input-image-alt?application=axeAPI" target="_blank">input-image-alt</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">25</td><td>Ensure the complementary landmark or aside is at top level</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-complementary-is-top-level?application=axeAPI" target="_blank">landmark-complementary-is-top-level</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">26</td><td>Ensure &lt;marquee&gt; elements are not used</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/marquee?application=axeAPI" target="_blank">marquee</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">27</td><td>Ensure &lt;meta http-equiv=&quot;refresh&quot;&gt; is not used for delayed refresh</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-refresh?application=axeAPI" target="_blank">meta-refresh</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">28</td><td>Ensure &lt;object&gt; elements have alternative text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/object-alt?application=axeAPI" target="_blank">object-alt</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">29</td><td>Ensure [role=&quot;img&quot;] elements have alternative text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/role-img-alt?application=axeAPI" target="_blank">role-img-alt</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">30</td><td>Ensure the scope attribute is used correctly on tables</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/scope-attr-valid?application=axeAPI" target="_blank">scope-attr-valid</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">31</td><td>Ensure elements that have scrollable content are accessible by keyboard</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/scrollable-region-focusable?application=axeAPI" target="_blank">scrollable-region-focusable</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">32</td><td>Ensure select element has an accessible name</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/select-name?application=axeAPI" target="_blank">select-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">33</td><td>Ensure that server-side image maps are not used</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/server-side-image-map?application=axeAPI" target="_blank">server-side-image-map</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">34</td><td>Ensure all skip links have a focusable target</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/skip-link?application=axeAPI" target="_blank">skip-link</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">35</td><td>Ensure summary elements have discernible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/summary-name?application=axeAPI" target="_blank">summary-name</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">36</td><td>Ensure &lt;svg&gt; elements with an img, graphics-document or graphics-symbol role have an accessible text</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/svg-img-alt?application=axeAPI" target="_blank">svg-img-alt</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">37</td><td>Ensure tabindex attribute values are not greater than 0</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/tabindex?application=axeAPI" target="_blank">tabindex</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">38</td><td>Ensure the &lt;caption&gt; element does not contain the same text as the summary attribute</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/table-duplicate-name?application=axeAPI" target="_blank">table-duplicate-name</a></td><td>Best Practice</td></tr><tr><td style="text-align: center;">39</td><td>Ensure that each cell in a table that uses the headers attribute refers only to other cells in that table</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/td-headers-attr?application=axeAPI" target="_blank">td-headers-attr</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">40</td><td>Ensure that &lt;th&gt; elements and elements with role=columnheader/rowheader have data cells they describe</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/th-has-data-cells?application=axeAPI" target="_blank">th-has-data-cells</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">41</td><td>Ensure lang attributes have valid values</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/valid-lang?application=axeAPI" target="_blank">valid-lang</a></td><td>WCAG 2.0 (AA)</td></tr><tr><td style="text-align: center;">42</td><td>Ensure &lt;video&gt; elements have captions</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/video-caption?application=axeAPI" target="_blank">video-caption</a></td><td>WCAG 2.0 (A)</td></tr><tr><td style="text-align: center;">43</td><td>Ensure &lt;video&gt; or &lt;audio&gt; elements do not autoplay audio for more than 3 seconds without a control mechanism to stop or mute the audio</td><td><a href="https://dequeuniversity.com/rules/axe/4.10/no-autoplay-audio?application=axeAPI" target="_blank">no-autoplay-audio</a></td><td>WCAG 2.0 (A)</td></tr></table><h2>Execution Details</h2><table><tr><th style="width: 20%">Data</th><th style="width: 80%">Details</th><tr><td>Test Engine</td><td>name: <i>axe-core</i><br />version: <i>4.10.3</i><br /></td></tr><tr><td>Test Runner</td><td>name: <i>axe</i><br /></td></tr><tr><td>Test Environment</td><td>userAgent: <i>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/134.0.6998.35 Safari/537.36</i><br />windowWidth: <i>1280</i><br />windowHeight: <i>720</i><br />orientationAngle: <i>0</i><br />orientationType: <i>landscape-primary</i><br /></td></tr><tr><td>Tool Options</td><td>runOnly: <i>{&#x27;type&#x27;: &#x27;tag&#x27;, &#x27;values&#x27;: [&#x27;wcag2a&#x27;, &#x27;wcag21a&#x27;, &#x27;wcag2aa&#x27;, &#x27;wcag21aa&#x27;, &#x27;wcag22a&#x27;, &#x27;wcag22aa&#x27;, &#x27;best-practice&#x27;]}</i><br />reporter: <i>v1</i><br /></td></tr><tr><td>Timestamp</td><td>2025-03-27T21:21:14.981Z</td></tr><tr><td>URL</td><td>https://github.com/davethepunkyone/pytest-playwright-axe</td></tr></table></body></html>
+<!DOCTYPE html><html lang="en"><head><style>body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1,
+h2,
+h3 {
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+pre {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+code {
+    background-color: #f9f9f9;
+    padding: 2px 4px;
+    border-radius: 4px;
+    word-wrap: break-word;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+p {
+    margin: 10px 0;
+}
+
+div {
+    padding: 10px;
+    border: 1px solid #ddd;
+}</style><title>Axe Accessibility Report</title></head><body><header role="banner"><h1>Axe Accessibility Report</h1><p>This is an axe-core accessibility summary generated on
+                    2025-09-08 20:44
+                    for: <strong>https://github.com/davethepunkyone/pytest-playwright-axe</strong></p></header><main role="main"><h2>Violations Found</h2><p>2 violations found.</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 53%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 15%">WCAG</th><th style="width: 10%">Impact</th><th style="text-align: center; width: 5%">Count</th><tr>
+                    <td style="text-align: center;">1</td>
+                    <td>Ensure elements that have scrollable content are accessible by keyboard</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/scrollable-region-focusable?application=axeAPI" target="_blank">scrollable-region-focusable</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td>serious</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">2</td>
+                    <td>Ensure touch targets have sufficient size and space</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/target-size?application=axeAPI" target="_blank">target-size</a></td>
+                    <td>WCAG 2.2 (AA)</td>
+                    <td>serious</td>
+                    <td style="text-align: center;">20</td>
+                    </tr></table><table><tr><td style="width: 100%"><h3>Ensure elements that have scrollable content are accessible by keyboard</h3>
+                                <p><strong>Axe Rule ID:</strong> <a href="https://dequeuniversity.com/rules/axe/4.10/scrollable-region-focusable?application=axeAPI" target="_blank">scrollable-region-focusable</a><br />
+                                <strong>WCAG:</strong> WCAG 2.0 (A)<br />
+                                <strong>Impact:</strong> serious<br />
+                                <strong>Tags:</strong> cat.keyboard, wcag2a, wcag211, wcag213, TTv5, TT4.a, EN-301-549, EN-9.2.1.1, EN-9.2.1.3</p>
+                                <table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th><tr><td style="text-align: center;">1</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>.snippet-clipboard-content.overflow-auto.notranslate:nth-child(28) &gt; pre</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;pre class=&quot;notranslate&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Element should have focusable content<br /> &bullet; Element should be focusable</td></tr></table>
+                                </td></tr></table><table><tr><td style="width: 100%"><h3>Ensure touch targets have sufficient size and space</h3>
+                                <p><strong>Axe Rule ID:</strong> <a href="https://dequeuniversity.com/rules/axe/4.10/target-size?application=axeAPI" target="_blank">target-size</a><br />
+                                <strong>WCAG:</strong> WCAG 2.2 (AA)<br />
+                                <strong>Impact:</strong> serious<br />
+                                <strong>Tags:</strong> cat.sensory-and-visual-cues, wcag22aa, wcag258</p>
+                                <table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th><tr><td style="text-align: center;">1</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>.Truncate-text &gt; .issue-link.js-issue-link[data-id=&quot;3387354049&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/23&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/23/hovercard&quot; data-hovercard-type=&quot;pull_request&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/23&quot; data-permission-text=&quot;Title is private&quot; data-id=&quot;3387354049&quot; data-error-text=&quot;Failed to load title&quot; class=&quot;issue-link js-issue-link&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">2</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>.Link--secondary[aria-keyshortcuts=&quot;Alt+ArrowUp&quot;][data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a href=&quot;/davethepunkyone/pytest-playwright-axe/commit/a6deb69b6623619185572fa7434e2274778d439e&quot; class=&quot;Link--secondary&quot; data-pjax=&quot;true&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/commit/a6deb69b6623619185572fa7434e2274778d439e/hovercard&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">3</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>.react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;3387354049&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;3387354049&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/23&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/23/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/23&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">4</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-0 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Bump actions/github-script from 7 to 8 (#23)
+
+Bumps [actions/github-script](https://github.com/actions/github-script) from 7 to 8.
+- [Release notes](https://github.com/actions/github-script/releases)
+- [Commits](https://github.com/actions/github-script/compare/v7...v8)
+
+---
+updated-dependencies:
+- dependency-name: actions/github-script
+  dependency-version: &#x27;8&#x27;
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] &lt;support@github.com&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">5</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-2 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;2950903398&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;2950903398&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/1&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/1/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/1&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (15.8px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr><tr><td style="text-align: center;">6</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-2 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Initial Release Fixes (#1)
+
+* Initial tidy-up and fixes ready for release&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/7604db93ca57b2d3cc69482ee0cd78de5f65daae&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr><tr><td style="text-align: center;">7</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>a[data-id=&quot;3037423873&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;3037423873&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/17&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/17/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/17&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">8</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-3 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Refactor Axe Class (#17)
+
+This refactors the Axe class so it passes SonarQube IDE checks, along with adding additional unit tests.&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/3d7a92227bce535e16a7d2aeaf03e09156f664d6&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">9</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-4 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;3040551255&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;3040551255&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/18&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/18/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/18&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">10</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-4 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;axe-core getRules Support (#18)
+
+This adds a new method to support the getRules() method provided by axe-core.&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/722f87a4ef9f4e65c6a871ed4afe33641c1aaec8&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">11</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-5 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;3040551255&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;3040551255&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/18&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/18/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/18&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">12</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-5 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;axe-core getRules Support (#18)
+
+This adds a new method to support the getRules() method provided by axe-core.&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/722f87a4ef9f4e65c6a871ed4afe33641c1aaec8&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">13</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-9 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;3040551255&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;3040551255&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/18&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/18/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/18&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">14</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-9 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;axe-core getRules Support (#18)
+
+This adds a new method to support the getRules() method provided by axe-core.&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/722f87a4ef9f4e65c6a871ed4afe33641c1aaec8&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">15</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>a[data-id=&quot;2993833313&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;2993833313&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/14&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/14/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/14&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (23.4px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">16</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-10 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Version Check Workflow Enhancements (#14)
+
+This adds support for the GitHub workflows to automatically check the axe-core releases on Fridays at 5AM UTC, and if a change is detected then create a new version specific branch, update the axe version and plugins, and create a pull request to review.&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/5c6ff10e2294425e280d4f953039441f0de72c51&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.6px instead of at least 24px.</td></tr><tr><td style="text-align: center;">17</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-11 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;2950903398&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;2950903398&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/1&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/1/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/1&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (15.8px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr><tr><td style="text-align: center;">18</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-11 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Initial Release Fixes (#1)
+
+* Initial tidy-up and fixes ready for release&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/7604db93ca57b2d3cc69482ee0cd78de5f65daae&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr><tr><td style="text-align: center;">19</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-12 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .issue-link.js-issue-link[data-id=&quot;2950903398&quot;]</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a class=&quot;issue-link js-issue-link&quot; data-error-text=&quot;Failed to load title&quot; data-id=&quot;2950903398&quot; data-permission-text=&quot;Title is private&quot; data-url=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/issues/1&quot; data-hovercard-type=&quot;pull_request&quot; data-hovercard-url=&quot;/davethepunkyone/pytest-playwright-axe/pull/1/hovercard&quot; href=&quot;https://github.com/davethepunkyone/pytest-playwright-axe/pull/1&quot; aria-keyshortcuts=&quot;Alt+ArrowUp&quot;&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (15.8px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr><tr><td style="text-align: center;">20</td>
+                                    <td><p>Element Location:</p>
+                                    <pre><code>#folder-row-12 &gt; .react-directory-row-commit-cell &gt; div &gt; .react-directory-commit-message &gt; .Link--secondary[data-pjax=&quot;true&quot;]:nth-child(3)</code></pre>
+                                    <p>HTML:</p><pre><code>&lt;a data-pjax=&quot;true&quot; title=&quot;Initial Release Fixes (#1)
+
+* Initial tidy-up and fixes ready for release&quot; class=&quot;Link--secondary&quot; href=&quot;/davethepunkyone/pytest-playwright-axe/commit/7604db93ca57b2d3cc69482ee0cd78de5f65daae&quot;&gt;)&lt;/a&gt;</code></pre></td>
+                                    <td><strong>Fix any of the following:</strong><br /><br /> &bullet; Target has insufficient size (4.2px by 19px, should be at least 24px by 24px)<br /> &bullet; Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px.</td></tr></table>
+                                </td></tr></table><h2>Passed Checks</h2><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 50%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 18%">WCAG</th><th style="text-align: center; width: 15%">Nodes Passed Count</th><tr>
+                    <td style="text-align: center;">1</td>
+                    <td>Ensure an element&#x27;s role supports its ARIA attributes</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-allowed-attr?application=axeAPI" target="_blank">aria-allowed-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">94</td>
+                    </tr><tr>
+                    <td style="text-align: center;">2</td>
+                    <td>Ensure role attribute has an appropriate value for the element</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-allowed-role?application=axeAPI" target="_blank">aria-allowed-role</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">38</td>
+                    </tr><tr>
+                    <td style="text-align: center;">3</td>
+                    <td>Ensure every ARIA button, link and menuitem has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-command-name?application=axeAPI" target="_blank">aria-command-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">8</td>
+                    </tr><tr>
+                    <td style="text-align: center;">4</td>
+                    <td>Ensure ARIA attributes are used as described in the specification of the element&#x27;s role</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-conditional-attr?application=axeAPI" target="_blank">aria-conditional-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">94</td>
+                    </tr><tr>
+                    <td style="text-align: center;">5</td>
+                    <td>Ensure elements do not use deprecated roles</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-deprecated-role?application=axeAPI" target="_blank">aria-deprecated-role</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">12</td>
+                    </tr><tr>
+                    <td style="text-align: center;">6</td>
+                    <td>Ensure aria-hidden=&quot;true&quot; is not present on the document body.</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-hidden-body?application=axeAPI" target="_blank">aria-hidden-body</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">7</td>
+                    <td>Ensure aria-hidden elements are not focusable nor contain focusable elements</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-hidden-focus?application=axeAPI" target="_blank">aria-hidden-focus</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">171</td>
+                    </tr><tr>
+                    <td style="text-align: center;">8</td>
+                    <td>Ensure ARIA attributes are not prohibited for an element&#x27;s role</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-prohibited-attr?application=axeAPI" target="_blank">aria-prohibited-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">94</td>
+                    </tr><tr>
+                    <td style="text-align: center;">9</td>
+                    <td>Ensure elements with ARIA roles have all required ARIA attributes</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-attr?application=axeAPI" target="_blank">aria-required-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">12</td>
+                    </tr><tr>
+                    <td style="text-align: center;">10</td>
+                    <td>Ensure elements with an ARIA role that require child roles contain them</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-children?application=axeAPI" target="_blank">aria-required-children</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">11</td>
+                    <td>Ensure all elements with a role attribute use a valid value</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-roles?application=axeAPI" target="_blank">aria-roles</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">12</td>
+                    </tr><tr>
+                    <td style="text-align: center;">12</td>
+                    <td>Ensure all ARIA attributes have valid values</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr-value?application=axeAPI" target="_blank">aria-valid-attr-value</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">85</td>
+                    </tr><tr>
+                    <td style="text-align: center;">13</td>
+                    <td>Ensure attributes that begin with aria- are valid ARIA attributes</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr?application=axeAPI" target="_blank">aria-valid-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">94</td>
+                    </tr><tr>
+                    <td style="text-align: center;">14</td>
+                    <td>Ensure that text spacing set through style attributes can be adjusted with custom stylesheets</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/avoid-inline-spacing?application=axeAPI" target="_blank">avoid-inline-spacing</a></td>
+                    <td>WCAG 2.1 (AA)</td>
+                    <td style="text-align: center;">14</td>
+                    </tr><tr>
+                    <td style="text-align: center;">15</td>
+                    <td>Ensure buttons have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/button-name?application=axeAPI" target="_blank">button-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">14</td>
+                    </tr><tr>
+                    <td style="text-align: center;">16</td>
+                    <td>Ensure each page has at least one mechanism for a user to bypass navigation and jump straight to the content</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/bypass?application=axeAPI" target="_blank">bypass</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">17</td>
+                    <td>Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI" target="_blank">color-contrast</a></td>
+                    <td>WCAG 2.0 (AA)</td>
+                    <td style="text-align: center;">412</td>
+                    </tr><tr>
+                    <td style="text-align: center;">18</td>
+                    <td>Ensure each HTML document contains a non-empty &lt;title&gt; element</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/document-title?application=axeAPI" target="_blank">document-title</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">19</td>
+                    <td>Ensure every id attribute value used in ARIA and in labels is unique</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/duplicate-id-aria?application=axeAPI" target="_blank">duplicate-id-aria</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">38</td>
+                    </tr><tr>
+                    <td style="text-align: center;">20</td>
+                    <td>Ensure headings have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/empty-heading?application=axeAPI" target="_blank">empty-heading</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">41</td>
+                    </tr><tr>
+                    <td style="text-align: center;">21</td>
+                    <td>Ensure table headers have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/empty-table-header?application=axeAPI" target="_blank">empty-table-header</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">30</td>
+                    </tr><tr>
+                    <td style="text-align: center;">22</td>
+                    <td>Ensure form field does not have multiple label elements</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/form-field-multiple-labels?application=axeAPI" target="_blank">form-field-multiple-labels</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">23</td>
+                    <td>Ensure the order of headings is semantically correct</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/heading-order?application=axeAPI" target="_blank">heading-order</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">41</td>
+                    </tr><tr>
+                    <td style="text-align: center;">24</td>
+                    <td>Ensure every HTML document has a lang attribute</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/html-has-lang?application=axeAPI" target="_blank">html-has-lang</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">25</td>
+                    <td>Ensure the lang attribute of the &lt;html&gt; element has a valid value</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/html-lang-valid?application=axeAPI" target="_blank">html-lang-valid</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">26</td>
+                    <td>Ensure &lt;img&gt; elements have alternative text or a role of none or presentation</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/image-alt?application=axeAPI" target="_blank">image-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">3</td>
+                    </tr><tr>
+                    <td style="text-align: center;">27</td>
+                    <td>Ensure image alternative is not repeated as text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/image-redundant-alt?application=axeAPI" target="_blank">image-redundant-alt</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">3</td>
+                    </tr><tr>
+                    <td style="text-align: center;">28</td>
+                    <td>Ensure that every form element has a visible label and is not solely labeled using hidden labels, or the title or aria-describedby attributes</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/label-title-only?application=axeAPI" target="_blank">label-title-only</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">29</td>
+                    <td>Ensure every form element has a label</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/label?application=axeAPI" target="_blank">label</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">30</td>
+                    <td>Ensure the banner landmark is at top level</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-banner-is-top-level?application=axeAPI" target="_blank">landmark-banner-is-top-level</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">31</td>
+                    <td>Ensure the contentinfo landmark is at top level</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-contentinfo-is-top-level?application=axeAPI" target="_blank">landmark-contentinfo-is-top-level</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">32</td>
+                    <td>Ensure the main landmark is at top level</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-main-is-top-level?application=axeAPI" target="_blank">landmark-main-is-top-level</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">33</td>
+                    <td>Ensure the document has at most one banner landmark</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-banner?application=axeAPI" target="_blank">landmark-no-duplicate-banner</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">34</td>
+                    <td>Ensure the document has at most one contentinfo landmark</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-contentinfo?application=axeAPI" target="_blank">landmark-no-duplicate-contentinfo</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">35</td>
+                    <td>Ensure the document has at most one main landmark</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-no-duplicate-main?application=axeAPI" target="_blank">landmark-no-duplicate-main</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">36</td>
+                    <td>Ensure the document has a main landmark</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-one-main?application=axeAPI" target="_blank">landmark-one-main</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">37</td>
+                    <td>Ensure landmarks are unique</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-unique?application=axeAPI" target="_blank">landmark-unique</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">7</td>
+                    </tr><tr>
+                    <td style="text-align: center;">38</td>
+                    <td>Ensure links are distinguished from surrounding text in a way that does not rely on color</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/link-in-text-block?application=axeAPI" target="_blank">link-in-text-block</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">6</td>
+                    </tr><tr>
+                    <td style="text-align: center;">39</td>
+                    <td>Ensure links have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/link-name?application=axeAPI" target="_blank">link-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">158</td>
+                    </tr><tr>
+                    <td style="text-align: center;">40</td>
+                    <td>Ensure that lists are structured correctly</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/list?application=axeAPI" target="_blank">list</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">13</td>
+                    </tr><tr>
+                    <td style="text-align: center;">41</td>
+                    <td>Ensure &lt;li&gt; elements are used semantically</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/listitem?application=axeAPI" target="_blank">listitem</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">59</td>
+                    </tr><tr>
+                    <td style="text-align: center;">42</td>
+                    <td>Ensure &lt;meta name=&quot;viewport&quot;&gt; can scale a significant amount</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-viewport-large?application=axeAPI" target="_blank">meta-viewport-large</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">43</td>
+                    <td>Ensure &lt;meta name=&quot;viewport&quot;&gt; does not disable text scaling and zooming</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-viewport?application=axeAPI" target="_blank">meta-viewport</a></td>
+                    <td>WCAG 2.0 (AA)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">44</td>
+                    <td>Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/nested-interactive?application=axeAPI" target="_blank">nested-interactive</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">25</td>
+                    </tr><tr>
+                    <td style="text-align: center;">45</td>
+                    <td>Ensure that the page, or at least one of its frames contains a level-one heading</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/page-has-heading-one?application=axeAPI" target="_blank">page-has-heading-one</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">46</td>
+                    <td>Ensure all page content is contained by landmarks</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/region?application=axeAPI" target="_blank">region</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">1047</td>
+                    </tr><tr>
+                    <td style="text-align: center;">47</td>
+                    <td>Ensure tabindex attribute values are not greater than 0</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/tabindex?application=axeAPI" target="_blank">tabindex</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">34</td>
+                    </tr><tr>
+                    <td style="text-align: center;">48</td>
+                    <td>Ensure the &lt;caption&gt; element does not contain the same text as the summary attribute</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/table-duplicate-name?application=axeAPI" target="_blank">table-duplicate-name</a></td>
+                    <td>Best Practice</td>
+                    <td style="text-align: center;">8</td>
+                    </tr><tr>
+                    <td style="text-align: center;">49</td>
+                    <td>Ensure touch targets have sufficient size and space</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/target-size?application=axeAPI" target="_blank">target-size</a></td>
+                    <td>WCAG 2.2 (AA)</td>
+                    <td style="text-align: center;">147</td>
+                    </tr><tr>
+                    <td style="text-align: center;">50</td>
+                    <td>Ensure that each cell in a table that uses the headers attribute refers only to other cells in that table</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/td-headers-attr?application=axeAPI" target="_blank">td-headers-attr</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">8</td>
+                    </tr><tr>
+                    <td style="text-align: center;">51</td>
+                    <td>Ensure that &lt;th&gt; elements and elements with role=columnheader/rowheader have data cells they describe</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/th-has-data-cells?application=axeAPI" target="_blank">th-has-data-cells</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">7</td>
+                    </tr></table><h2>Incomplete Checks</h2><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 50%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 18%">WCAG</th><th style="text-align: center; width: 15%">Nodes Incomplete Count</th><tr>
+                    <td style="text-align: center;">1</td>
+                    <td>Ensure all ARIA attributes have valid values</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-valid-attr-value?application=axeAPI" target="_blank">aria-valid-attr-value</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">9</td>
+                    </tr><tr>
+                    <td style="text-align: center;">2</td>
+                    <td>Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/color-contrast?application=axeAPI" target="_blank">color-contrast</a></td>
+                    <td>WCAG 2.0 (AA)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr><tr>
+                    <td style="text-align: center;">3</td>
+                    <td>Ensure that &lt;th&gt; elements and elements with role=columnheader/rowheader have data cells they describe</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/th-has-data-cells?application=axeAPI" target="_blank">th-has-data-cells</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    <td style="text-align: center;">1</td>
+                    </tr></table><h2>Inapplicable Checks</h2><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 60%">Description</th><th style="width: 20%">Axe Rule ID</th><th style="width: 18%">WCAG</th><tr>
+                    <td style="text-align: center;">1</td>
+                    <td>Ensure every accesskey attribute value is unique</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/accesskeys?application=axeAPI" target="_blank">accesskeys</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">2</td>
+                    <td>Ensure &lt;area&gt; elements of image maps have alternative text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/area-alt?application=axeAPI" target="_blank">area-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">3</td>
+                    <td>Ensure aria-braillelabel and aria-brailleroledescription have a non-braille equivalent</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-braille-equivalent?application=axeAPI" target="_blank">aria-braille-equivalent</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">4</td>
+                    <td>Ensure every ARIA dialog and alertdialog node has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-dialog-name?application=axeAPI" target="_blank">aria-dialog-name</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">5</td>
+                    <td>Ensure every ARIA input field has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-input-field-name?application=axeAPI" target="_blank">aria-input-field-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">6</td>
+                    <td>Ensure every ARIA meter node has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-meter-name?application=axeAPI" target="_blank">aria-meter-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">7</td>
+                    <td>Ensure every ARIA progressbar node has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-progressbar-name?application=axeAPI" target="_blank">aria-progressbar-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">8</td>
+                    <td>Ensure elements with an ARIA role that require parent roles are contained by them</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-required-parent?application=axeAPI" target="_blank">aria-required-parent</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">9</td>
+                    <td>Ensure role=&quot;text&quot; is used on elements with no focusable descendants</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-text?application=axeAPI" target="_blank">aria-text</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">10</td>
+                    <td>Ensure every ARIA toggle field has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-toggle-field-name?application=axeAPI" target="_blank">aria-toggle-field-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">11</td>
+                    <td>Ensure every ARIA tooltip node has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-tooltip-name?application=axeAPI" target="_blank">aria-tooltip-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">12</td>
+                    <td>Ensure every ARIA treeitem node has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/aria-treeitem-name?application=axeAPI" target="_blank">aria-treeitem-name</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">13</td>
+                    <td>Ensure the autocomplete attribute is correct and suitable for the form field</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/autocomplete-valid?application=axeAPI" target="_blank">autocomplete-valid</a></td>
+                    <td>WCAG 2.1 (AA)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">14</td>
+                    <td>Ensure &lt;blink&gt; elements are not used</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/blink?application=axeAPI" target="_blank">blink</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">15</td>
+                    <td>Ensure &lt;dl&gt; elements are structured correctly</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/definition-list?application=axeAPI" target="_blank">definition-list</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">16</td>
+                    <td>Ensure &lt;dt&gt; and &lt;dd&gt; elements are contained by a &lt;dl&gt;</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/dlitem?application=axeAPI" target="_blank">dlitem</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">17</td>
+                    <td>Ensure &lt;frame&gt; and &lt;iframe&gt; elements with focusable content do not have tabindex=-1</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-focusable-content?application=axeAPI" target="_blank">frame-focusable-content</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">18</td>
+                    <td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements contain the axe-core script</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-tested?application=axeAPI" target="_blank">frame-tested</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">19</td>
+                    <td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements contain a unique title attribute</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-title-unique?application=axeAPI" target="_blank">frame-title-unique</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">20</td>
+                    <td>Ensure &lt;iframe&gt; and &lt;frame&gt; elements have an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/frame-title?application=axeAPI" target="_blank">frame-title</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">21</td>
+                    <td>Ensure that HTML elements with both valid lang and xml:lang attributes agree on the base language of the page</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/html-xml-lang-mismatch?application=axeAPI" target="_blank">html-xml-lang-mismatch</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">22</td>
+                    <td>Ensure input buttons have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/input-button-name?application=axeAPI" target="_blank">input-button-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">23</td>
+                    <td>Ensure &lt;input type=&quot;image&quot;&gt; elements have alternative text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/input-image-alt?application=axeAPI" target="_blank">input-image-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">24</td>
+                    <td>Ensure the complementary landmark or aside is at top level</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/landmark-complementary-is-top-level?application=axeAPI" target="_blank">landmark-complementary-is-top-level</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">25</td>
+                    <td>Ensure &lt;marquee&gt; elements are not used</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/marquee?application=axeAPI" target="_blank">marquee</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">26</td>
+                    <td>Ensure &lt;meta http-equiv=&quot;refresh&quot;&gt; is not used for delayed refresh</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/meta-refresh?application=axeAPI" target="_blank">meta-refresh</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">27</td>
+                    <td>Ensure &lt;object&gt; elements have alternative text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/object-alt?application=axeAPI" target="_blank">object-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">28</td>
+                    <td>Elements marked as presentational should not have global ARIA or tabindex to ensure all screen readers ignore them</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/presentation-role-conflict?application=axeAPI" target="_blank">presentation-role-conflict</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">29</td>
+                    <td>Ensure [role=&quot;img&quot;] elements have alternative text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/role-img-alt?application=axeAPI" target="_blank">role-img-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">30</td>
+                    <td>Ensure the scope attribute is used correctly on tables</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/scope-attr-valid?application=axeAPI" target="_blank">scope-attr-valid</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">31</td>
+                    <td>Ensure select element has an accessible name</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/select-name?application=axeAPI" target="_blank">select-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">32</td>
+                    <td>Ensure that server-side image maps are not used</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/server-side-image-map?application=axeAPI" target="_blank">server-side-image-map</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">33</td>
+                    <td>Ensure all skip links have a focusable target</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/skip-link?application=axeAPI" target="_blank">skip-link</a></td>
+                    <td>Best Practice</td>
+                    </tr><tr>
+                    <td style="text-align: center;">34</td>
+                    <td>Ensure summary elements have discernible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/summary-name?application=axeAPI" target="_blank">summary-name</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">35</td>
+                    <td>Ensure &lt;svg&gt; elements with an img, graphics-document or graphics-symbol role have an accessible text</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/svg-img-alt?application=axeAPI" target="_blank">svg-img-alt</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">36</td>
+                    <td>Ensure lang attributes have valid values</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/valid-lang?application=axeAPI" target="_blank">valid-lang</a></td>
+                    <td>WCAG 2.0 (AA)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">37</td>
+                    <td>Ensure &lt;video&gt; elements have captions</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/video-caption?application=axeAPI" target="_blank">video-caption</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr><tr>
+                    <td style="text-align: center;">38</td>
+                    <td>Ensure &lt;video&gt; or &lt;audio&gt; elements do not autoplay audio for more than 3 seconds without a control mechanism to stop or mute the audio</td>
+                    <td><a href="https://dequeuniversity.com/rules/axe/4.10/no-autoplay-audio?application=axeAPI" target="_blank">no-autoplay-audio</a></td>
+                    <td>WCAG 2.0 (A)</td>
+                    </tr></table><h2>Execution Details</h2><table><tr><th style="width: 20%">Data</th><th style="width: 80%">Details</th><tr><td>Test Engine</td><td>name: <i>axe-core</i><br />version: <i>4.10.3</i><br /></td></tr><tr><td>Test Runner</td><td>name: <i>axe</i><br /></td></tr><tr><td>Test Environment</td><td>userAgent: <i>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/134.0.6998.35 Safari/537.36</i><br />windowWidth: <i>1280</i><br />windowHeight: <i>720</i><br />orientationAngle: <i>0</i><br />orientationType: <i>landscape-primary</i><br /></td></tr><tr><td>Tool Options</td><td>runOnly: <i>{&#x27;type&#x27;: &#x27;tag&#x27;, &#x27;values&#x27;: [&#x27;wcag2a&#x27;, &#x27;wcag21a&#x27;, &#x27;wcag2aa&#x27;, &#x27;wcag21aa&#x27;, &#x27;wcag22a&#x27;, &#x27;wcag22aa&#x27;, &#x27;best-practice&#x27;]}</i><br />reporter: <i>v1</i><br /></td></tr><tr><td>Timestamp</td><td>2025-09-08T20:44:31.252Z</td></tr><tr><td>URL</td><td>https://github.com/davethepunkyone/pytest-playwright-axe</td></tr></table></main></body></html>
