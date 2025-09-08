@@ -47,7 +47,7 @@ def test_empty_filename_for_report() -> None:
 
 
 def test_create_path_for_report() -> None:
-    assert Axe()._create_path_for_report(AXE_REPORTS_DIR, 'test123.html') == Path(
+    assert Axe(output_directory=AXE_REPORTS_DIR)._create_path_for_report('test123.html') == Path(
         __file__).parent.parent / "axe-reports" / "test123.html"
 
 
@@ -55,12 +55,12 @@ def test_create_json_report() -> None:
     test_data = {"url": "https://www.test.com/1"}
 
     # Default generation
-    Axe()._create_json_report(test_data, AXE_REPORTS_DIR)
+    Axe(output_directory=AXE_REPORTS_DIR)._create_json_report(test_data)
     with open(AXE_REPORTS_DIR / TEST_JSON_DEFAULT_FILENAME, 'r') as file:
         assert file.read() == '''{\n    "url": "https://www.test.com/1"\n}'''
 
     # With custom filename
-    Axe()._create_json_report(test_data, AXE_REPORTS_DIR,
+    Axe(output_directory=AXE_REPORTS_DIR)._create_json_report(test_data,
                             TEST_JSON_CUSTOM_FILENAME.replace(".json", ""))
     with open(AXE_REPORTS_DIR / TEST_JSON_CUSTOM_FILENAME, 'r') as file:
         assert file.read() == '''{\n    "url": "https://www.test.com/1"\n}'''
@@ -82,12 +82,12 @@ def test_create_html_report() -> None:
     expected_file_data = Axe()._generate_html(test_data)
 
     # Default generation
-    Axe()._create_html_report(test_data, AXE_REPORTS_DIR)
+    Axe(output_directory=AXE_REPORTS_DIR)._create_html_report(test_data)
     with open(AXE_REPORTS_DIR / TEST_HTML_DEFAULT_FILENAME, 'r') as file:
         assert file.read() == expected_file_data
 
     # With custom filename
-    Axe()._create_html_report(test_data, AXE_REPORTS_DIR,
+    Axe(output_directory=AXE_REPORTS_DIR)._create_html_report(test_data,
                             TEST_HTML_CUSTOM_FILENAME.replace(".html", ""))
     with open(AXE_REPORTS_DIR / TEST_HTML_CUSTOM_FILENAME, 'r') as file:
         assert file.read() == expected_file_data

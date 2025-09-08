@@ -48,18 +48,22 @@ class Axe:
     under test to identify any accessibility concerns.
 
     Args:
+        output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to os.getcwd()/axe-reports directory.
         css_override (str): [Optional] If provided, overrides the default CSS used within the HTML report generated.
         use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
     """
 
-    def __init__(self, css_override: str = "", use_minified_file: bool = False) -> None:
+    def __init__(self, 
+                 output_directory: str | Path = DEFAULT_REPORT_PATH,
+                 css_override: str = "", 
+                 use_minified_file: bool = False) -> None:
+        self.output_directory = output_directory
         self.css_override = css_override
         self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
 
     def run(self,
             page: Page,
             filename: str = "",
-            output_directory: str = DEFAULT_REPORT_PATH,
             context: str = "",
             options: str = "",
             report_on_violation_only: bool = False,
@@ -72,7 +76,6 @@ class Axe:
         Args:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
             filename (str): [Optional] The filename to use for the outputted reports. If not provided, defaults to the URL under test.
-            output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to /axe-reports directory.
             context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
             options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
@@ -96,9 +99,9 @@ class Axe:
         violations_detected = len(response["violations"]) > 0
         if not report_on_violation_only or (report_on_violation_only and violations_detected):
             if html_report_generated:
-                self._create_html_report(response, output_directory, filename)
+                self._create_html_report(response, filename)
             if json_report_generated:
-                self._create_json_report(response, output_directory, filename)
+                self._create_json_report(response, filename)
 
         if violations_detected and strict_mode:
             raise AxeAccessibilityException(
@@ -110,7 +113,6 @@ class Axe:
                  page: Page,
                  page_list: list[str],
                  use_list_for_filename: bool = True,
-                 output_directory: str = DEFAULT_REPORT_PATH,
                  context: str = "",
                  options: str = "",
                  report_on_violation_only: bool = False,
@@ -126,7 +128,6 @@ class Axe:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
             page_list (list[playwright.sync_api.Page): A list of URLs to execute against.
             use_list_for_filename (bool): If true, based filenames off the list provided. If false, use the full URL under test for the filename.
-            output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to /axe-reports directory.
             context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
             options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
@@ -145,7 +146,6 @@ class Axe:
             results[selected_page] = self.run(
                 page,
                 filename=filename,
-                output_directory=output_directory,
                 context=context,
                 options=options,
                 report_on_violation_only=report_on_violation_only,
@@ -180,7 +180,6 @@ class Axe:
 
         return context or options
 
-
     def _modify_filename_for_report(self, filename_to_modify: str) -> str:
         """This determines the filename to use for generated files."""
         if not filename_to_modify:
@@ -194,25 +193,25 @@ class Axe:
 
         return filename_to_modify
 
-    def _create_path_for_report(self, path_for_report: str, filename: str) -> Path:
+    def _create_path_for_report(self, filename: str) -> Path:
         """This creates the report path (if it doesn't exist) and returns the full path."""
-        os.makedirs(path_for_report, exist_ok=True)
-        return Path(path_for_report) / filename
+        os.makedirs(self.output_directory, exist_ok=True)
+        return Path(self.output_directory).joinpath(filename)
 
-    def _create_json_report(self, data: dict, path_for_report: str, filename_override: str = "") -> None:
+    def _create_json_report(self, data: dict, filename_override: str = "") -> None:
         """This creates a JSON report for the generated report data."""
         filename = f"{self._modify_filename_for_report(data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
-        full_path = self._create_path_for_report(path_for_report, filename)
+        full_path = self._create_path_for_report(filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4)
 
         logger.info(f"JSON report generated: {full_path}")
-    
-    def _create_html_report(self, data: dict, path_for_report: str, filename_override: str = "") -> None:
+
+    def _create_html_report(self, data: dict, filename_override: str = "") -> None:
         """This creates an HTML report for the generated report data."""
         filename = f"{self._modify_filename_for_report(data["url"])}.html" if filename_override == "" else f"{filename_override}.html"
-        full_path = self._create_path_for_report(path_for_report, filename)
+        full_path = self._create_path_for_report(filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
             file.write(self._generate_html(data))
