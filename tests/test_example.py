@@ -23,6 +23,22 @@ def test_get_rules(page: Page) -> None:
     print(rules[0])
 
 
+def test_run_list_with_actions(page: Page) -> None:
+    actions = [
+        "https://github.com/davethepunkyone/pytest-playwright-axe",
+        {
+            "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
+            "action": "click", 
+            "locator": page.get_by_test_id("anchor-button"), 
+            "assert_type": "to_contain_text", 
+            "assert_locator": page.get_by_test_id("overlay-content"),
+            "assert_value": "rework-axe-to-include-init",
+            "wait_time": 1000
+        }
+    ]
+
+    Axe().run_list(page, actions)
+
 @pytest.mark.skip(reason="Test is for local execution only")
 def test_get_report_of_report(page: Page) -> None:
     EXAMPLES_DIR = Path(__file__).parent.parent / "examples" / "example_result_report.html"

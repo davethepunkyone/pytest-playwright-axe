@@ -2,6 +2,7 @@ import pytest
 import os
 from pathlib import Path
 from src.pytest_playwright_axe import Axe, AxeAccessibilityException
+from playwright.sync_api import Locator
 
 
 DEFAULT_CSS_PATH = Path(__file__).parent.parent / "src" / "pytest_playwright_axe" / "resources" / "default.css"
@@ -13,12 +14,16 @@ TEST_JSON_CUSTOM_FILENAME = "test_json_file.json"
 TEST_HTML_DEFAULT_FILENAME = "www_test_com_1.html"
 TEST_HTML_CUSTOM_FILENAME = "test_html_file.html"
 
-
 @pytest.fixture(scope="session", autouse=True)
 def remove_files_before_test() -> None:
     for file in [TEST_JSON_DEFAULT_FILENAME, TEST_JSON_CUSTOM_FILENAME, TEST_HTML_DEFAULT_FILENAME, TEST_HTML_CUSTOM_FILENAME]:
         if os.path.isfile(AXE_REPORTS_DIR / file):
             os.remove(AXE_REPORTS_DIR / file)
+
+@pytest.fixture
+def patch_locator(monkeypatch):
+    monkeypatch.setattr(Locator, "text_content", lambda self: "mocked text")
+
 
 def test_axe_init_around_minified_file() -> None:
     axe = Axe()
@@ -189,3 +194,75 @@ def test_generate_html() -> None:
 
     for text_to_assert in ["axe", "test browser", "https://www.test.com/2", "test1", "test2", "test3", "high", "best-test", "test url"]:
         assert text_to_assert in results
+
+def test_check_pre_scan_actions(patch_locator: Locator) -> None:
+    def return_default_data() -> dict:
+        return {
+            "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
+            "action": "click", 
+            "locator": Locator.__new__(Locator), 
+            "assert_type": "to_contain_text", 
+            "assert_locator": Locator.__new__(Locator),
+            "assert_value": "rework-axe-to-include-init",
+            "wait_time": 1000
+        }
+
+    # Valid
+    data = return_default_data()
+    assert Axe()._check_pre_scan_actions(data) == None
+
+    # No Action
+    del data["action"]
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
+    
+    # No Locator
+    data = return_default_data()
+    del data["locator"]
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
+    
+    # No Value when required
+    data = return_default_data()
+    data["action"] = "fill"
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
+    
+    # Locator not Locator instance type
+    data = return_default_data()
+    data["locator"] = "fake string"
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
+    
+    # Wait time not int
+    data = return_default_data()
+    data["wait_time"] = "fake string"
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
+
+def test_check_pre_scan_assertions(patch_locator: Locator) -> None:
+    def return_default_data() -> dict:
+        return {
+            "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
+            "action": "click", 
+            "locator": Locator.__new__(Locator), 
+            "assert_type": "to_contain_text", 
+            "assert_locator": Locator.__new__(Locator),
+            "assert_value": "rework-axe-to-include-init",
+            "wait_time": 1000
+        }
+
+    data = return_default_data()
+    assert Axe()._check_pre_scan_assertions(data) == None
+
+    # Assert Locator not Locator instance type
+    data["assert_locator"] = "fake string"
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_assertions(data)
+    
+    # No Assert Value when required
+    data = return_default_data()
+    data["assert_type"] = "to_contain_text"
+    del data["assert_value"]
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._check_pre_scan_actions(data)
