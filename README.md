@@ -7,6 +7,8 @@ library used for scanning for accessibility issues and providing guidance on how
 
 - [Pytest Playwright Axe](#pytest-playwright-axe)
   - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
   - [Instantiating the Axe class](#instantiating-the-axe-class)
     - [Optional arguments](#optional-arguments)
   - [.run(): Single page scan](#run-single-page-scan)
@@ -16,6 +18,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Example usage](#example-usage)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
+      - [`page_list` dict Structure](#page_list-dict-structure)
     - [Optional arguments](#optional-arguments-2)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
@@ -31,6 +34,22 @@ library used for scanning for accessibility issues and providing guidance on how
     - [4.10.3 -\> Onwards](#4103---onwards)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
+
+## Prerequisites
+
+This package has the following requirements to use:
+
+- [Python 3.12](https://www.python.org/downloads/) or greater
+- [`pytest-playwright`](https://pypi.org/project/pytest-playwright/) 0.5.1 or greater
+
+## Installation
+
+This package is available via PyPi (https://pypi.org/project/pytest-playwright-axe/), so can be installed by running the following
+command:
+
+```shell
+pip install pytest-playwright-axe
+```
 
 ## Instantiating the Axe class
 
@@ -137,12 +156,35 @@ This runs the `Axe().run(page)` function noted above against each URL provided i
 
 The following are required for `Axe().run_list()`:
 
-| Argument  | Format                     | Description                                                                    |
-| --------- | -------------------------- | ------------------------------------------------------------------------------ |
-| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test.             |
-| page_list | `list[str]`                | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`) |
+| Argument  | Format                     | Description                                                        |
+| --------- | -------------------------- | ------------------------------------------------------------------ |
+| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test. |
+| page_list | `list[str                  | dict]`                                                             | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
+
+#### `page_list` dict Structure
+
+The `page_list` supports providing a list made up of `str` format urls (that will just navigate to the page and scan) and providing
+a `dict`, whereby a basic action can be provided along with a basic assertion (to prove the action completed successfully) before the
+scan is undertaken.
+
+If a dict is provided as part of the `page_list`, the following key / value pairs can be provided:
+
+| Key     | Required                                             | Format                        | Allowed Values                                                | Description                                                |
+| ------- | ---------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| `url`     | Yes                                                  | `str`                         |                                                               | The url to initially navigate to.                          |
+| `action`  | Yes                                                  | `str`                         | `click`, `dblclick`, `hover`, `fill`, `type`, `select_option` | The action to undertake to get to the desired page state.  |
+| `locator` | Yes                                                  | `playwright.sync_api.Locator` |                                                               | The locator to perform the action against.                 |
+| `value`   | No (Yes if action is one of: `fill`, `type`, `select_option`) | `str`                         |                                                               | The value to use for the action, when a value is required. |
+| `assert_type` | No (Yes if assertion required) | `str` | `to_be_visible`, `to_be_hidden`, `to_be_enabled`, `to_contain_text`, `to_not_contain_text` | If conducting an assertion, the type of assertion to complete. |
+| `assert_locator` | No (Yes if assertion required) | `playwright.sync_api.Locator` | | The locator to perform the assertion against. |
+| `assert_value` | No (Yes if assert_type is one of: `to_contain_text`, `to_not_contain_text`) | `str` | | The value to use for the assertion, when a value is required. |
+| `wait_time` | No | `int` | | If provided, the amount of time to wait after completing the defined action and assertion in milliseconds before running Axe. |
+
+> NOTE: This format has been provided to allow for basic actions to be completed whilst using the `run_list()` method if checking
+> multiple pages in succession, but is not designed to replace comprehensive testing. If you need to do anything more complex than
+> a single basic action, it is recommended that you write a test that does the actions first and then use the `run()` method instead.
 
 ### Optional arguments
 
@@ -253,7 +295,7 @@ versioning of this project being aligned with axe-core.
 
 ### 4.10.3 -> Onwards
 
-The following significant changes have been applied for releases after 4.10.3 which
+The following significant changes have been applied for releases after 4.10.3, which
 would require amending existing logic:
 
 - The `Axe()` module logic is no longer static, so using `Axe.run()` will no longer work.
@@ -261,7 +303,7 @@ would require amending existing logic:
 
 ## Licence
 
-Unless stated otherwise, the codebase is released under the [MIT License](LICENCE.md).
+Unless stated otherwise, the codebase is released under the [MIT Licence](LICENCE.md).
 This covers both the codebase and any sample code in the documentation.
 
 ## Acknowledgements
