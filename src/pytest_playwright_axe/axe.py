@@ -4,7 +4,7 @@ import json
 from html import escape
 import re
 from datetime import datetime
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Locator, expect
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class Axe:
 
     def run_list(self,
                  page: Page,
-                 page_list: list[str],
+                 page_list: list[str | dict],
                  use_list_for_filename: bool = True,
                  context: str = "",
                  options: str = "",
@@ -126,7 +126,7 @@ class Axe:
 
         Args:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
-            page_list (list[playwright.sync_api.Page): A list of URLs to execute against.
+            page_list (list[str | dict]): A list of URLs to execute against. If a dict is provided, it can include actions and assertions to complete prior to scanning (see below for key/values to provide).
             use_list_for_filename (bool): If true, based filenames off the list provided. If false, use the full URL under test for the filename.
             context (str): [Optional] If provided, a stringified JavaScript object to denote the context axe-core should use.
             options (str): [Optional] If provided, a stringified JavaScript object to denote the options axe-core should use.
@@ -137,13 +137,32 @@ class Axe:
 
         Returns:
             dict: A Python dictionary with the axe-core output of all the pages scanned, with the page list used as the key for each report.
+        
+        For page_list, the following key/value pairs can be provided if using a dict:
+            - url (str): The url to initially navigate to.
+            - action (str): The action to undertake. Can be one of the following: "click", "dblclick", "hover", "fill", "type" or "select_option".
+            - locator (playwright.sync_api.Locator): The locator for the element to interact with.
+            - value (str): The value to use (if the action is "fill", "type" or "select_option").
+            - assert_locator (playwright.sync_api.Locator): [Optional] The locator to do an assertion on.
+            - assert_type (str): [Optional] The type of assertion to do against the locator. Can be one of the following: "to_be_visible", "to_be_hidden", "to_be_enabled", "to_contain_text" or "to_not_contain_text".
+            - assert_value (str): [Optional] The value to assert (if the action is "to_contain_text" or "to_not_contain_text")
+            - wait_time (int): [Optional] If specified, the amount of time to wait after completing the action in milliseconds.
         """
+
         results = {}
         for selected_page in page_list:
-            page.goto(selected_page)
-            filename = self._modify_filename_for_report(
-                selected_page) if use_list_for_filename else ""
-            results[selected_page] = self.run(
+            if isinstance(selected_page, dict):
+                page.goto(selected_page["url"])
+                self._complete_pre_scan_actions(page, selected_page)
+                filename = self._modify_filename_for_report(
+                    f"{selected_page["url"]}_{selected_page["action"]}") if use_list_for_filename else ""
+            else:
+                page.goto(selected_page)
+                filename = self._modify_filename_for_report(
+                    selected_page) if use_list_for_filename else ""
+                results_key = selected_page
+            
+            results[results_key] = self.run(
                 page,
                 filename=filename,
                 context=context,
@@ -172,6 +191,87 @@ class Axe:
         return page.evaluate(
             f"axe.getRules({"" if rules is None else str(rules)});")
 
+    def _check_pre_scan_actions(self, actions: dict) -> None:
+        """This checks the pre-scan actions provided are valid and excepts if not."""
+
+        if "action" not in actions or "locator" not in actions:
+            raise AxeAccessibilityException("action and locator are required within each action dictionary provided.")
+
+        if "value" not in actions and actions["action"] in ["fill", "type", "select_option"]:
+            raise AxeAccessibilityException("value is required for this action type.")
+
+        if not isinstance(actions["locator"], Locator):
+            raise AxeAccessibilityException("locator must be a Playwright Locator object.")
+        
+        self._check_pre_scan_assertions(actions)
+
+        if "wait_time" in actions and not isinstance(actions["wait_time"], int):
+            raise AxeAccessibilityException("wait_time must be an integer representing milliseconds.")
+        
+    def _check_pre_scan_assertions(self, action: dict) -> None:
+        """This checks the pre-scan assertions provided are valid and excepts if not."""
+        if "assert_locator" in action and "assert_type" in action:
+
+            if not isinstance(action["assert_locator"], Locator):
+                raise AxeAccessibilityException("assert_locator must be a Playwright Locator object.")
+
+            if "assert_value" not in action and action["assert_type"] in ["to_contain_text", "to_not_contain_text"]:
+                raise AxeAccessibilityException("assert_value is required for this assert_type.")
+
+    def _complete_pre_scan_actions(self, page: Page, actions: dict) -> None:
+        """This completes any pre-scan actions provided.
+        
+        Action format: dict
+        {
+            "action": [action],
+            "locator": [locator],
+            "value": [value (if applicable)],
+            "assert_locator": [assert_locator (if applicable)],
+            "assert_type": [assert_type (if applicable)],
+            "assert_value": [assert_value (if applicable)],
+            "wait_time": [wait_time (if applicable)]
+        }
+        """
+        self._check_pre_scan_actions(actions)
+
+        locator: Locator = actions["locator"]
+
+        match actions["action"]:
+            case "click":
+                locator.click()
+            case "dblclick":
+                locator.dblclick()
+            case "hover":
+                locator.hover()
+            case "fill":
+                locator.fill(actions["value"])
+            case "type":
+                locator.type(actions["value"])
+            case "select_option":
+                locator.select_option(actions["value"])
+            case _:
+                raise AxeAccessibilityException(f"Action type provided [{actions['action']}] is not supported.")
+
+        if "assert_locator" in actions and "assert_type" in actions:
+            
+            assert_locator: Locator = actions["assert_locator"]
+
+            match actions["assert_type"]:
+                case "to_be_visible":
+                    expect(assert_locator).to_be_visible()
+                case "to_be_hidden":
+                    expect(assert_locator).to_be_hidden()
+                case "to_be_enabled":
+                    expect(assert_locator).to_be_enabled()
+                case "to_contain_text":
+                    expect(assert_locator).to_contain_text(actions["assert_value"])
+                case "to_not_contain_text":
+                    expect(assert_locator).not_to_contain_text(actions["assert_value"])
+                case _:
+                    raise AxeAccessibilityException(f"Assert type provided [{actions['assert_type']}] is not supported.")
+
+        if "wait_time" in actions and isinstance(actions["wait_time"], int):
+            page.wait_for_timeout(actions["wait_time"])
 
     def _build_run_command(self, context: str = "", options: str = "") -> str:
         """This builds the run command for axe-core based on the context and options provided."""
