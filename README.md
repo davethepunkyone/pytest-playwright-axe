@@ -215,8 +215,17 @@ When using the following command: `pytest --base-url https://www.github.com`:
         # A list of URLs to loop through
         urls_to_check = [
             "davethepunkyone/pytest-playwright-axe",
-            "davethepunkyone/pytest-playwright-axe/issues"
-            ]
+            "davethepunkyone/pytest-playwright-axe/issues",
+            {
+                "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
+                "action": "click", 
+                "locator": page.get_by_test_id("anchor-button"), 
+                "assert_type": "to_contain_text", 
+                "assert_locator": page.get_by_test_id("overlay-content"),
+                "assert_value": "rework-axe-to-include-init",
+                "wait_time": 1000
+            }
+          ]
 
         Axe().run_list(page, urls_to_check)
 
