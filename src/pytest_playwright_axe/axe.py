@@ -48,18 +48,21 @@ class Axe:
     under test to identify any accessibility concerns.
 
     Args:
-        output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to os.getcwd()/axe-reports directory.
+        output_directory (str | pathlib.Path): [Optional] The directory to output the reports to. If not provided, defaults to os.getcwd()/axe-reports directory.
         css_override (str): [Optional] If provided, overrides the default CSS used within the HTML report generated.
         use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
+        snapshot_directory (str | pathlib.Path): [Optional] The directory to check for JSON snapshots from previous runs to compare against.
     """
 
     def __init__(self, 
                  output_directory: str | Path = DEFAULT_REPORT_PATH,
                  css_override: str = "", 
-                 use_minified_file: bool = False) -> None:
+                 use_minified_file: bool = False,
+                 snapshot_directory: str | Path = None) -> None:
         self.output_directory = output_directory
         self.css_override = css_override
         self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
+        self.snapshot_directory = snapshot_directory
 
     def run(self,
             page: Page,
@@ -314,7 +317,7 @@ class Axe:
         full_path = self._create_path_for_report(filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
-            file.write(self._generate_html(data))
+            file.write(self._generate_html(data, filename.replace(".html", "")))
 
         logger.info(f"HTML report generated: {full_path}")
 
@@ -507,9 +510,24 @@ class Axe:
                     html += f"<td>{escape(str(data[key]))}</td></tr>"
 
         return f"{html}</table>"
+    
+    def _get_snapshot_data(self, filename: str) -> dict | None:
+        """This retrieves the data from a previous snapshot ready for comparison."""
+        if not self.snapshot_directory:
+            return None
+        
+        snapshot_path = Path(self.snapshot_directory).joinpath(filename)
+        if not snapshot_path.exists():
+            return None
 
-    def _generate_html(self, data: dict) -> str:
+        with open(snapshot_path) as file:
+            return json.loads(file.read())
+
+    def _generate_html(self, data: dict, filename: str) -> str:
         """This generates the full HTML report based on the data provided."""
+
+        snapshot_data = self._get_snapshot_data(filename)
+        # TODO - Logic to compare snapshot data vs current data and highlight differences
 
         # HTML header
         html = f'<!DOCTYPE html><html lang="en"><head>{self._css_styling()}<title>Axe Accessibility Report</title></head><body>'
