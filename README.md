@@ -161,7 +161,7 @@ The following are required for `Axe().run_list()`:
 | Argument  | Format                     | Description                                                        |
 | --------- | -------------------------- | ------------------------------------------------------------------ |
 | page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test. |
-| page_list | `list[str                  | dict]`                                                             | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
+| page_list | `list[str \| dict]`                                                             | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
 
