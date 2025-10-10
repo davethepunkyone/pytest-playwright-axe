@@ -158,10 +158,10 @@ This runs the `Axe().run(page)` function noted above against each URL provided i
 
 The following are required for `Axe().run_list()`:
 
-| Argument  | Format                     | Description                                                        |
-| --------- | -------------------------- | ------------------------------------------------------------------ |
-| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test. |
-| page_list | `list[str                  | dict]`                                                             | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
+| Argument  | Format                     | Description                                                                                                                                                                                                 |
+| --------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test.                                                                                                                                          |
+| page_list | `list[str \| dict]`        | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
 
@@ -173,16 +173,16 @@ scan is undertaken.
 
 If a dict is provided as part of the `page_list`, the following key / value pairs can be provided:
 
-| Key     | Required                                             | Format                        | Allowed Values                                                | Description                                                |
-| ------- | ---------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
-| `url`     | Yes                                                  | `str`                         |                                                               | The url to initially navigate to.                          |
-| `action`  | Yes                                                  | `str`                         | `click`, `dblclick`, `hover`, `fill`, `type`, `select_option` | The action to undertake to get to the desired page state.  |
-| `locator` | Yes                                                  | `playwright.sync_api.Locator` |                                                               | The locator to perform the action against.                 |
-| `value`   | No (Yes if action is one of: `fill`, `type`, `select_option`) | `str`                         |                                                               | The value to use for the action, when a value is required. |
-| `assert_type` | No (Yes if assertion required) | `str` | `to_be_visible`, `to_be_hidden`, `to_be_enabled`, `to_contain_text`, `to_not_contain_text` | If conducting an assertion, the type of assertion to complete. |
-| `assert_locator` | No (Yes if assertion required) | `playwright.sync_api.Locator` | | The locator to perform the assertion against. |
-| `assert_value` | No (Yes if assert_type is one of: `to_contain_text`, `to_not_contain_text`) | `str` | | The value to use for the assertion, when a value is required. |
-| `wait_time` | No | `int` | | If provided, the amount of time to wait after completing the defined action and assertion in milliseconds before running Axe. |
+| Key              | Required                                                                    | Format                        | Allowed Values                                                                             | Description                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `url`            | Yes                                                                         | `str`                         |                                                                                            | The url to initially navigate to.                                                                                             |
+| `action`         | Yes                                                                         | `str`                         | `click`, `dblclick`, `hover`, `fill`, `type`, `select_option`                              | The action to undertake to get to the desired page state.                                                                     |
+| `locator`        | Yes                                                                         | `playwright.sync_api.Locator` |                                                                                            | The locator to perform the action against.                                                                                    |
+| `value`          | No (Yes if action is one of: `fill`, `type`, `select_option`)               | `str`                         |                                                                                            | The value to use for the action, when a value is required.                                                                    |
+| `assert_type`    | No (Yes if assertion required)                                              | `str`                         | `to_be_visible`, `to_be_hidden`, `to_be_enabled`, `to_contain_text`, `to_not_contain_text` | If conducting an assertion, the type of assertion to complete.                                                                |
+| `assert_locator` | No (Yes if assertion required)                                              | `playwright.sync_api.Locator` |                                                                                            | The locator to perform the assertion against.                                                                                 |
+| `assert_value`   | No (Yes if assert_type is one of: `to_contain_text`, `to_not_contain_text`) | `str`                         |                                                                                            | The value to use for the assertion, when a value is required.                                                                 |
+| `wait_time`      | No                                                                          | `int`                         |                                                                                            | If provided, the amount of time to wait after completing the defined action and assertion in milliseconds before running Axe. |
 
 > NOTE: This format has been provided to allow for basic actions to be completed whilst using the `run_list()` method if checking
 > multiple pages in succession, but is not designed to replace comprehensive testing. If you need to do anything more complex than
