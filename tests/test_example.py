@@ -4,11 +4,14 @@ import pytest
 from src.pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
 
 
+SNAPSHOT_PATH = Path(__file__).parent.parent.joinpath("snapshots")
+
+
 def test_basic_example(page: Page) -> None:
     page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
 
     # Assert repo text is present
-    Axe().run(page, options=OPTIONS_WCAG_22AA)
+    Axe(snapshot_directory=SNAPSHOT_PATH).run(page, options=OPTIONS_WCAG_22AA)
 
 
 def test_minified_example(page: Page) -> None:
@@ -32,7 +35,7 @@ def test_run_list_with_actions(page: Page) -> None:
             "locator": page.get_by_test_id("anchor-button"), 
             "assert_type": "to_contain_text", 
             "assert_locator": page.get_by_test_id("overlay-content"),
-            "assert_value": "rework-axe-to-include-init",
+            "assert_value": "test-branch-do-not-remove",
             "wait_time": 1000
         }
     ]
