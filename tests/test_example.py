@@ -32,7 +32,7 @@ def test_run_list_with_actions(page: Page) -> None:
             "locator": page.get_by_test_id("anchor-button"), 
             "assert_type": "to_contain_text", 
             "assert_locator": page.get_by_test_id("overlay-content"),
-            "assert_value": "rework-axe-to-include-init",
+            "assert_value": "test-branch-do-not-remove",
             "wait_time": 1000
         }
     ]
