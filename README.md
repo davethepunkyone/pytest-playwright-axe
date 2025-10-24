@@ -20,7 +20,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Example usage](#example-usage)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
-      - [`page_list` dict Structure](#page_list-dict-structure)
+      - [`page_list dict` Structure](#page_list-dict-structure)
     - [Optional arguments](#optional-arguments-2)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
@@ -30,6 +30,8 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Returns](#returns-2)
     - [Example usage](#example-usage-2)
   - [Rulesets](#rulesets)
+  - [Working With Snapshots](#working-with-snapshots)
+    - [Example Snapshot Usage](#example-snapshot-usage)
   - [Example Reports](#example-reports)
   - [Versioning](#versioning)
   - [Breaking Changes](#breaking-changes)
@@ -39,7 +41,7 @@ library used for scanning for accessibility issues and providing guidance on how
 
 ## Prerequisites
 
-This package has the following requirements to use:
+This package has the following requirements for use:
 
 - [Python 3.12](https://www.python.org/downloads/) or greater
 - [`pytest-playwright`](https://pypi.org/project/pytest-playwright/) 0.5.1 or greater
@@ -72,11 +74,12 @@ You can run the Axe instance either as a standalone instance or instantiate it a
 
 The `Axe()` class has the following optional arguments that can be passed in:
 
-| Argument            | Format                  | Supported Values                                                  | Default Value | Description                                                                                                                                   |
-| ------------------- | ----------------------- | ----------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `output_directory`  | `pathlib.Path` or `str` | A valid directory path to save results to (e.g. `C:/axe_reports`) |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `os.getcwd()/axe-reports`. |
-| `css_override`      | `str`                   | A string with valid CSS.                                          |               | If provided, this will override the default CSS used in the HTML report with the CSS styling provided.                                        |
-| `use_minified_file` | `bool`                  | `True`, `False`                                                   | `False`       | If True, use the minified version of axe-core (axe.min.js). If not provided (default), use the full version of axe-core (axe.js).             |
+| Argument             | Format                  | Supported Values                                                        | Default Value | Description                                                                                                                                   |
+| -------------------- | ----------------------- | ----------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `output_directory`   | `pathlib.Path` or `str` | A valid directory path to save results to (e.g. `C:/axe_reports`)       |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `os.getcwd()/axe-reports`. |
+| `css_override`       | `str`                   | A string with valid CSS.                                                |               | If provided, this will override the default CSS used in the HTML report with the CSS styling provided.                                        |
+| `use_minified_file`  | `bool`                  | `True`, `False`                                                         | `False`       | If True, use the minified version of axe-core (axe.min.js). If not provided (default), use the full version of axe-core (axe.js).             |
+| `snapshot_directory` | `pathlib.Path` or `str` | A valid directory path where snapshots are stored (e.g. `C:/snapshots`) |               | If provided, sets the directory to check for JSON outputs from previous runs to compare against.                                              |
 
 
 ## .run(): Single page scan
@@ -158,14 +161,14 @@ This runs the `Axe().run(page)` function noted above against each URL provided i
 
 The following are required for `Axe().run_list()`:
 
-| Argument  | Format                     | Description                                                                                                                                                                                                 |
-| --------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test.                                                                                                                                          |
-| page_list | `list[str \| dict]`        | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
+| Argument  | Format                       | Description                                                                                                                                                                                                 |
+| --------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| page      | `playwright.sync_api.Page`   | A Playwright Page object to drive navigation to each page to test.                                                                                                                                          |
+| page_list | `list[` `str` or  `dict` `]` | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
 
-#### `page_list` dict Structure
+#### `page_list dict` Structure
 
 The `page_list` supports providing a list made up of `str` format urls (that will just navigate to the page and scan) and providing
 a `dict`, whereby a basic action can be provided along with a basic assertion (to prove the action completed successfully) before the
@@ -285,6 +288,87 @@ Example:
     def test_axe_example(page: Page) -> None:
         page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
         Axe().run(page, options=OPTIONS_WCAG_22AA)
+
+## Working With Snapshots
+
+From release 4.11.0 onwards, this package provides the ability to compare to a
+previous scan of the page and highlight changes between then and now.
+Scans are conducted against the JSON output of a previous run, so to use this
+functionality you will need to ensure you save JSON files as part of your outputs.
+
+If any changes are detected and snapshot scanning is enabled, a new section will
+be populated at the start of the HTML report that outlines the detected changes, as
+shown in the screenshot below.
+
+![An image of the Changes Since Last Scan section, displayed as the first section of the HTML report and showing a resolved violation](https://raw.githubusercontent.com/davethepunkyone/pytest-playwright-axe/main/examples/changes_since_last_scan_example.png)
+
+When working with snapshots, the following needs to be considered:
+
+- Snapshots are detected from the designated snapshot directory based on the expected filename, so to use this logic the URLs under test will need to be consistent.
+- The comparison output is only presented on the HTML version of the report.
+
+### Example Snapshot Usage
+
+**1 - Get Initial Snapshot**
+
+An initial scan of the page is conducted, with JSON output enabled.
+
+For the purposes of this example, the following test is located in the
+`tests/accessibility` directory in `tests_accessibility.py`:
+
+    from playwright.sync_api import Page
+    from pytest_playwright_axe import Axe
+
+    def test_axe_example(page: Page) -> None:
+        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+        Axe().run(page)
+
+This generates the following output in the `axe-reports` directory:
+
+    axe-reports/
+      |- github_com_davethepunkyone_pytest-playwright-axe.html
+      |- github_com_davethepunkyone_pytest-playwright-axe.json
+
+The `.json` file should then be copied into an appropriate directory to be
+referenced later (e.g. `tests/accessibility/snapshots`).
+
+This should then result in a file structure like so:
+
+    axe-reports/
+      |- github_com_davethepunkyone_pytest-playwright-axe.html
+      |- github_com_davethepunkyone_pytest-playwright-axe.json
+    tests/
+      |- accessibility/
+      |  |- snapshots/
+      |  |  |- github_com_davethepunkyone_pytest-playwright-axe.json
+      |  |- tests_accessibility.py
+
+**2 - Compare Snapshots**
+
+To allow for the snapshot comparison, the test needs to be amended to check
+for available snapshots, by adding the `snapshot_directory=<path>` to the
+initialised Axe instance.
+
+Using our example above, we would modify the existing test as follows:
+
+    from playwright.sync_api import Page
+    from pytest_playwright_axe import Axe
+    from pathlib import Path
+
+    # Reference the snapshot directory
+    SNAPSHOT_DIRECTORY = Path(__file__).parent.joinpath("snapshots")
+
+    def test_axe_example(page: Page) -> None:
+        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+        # Initialise Axe referencing the snapshot directory
+        Axe(snapshot_directory=SNAPSHOT_DIRECTORY).run(page)
+
+With this change in place, the test will now check the `snapshots` directory
+and as this will generate a JSON file matching the one we have added, it will
+load the JSON file from `snapshots/github_com_davethepunkyone_pytest-playwright-axe.json`
+and check for changes between the two files, outputting the results in a new
+section on the HTML report.
+
 
 ## Example Reports
 
