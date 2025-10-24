@@ -1,3 +1,4 @@
+import json
 import pytest
 import os
 from pathlib import Path
@@ -84,7 +85,7 @@ def test_create_html_report() -> None:
                  "incomplete": [],
                  "violations": [{"id": "test", "impact": None, "tags": ["cat.keyboard", "best-practice"], "description": "test", "help": "test", "helpUrl": "test", "nodes": []}]
                  }
-    expected_file_data = Axe()._generate_html(test_data)
+    expected_file_data = Axe()._generate_html(test_data, TEST_HTML_DEFAULT_FILENAME)
 
     # Default generation
     Axe(output_directory=AXE_REPORTS_DIR)._create_html_report(test_data)
@@ -190,7 +191,7 @@ def test_generate_html() -> None:
                  "incomplete": [],
                  "violations": [{"id": "test3", "impact": "high", "tags": ["cat.keyboard", "best-test"], "description": "test", "help": "test", "helpUrl": "test url", "nodes": []}]
                  }
-    results = Axe()._generate_html(test_data)
+    results = Axe()._generate_html(test_data, TEST_HTML_DEFAULT_FILENAME)
 
     for text_to_assert in ["axe", "test browser", "https://www.test.com/2", "test1", "test2", "test3", "high", "best-test", "test url"]:
         assert text_to_assert in results
@@ -266,3 +267,79 @@ def test_check_pre_scan_assertions(patch_locator: Locator) -> None:
     del data["assert_value"]
     with pytest.raises(AxeAccessibilityException):
         Axe()._check_pre_scan_actions(data)
+
+def test_get_snapshot_data_no_directory() -> None:
+    """Test when no snapshot directory is configured"""
+    result = Axe()._get_snapshot_data("test")
+    assert result is None
+
+def test_get_snapshot_data_file_not_exists() -> None:
+    """Test when snapshot file doesn't exist"""
+    result = Axe(snapshot_directory=AXE_REPORTS_DIR)._get_snapshot_data("nonexistent")
+    assert result is None
+
+def test_get_snapshot_data_success() -> None:
+    """Test successful snapshot data retrieval"""
+    # Create a test snapshot file
+    test_snapshot = {"url": "test", "violations": []}
+    snapshot_path = AXE_REPORTS_DIR / "test_snapshot.json"
+    with open(snapshot_path, 'w') as f:
+        json.dump(test_snapshot, f)
+    
+    result = Axe(snapshot_directory=AXE_REPORTS_DIR)._get_snapshot_data("test_snapshot")
+    assert result == test_snapshot
+    
+    # Cleanup
+    os.remove(snapshot_path)
+
+def test_find_new_violations() -> None:
+    """Test finding new violations"""
+    current = {"rule1": {"id": "rule1", "description": "test", "impact": "high", "tags": [], "nodes": [1, 2]}}
+    snapshot = {}
+    
+    result = Axe()._find_new_violations(current, snapshot)
+    assert len(result) == 1
+    assert result[0]['type'] == 'New Violation'
+    assert result[0]['current_count'] == 2
+
+def test_find_resolved_violations() -> None:
+    """Test finding resolved violations"""
+    current = {}
+    snapshot = {"rule1": {"id": "rule1", "description": "test", "impact": "high", "tags": [], "nodes": [1]}}
+    
+    result = Axe()._find_resolved_violations(current, snapshot)
+    assert len(result) == 1
+    assert result[0]['type'] == 'Resolved Violation'
+    assert result[0]['previous_count'] == 1
+
+def test_find_count_changes() -> None:
+    """Test finding count changes"""
+    current = {"rule1": {"id": "rule1", "description": "test", "impact": "high", "tags": [], "nodes": [1, 2, 3]}}
+    snapshot = {"rule1": {"id": "rule1", "description": "test", "impact": "high", "tags": [], "nodes": [1]}}
+    
+    result = Axe()._find_count_changes(current, snapshot)
+    assert len(result) == 1
+    assert result[0]['type'] == 'Increased Count'
+    assert result[0]['change'] == 2
+
+def test_generate_changes_section_no_snapshot() -> None:
+    """Test changes section when no snapshot provided"""
+    result = Axe()._generate_changes_section({}, None)
+    assert result == ""
+
+def test_generate_changes_section_no_changes() -> None:
+    """Test changes section when no changes detected"""
+    data = {"violations": [], "timestamp": "2024-11-04T16:14:57.934Z"}
+    snapshot = {"violations": [], "timestamp": "2024-11-03T16:14:57.934Z"}
+    
+    result = Axe()._generate_changes_section(data, snapshot)
+    assert "No changes detected" in result
+
+def test_complete_pre_scan_actions_invalid_action(page, patch_locator) -> None:
+    """Test invalid action raises exception"""
+    actions = {
+        "action": "invalid_action",
+        "locator": Locator.__new__(Locator)
+    }
+    with pytest.raises(AxeAccessibilityException):
+        Axe()._complete_pre_scan_actions(page, actions)
