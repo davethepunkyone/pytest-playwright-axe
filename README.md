@@ -300,7 +300,7 @@ If any changes are detected and snapshot scanning is enabled, a new section will
 be populated at the start of the HTML report that outlines the detected changes, as
 shown in the screenshot below.
 
-![An image of the Changes Since Last Scan section, displayed as the first section of the HTML report and showing a resolved violation](https://raw.githubusercontent.com/davethepunkyone/pytest-playwright-axe/main/examples/changes_since_last_scan_example.png)
+![An image of the Changes Since Last Scan section, displayed as the first section of the HTML report and showing a new and a resolved violation](https://raw.githubusercontent.com/davethepunkyone/pytest-playwright-axe/main/examples/changes_since_last_scan_example.png)
 
 When working with snapshots, the following needs to be considered:
 
