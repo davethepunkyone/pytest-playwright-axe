@@ -9,12 +9,12 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-RESOURCES_DIR = Path(__file__).parent / "resources"
-AXE_PATH = RESOURCES_DIR / "axe.js"
-MIN_AXE_PATH = RESOURCES_DIR / "axe.min.js"
-DEFAULT_CSS_PATH = RESOURCES_DIR / "default.css"
+RESOURCES_DIR = Path(__file__).parent.joinpath("resources")
+AXE_PATH = RESOURCES_DIR.joinpath("axe.js")
+MIN_AXE_PATH = RESOURCES_DIR.joinpath("axe.min.js")
+DEFAULT_CSS_PATH = RESOURCES_DIR.joinpath("default.css")
 
-DEFAULT_REPORT_PATH = Path(os.getcwd()) / "axe-reports"
+DEFAULT_REPORT_PATH = Path(os.getcwd()).joinpath("axe-reports")
 
 WCAG_KEYS = {
     'wcag2a': 'WCAG 2.0 (A)',
@@ -48,18 +48,34 @@ class Axe:
     under test to identify any accessibility concerns.
 
     Args:
-        output_directory (str): [Optional] The directory to output the reports to. If not provided, defaults to os.getcwd()/axe-reports directory.
+        output_directory (str | pathlib.Path): [Optional] The directory to output the reports to. If not provided, defaults to os.getcwd()/axe-reports directory.
         css_override (str): [Optional] If provided, overrides the default CSS used within the HTML report generated.
         use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
+        snapshot_directory (str | pathlib.Path): [Optional] The directory to check for JSON snapshots from previous runs to compare against.
+
+    Example:
+        ```
+        # Default usage
+        axe = Axe()
+        # Custom output directory using minified file
+        axe = Axe(output_directory="accessibility-results", use_minified_file=True)
+        # Snapshot directory specified and custom CSS
+        axe = Axe(
+            snapshot_directory=Path(__file__).parent.joinpath("snapshots"), 
+            css_override=Path(__file__).parent.joinpath("style.css")
+        )
+        ```
     """
 
     def __init__(self, 
                  output_directory: str | Path = DEFAULT_REPORT_PATH,
                  css_override: str = "", 
-                 use_minified_file: bool = False) -> None:
-        self.output_directory = output_directory
+                 use_minified_file: bool = False,
+                 snapshot_directory: str | Path = None) -> None:
+        self.output_directory = Path(output_directory)
         self.css_override = css_override
         self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
+        self.snapshot_directory = Path(snapshot_directory) if snapshot_directory else None
 
     def run(self,
             page: Page,
@@ -85,6 +101,21 @@ class Axe:
 
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
+        
+        Example:
+            ```
+            # Default usage
+            def test_example(page: Page) -> None:
+                axe = Axe()
+                axe.run(page)
+
+                # With no HTML or JSON reports, capture results in variable
+                results = axe.run(
+                    page, 
+                    html_report_generated=False, 
+                    json_report_generated=False
+                )
+            ```        
         """
 
         page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
@@ -92,9 +123,13 @@ class Axe:
         response = page.evaluate(
             "axe.run(" + self._build_run_command(context, options) + ").then(results => {return results;})")
 
-        logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
-                    Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
-                    Incomplete = {len(response["incomplete"])}""")
+        logger.info(
+            f"Axe scan summary of [{response['url']}]:\n"
+            f"- Passes = {len(response['passes'])}\n"
+            f"- Violations = {len(response['violations'])}\n"
+            f"- Inapplicable = {len(response['inapplicable'])}\n"
+            f"- Incomplete = {len(response['incomplete'])}"
+        )
 
         violations_detected = len(response["violations"]) > 0
         if not report_on_violation_only or (report_on_violation_only and violations_detected):
@@ -135,18 +170,46 @@ class Axe:
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
 
-        Returns:
-            dict: A Python dictionary with the axe-core output of all the pages scanned, with the page list used as the key for each report.
-        
         For page_list, the following key/value pairs can be provided if using a dict:
-            - url (str): The url to initially navigate to.
-            - action (str): The action to undertake. Can be one of the following: "click", "dblclick", "hover", "fill", "type" or "select_option".
-            - locator (playwright.sync_api.Locator): The locator for the element to interact with.
-            - value (str): The value to use (if the action is "fill", "type" or "select_option").
-            - assert_locator (playwright.sync_api.Locator): [Optional] The locator to do an assertion on.
-            - assert_type (str): [Optional] The type of assertion to do against the locator. Can be one of the following: "to_be_visible", "to_be_hidden", "to_be_enabled", "to_contain_text" or "to_not_contain_text".
-            - assert_value (str): [Optional] The value to assert (if the action is "to_contain_text" or "to_not_contain_text")
-            - wait_time (int): [Optional] If specified, the amount of time to wait after completing the action in milliseconds.
+
+        - **url (str)**: The url to initially navigate to.
+        - **action (str)**: The action to undertake. Can be one of the following: "click", "dblclick", "hover", "fill", "type" or "select_option".
+        - **locator (playwright.sync_api.Locator)**: The locator for the element to interact with.
+        - **value (str)**: The value to use (if the action is "fill", "type" or "select_option").
+        - **assert_locator (playwright.sync_api.Locator)**: [Optional] The locator to do an assertion on.
+        - **assert_type (str)**: [Optional] The type of assertion to do against the locator. Can be one of the following: "to_be_visible", "to_be_hidden", "to_be_enabled", "to_contain_text" or "to_not_contain_text".
+        - **assert_value (str)**: [Optional] The value to assert (if the action is "to_contain_text" or "to_not_contain_text")
+        - **wait_time (int)**: [Optional] If specified, the amount of time to wait after completing the action in milliseconds.
+
+        Returns:
+            dict: A Python dictionary with the axe-core output of all the pages scanned, with the page_list value used as the key for each report.
+ 
+        Example:
+            ```
+            # --base-url set to: https://example.com
+            def test_example(page: Page) -> None:
+                # Default usage
+                Axe().run_list(
+                    page, 
+                    ["/home", "/search"]
+                )
+                
+                # Usage with page_list including str and dict
+                page_list = [
+                    "/home",
+                    {
+                        "url": "/search",
+                        "action": "fill",
+                        "locator": page.locator("#search-bar"),
+                        "value": "test item",
+                        "assert_locator": page.locator("#search-results-summary"),
+                        "assert_type": "to_contain_text",
+                        "assert_value": "1 of 1 results"
+                    }
+                ]
+                axe = Axe()
+                axe.run_list(page, page_list)
+            ``` 
         """
 
         results = {}
@@ -154,6 +217,7 @@ class Axe:
             if isinstance(selected_page, dict):
                 page.goto(selected_page["url"])
                 self._complete_pre_scan_actions(page, selected_page)
+                results_key = f"{selected_page["url"]}_{selected_page["action"]}"
                 filename = self._modify_filename_for_report(
                     f"{selected_page["url"]}_{selected_page["action"]}") if use_list_for_filename else ""
             else:
@@ -185,6 +249,15 @@ class Axe:
         
         Returns:
             list[dict]: A list of dictionaries containing the axe-core rules returned.
+        
+        Example:
+            ```
+            # Standard usage
+            axe = Axe()
+            rules = axe.get_rules(page)
+            # Get only specific rules
+            rules = axe.get_rules(page, rules=["color-contrast", "image-alt"])
+            ```
         """
         page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
 
@@ -196,6 +269,9 @@ class Axe:
 
         if "action" not in actions or "locator" not in actions:
             raise AxeAccessibilityException("action and locator are required within each action dictionary provided.")
+
+        if "value" in actions and not isinstance(actions["value"], str):
+            raise AxeAccessibilityException("value must be a string.")
 
         if "value" not in actions and actions["action"] in ["fill", "type", "select_option"]:
             raise AxeAccessibilityException("value is required for this action type.")
@@ -285,8 +361,7 @@ class Axe:
         if not filename_to_modify:
             raise AxeAccessibilityException("Filename to modify cannot be empty")
         
-        if filename_to_modify[-1] == "/":
-            filename_to_modify = filename_to_modify[:-1]
+        filename_to_modify = filename_to_modify.rstrip("/")
         for item_to_remove in ["http://", "https://"]:
             filename_to_modify = filename_to_modify.replace(item_to_remove, "")
         filename_to_modify = re.sub(r'[^a-zA-Z0-9-_]', '_', filename_to_modify)
@@ -295,8 +370,8 @@ class Axe:
 
     def _create_path_for_report(self, filename: str) -> Path:
         """This creates the report path (if it doesn't exist) and returns the full path."""
-        os.makedirs(self.output_directory, exist_ok=True)
-        return Path(self.output_directory).joinpath(filename)
+        self.output_directory.mkdir(parents=True, exist_ok=True)
+        return self.output_directory.joinpath(filename)
 
     def _create_json_report(self, data: dict, filename_override: str = "") -> None:
         """This creates a JSON report for the generated report data."""
@@ -314,7 +389,7 @@ class Axe:
         full_path = self._create_path_for_report(filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
-            file.write(self._generate_html(data))
+            file.write(self._generate_html(data, filename.replace(".html", "")))
 
         logger.info(f"HTML report generated: {full_path}")
 
@@ -354,11 +429,13 @@ class Axe:
 
         html += f"<p>{len(violations_data)} violations found.</p>"
 
-        html += f"<table><tr>{self._generate_table_header([
+        list_of_headers = [
             ("#", "2", True), ("Description", "53", False),
             ("Axe Rule ID", "15", False), ("WCAG", "15", False),
             ("Impact", "10", False), ("Count", "5", True)
-        ])}"
+        ]
+
+        html += f"<table><tr>{self._generate_table_header(list_of_headers)}"
 
         violation_count = 1
         violation_section = ""
@@ -507,9 +584,164 @@ class Axe:
                     html += f"<td>{escape(str(data[key]))}</td></tr>"
 
         return f"{html}</table>"
+    
+    def _get_snapshot_data(self, filename: str) -> dict | None:
+        """This retrieves the data from a previous snapshot ready for comparison."""
+        if not self.snapshot_directory:
+            return None
+        
+        snapshot_path = self.snapshot_directory.joinpath(f"{filename}.json")
+        if not snapshot_path.exists():
+            return None
 
-    def _generate_html(self, data: dict) -> str:
+        with open(snapshot_path, encoding='utf-8') as file:
+            return json.loads(file.read())
+
+    def _generate_changes_section(self, data: dict, snapshot_data: dict | None) -> str:
+        """Generate the changes section of the HTML report comparing current data with snapshot."""
+        
+        if not snapshot_data:
+            return ""
+        
+        snapshot_timestamp = datetime.strptime(snapshot_data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")
+        
+        html = f"""<section class="changes-section">
+        <h2>Changes Since Last Scan</h2>
+        <p><strong>Comparison:</strong> This report has been compared against a snapshot taken on <strong>{snapshot_timestamp}</strong>.</p>"""
+        
+        changes = self._collect_all_changes(data, snapshot_data)
+        
+        if not changes:
+            return html + "<p><strong>No changes detected</strong> - All violations remain the same as the previous scan.</p></section>"
+        
+        html += f"<p><strong>{len(changes)} change(s) detected:</strong></p>"
+        html += self._generate_changes_table(changes)
+        html += "</section>"
+        
+        return html
+
+    def _collect_all_changes(self, data: dict, snapshot_data: dict) -> list[dict]:
+        """Collect all changes between current and snapshot data."""
+        current_violations = {v['id']: v for v in data['violations']}
+        snapshot_violations = {v['id']: v for v in snapshot_data['violations']}
+        
+        changes = []
+        changes.extend(self._find_new_violations(current_violations, snapshot_violations))
+        changes.extend(self._find_resolved_violations(current_violations, snapshot_violations))
+        changes.extend(self._find_count_changes(current_violations, snapshot_violations))
+        
+        return changes
+
+    def _find_new_violations(self, current_violations: dict, snapshot_violations: dict) -> list[dict]:
+        """Find violations that are new in the current scan."""
+        new_violations = []
+        
+        for violation_id, violation in current_violations.items():
+            if violation_id not in snapshot_violations:
+                new_violations.append({
+                    'type': 'New Violation',
+                    'rule_id': violation_id,
+                    'description': violation['description'],
+                    'impact': violation['impact'],
+                    'current_count': len(violation['nodes']),
+                    'previous_count': 0,
+                    'change': len(violation['nodes']),
+                    'wcag': self._wcag_tagging(violation['tags']),
+                    'status_class': 'new-violation'
+                })
+        
+        return new_violations
+
+    def _find_resolved_violations(self, current_violations: dict, snapshot_violations: dict) -> list[dict]:
+        """Find violations that have been resolved since the snapshot."""
+        resolved_violations = []
+        
+        for violation_id, violation in snapshot_violations.items():
+            if violation_id not in current_violations:
+                resolved_violations.append({
+                    'type': 'Resolved Violation',
+                    'rule_id': violation_id,
+                    'description': violation['description'],
+                    'impact': violation['impact'],
+                    'current_count': 0,
+                    'previous_count': len(violation['nodes']),
+                    'change': -len(violation['nodes']),
+                    'wcag': self._wcag_tagging(violation['tags']),
+                    'status_class': 'resolved-violation'
+                })
+        
+        return resolved_violations
+
+    def _find_count_changes(self, current_violations: dict, snapshot_violations: dict) -> list[dict]:
+        """Find violations where the count has changed."""
+        count_changes = []
+        
+        for violation_id, current_violation in current_violations.items():
+            if violation_id in snapshot_violations:
+                current_count = len(current_violation['nodes'])
+                previous_count = len(snapshot_violations[violation_id]['nodes'])
+                
+                if current_count != previous_count:
+                    change_type = 'Increased Count' if current_count > previous_count else 'Decreased Count'
+                    status_class = 'increased-count' if current_count > previous_count else 'decreased-count'
+                    
+                    count_changes.append({
+                        'type': change_type,
+                        'rule_id': violation_id,
+                        'description': current_violation['description'],
+                        'impact': current_violation['impact'],
+                        'current_count': current_count,
+                        'previous_count': previous_count,
+                        'change': current_count - previous_count,
+                        'wcag': self._wcag_tagging(current_violation['tags']),
+                        'status_class': status_class
+                    })
+        
+        return count_changes
+
+    def _generate_changes_table(self, changes: list[dict]) -> str:
+        """Generate the HTML table for displaying changes."""
+        html = f"""<table class="changes-table">
+        <tr>{self._generate_table_header([
+            ("Change Type", "15", False),
+            ("Rule ID", "15", False), 
+            ("Description", "35", False),
+            ("WCAG", "15", False),
+            ("Impact", "8", False),
+            ("Previous", "4", True),
+            ("Current", "4", True),
+            ("Δ", "4", True)
+        ])}</tr>"""
+        
+        # Sort changes by priority
+        type_priority = {'New Violation': 1, 'Increased Count': 2, 'Decreased Count': 3, 'Resolved Violation': 4}
+        changes.sort(key=lambda x: type_priority.get(x['type'], 5))
+        
+        for change in changes:
+            html += self._generate_change_row(change)
+        
+        return html + "</table>"
+
+    def _generate_change_row(self, change: dict) -> str:
+        """Generate a single row for the changes table."""
+        change_indicator = f"+{change['change']}" if change['change'] > 0 else str(change['change'])
+        row_class = f"class=\"{change['status_class']}\""
+        
+        return f"""<tr {row_class}>
+        <td><strong>{change['type']}</strong></td>
+        <td><a href="#violation-{change['rule_id']}" title="Jump to violation details">{change['rule_id']}</a></td>
+        <td>{escape(change['description'])}</td>
+        <td>{change['wcag']}</td>
+        <td>{change['impact']}</td>
+        <td style="text-align: center;">{change['previous_count']}</td>
+        <td style="text-align: center;">{change['current_count']}</td>
+        <td style="text-align: center;"><strong>{change_indicator}</strong></td>
+        </tr>"""
+
+    def _generate_html(self, data: dict, filename: str) -> str:
         """This generates the full HTML report based on the data provided."""
+
+        snapshot_data = self._get_snapshot_data(filename)
 
         # HTML header
         html = f'<!DOCTYPE html><html lang="en"><head>{self._css_styling()}<title>Axe Accessibility Report</title></head><body>'
@@ -520,6 +752,9 @@ class Axe:
         html += f"""<p>This is an axe-core accessibility summary generated on
                     {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
                     for: <strong>{data['url']}</strong></p></header><main role="main">"""
+
+        # Changes
+        html += self._generate_changes_section(data, snapshot_data)
 
         # Violations
         # Summary

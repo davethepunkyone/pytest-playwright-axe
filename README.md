@@ -1,6 +1,6 @@
 # Pytest Playwright Axe
 
-[![Build](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml/badge.svg)](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml/badge.svg)](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![PyPI version](https://img.shields.io/pypi/v/pytest-playwright-axe.svg)](https://pypi.org/project/pytest-playwright-axe/)
 
 `pytest-playwright-axe` is a package for Playwright Python that allows for the execution of [axe-core](https://github.com/dequelabs/axe-core), a JavaScript
 library used for scanning for accessibility issues and providing guidance on how to resolve these issues.
@@ -20,7 +20,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Example usage](#example-usage)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
-      - [`page_list` dict Structure](#page_list-dict-structure)
+      - [`page_list dict` Structure](#page_list-dict-structure)
     - [Optional arguments](#optional-arguments-2)
     - [Returns](#returns-1)
     - [Example usage](#example-usage-1)
@@ -30,6 +30,8 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Returns](#returns-2)
     - [Example usage](#example-usage-2)
   - [Rulesets](#rulesets)
+  - [Working With Snapshots](#working-with-snapshots)
+    - [Example Snapshot Usage](#example-snapshot-usage)
   - [Example Reports](#example-reports)
   - [Versioning](#versioning)
   - [Breaking Changes](#breaking-changes)
@@ -39,7 +41,7 @@ library used for scanning for accessibility issues and providing guidance on how
 
 ## Prerequisites
 
-This package has the following requirements to use:
+This package has the following requirements for use:
 
 - [Python 3.12](https://www.python.org/downloads/) or greater
 - [`pytest-playwright`](https://pypi.org/project/pytest-playwright/) 0.5.1 or greater
@@ -57,33 +59,40 @@ pip install pytest-playwright-axe
 
 You can initialise the Axe class by using the following code in your test file:
 
-    from pytest_playwright_axe import Axe
+```python
+from pytest_playwright_axe import Axe
+```
 
 You can run the Axe instance either as a standalone instance or instantiate it as follows:
 
-    # Standalone execution
-    Axe().run(page)
+```python
+# Standalone execution
+Axe().run(page)
 
-    # Instantiated execution
-    axe = Axe()
-    axe.run(page)
+# Instantiated execution
+axe = Axe()
+axe.run(page)
+```
 
 ### Optional arguments
 
 The `Axe()` class has the following optional arguments that can be passed in:
 
-| Argument            | Format                  | Supported Values                                                  | Default Value | Description                                                                                                                                   |
-| ------------------- | ----------------------- | ----------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `output_directory`  | `pathlib.Path` or `str` | A valid directory path to save results to (e.g. `C:/axe_reports`) |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `os.getcwd()/axe-reports`. |
-| `css_override`      | `str`                   | A string with valid CSS.                                          |               | If provided, this will override the default CSS used in the HTML report with the CSS styling provided.                                        |
-| `use_minified_file` | `bool`                  | `True`, `False`                                                   | `False`       | If True, use the minified version of axe-core (axe.min.js). If not provided (default), use the full version of axe-core (axe.js).             |
+| Argument             | Format                  | Supported Values                                                        | Default Value | Description                                                                                                                                   |
+| -------------------- | ----------------------- | ----------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `output_directory`   | `pathlib.Path` or `str` | A valid directory path to save results to (e.g. `C:/axe_reports`)       |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `os.getcwd()/axe-reports`. |
+| `css_override`       | `str`                   | A string with valid CSS.                                                |               | If provided, this will override the default CSS used in the HTML report with the CSS styling provided.                                        |
+| `use_minified_file`  | `bool`                  | `True`, `False`                                                         | `False`       | If True, use the minified version of axe-core (axe.min.js). If not provided (default), use the full version of axe-core (axe.js).             |
+| `snapshot_directory` | `pathlib.Path` or `str` | A valid directory path where snapshots are stored (e.g. `C:/snapshots`) |               | If provided, sets the directory to check for JSON outputs from previous runs to compare against.                                              |
 
 
 ## .run(): Single page scan
 
 To conduct a scan, you can just use the following once the page you want to check is at the right location:
 
-    Axe().run(page)
+```python
+Axe().run(page)
+```
 
 This will inject the axe-core code into the page and then execute the axe.run() command, generating an accessibility report for the page being tested.
 
@@ -126,31 +135,37 @@ This function can be used independently, but when set to a variable returns a `d
 
 A default execution with no arguments:
 
-    from pytest_playwright_axe import Axe
-    from playwright.sync_api import Page
+```python
+from pytest_playwright_axe import Axe
+from playwright.sync_api import Page
 
-    def test_axe_example(page: Page) -> None:
-        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe().run(page)
+def test_axe_example(page: Page) -> None:
+    page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+    Axe().run(page)
+```
 
 A WCAG 2.2 (AA) execution, with a custom filename, strict mode enabled and only HTML output provided:
 
-    from pytest_playwright_axe import Axe
-    from playwright.sync_api import Page
+```python
+from pytest_playwright_axe import Axe
+from playwright.sync_api import Page
 
-    def test_axe_example(page: Page) -> None:
-        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe().run(page, 
-                  filename="test_report",
-                  options="{runOnly: {type: 'tag', values: ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']}}",
-                  strict_mode=True,
-                  json_report_generated=False)
+def test_axe_example(page: Page) -> None:
+    page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+    Axe().run(page, 
+              filename="test_report",
+              options="{runOnly: {type: 'tag', values: ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']}}",
+              strict_mode=True,
+              json_report_generated=False)
+```
 
 ## .run_list(): Multiple page scan
 
 To scan multiple URLs within your application, you can use the following method:
 
-    Axe().run_list(page, page_list)
+```python
+Axe().run_list(page, page_list)
+```
 
 This runs the `Axe().run(page)` function noted above against each URL provided in the `page_list` argument, and will generate reports as required. This navigates by using the Playwright Page's `.goto()` method, so this only works for pages that can be directly accessed.
 
@@ -158,14 +173,14 @@ This runs the `Axe().run(page)` function noted above against each URL provided i
 
 The following are required for `Axe().run_list()`:
 
-| Argument  | Format                     | Description                                                                                                                                                                                                 |
-| --------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| page      | `playwright.sync_api.Page` | A Playwright Page object to drive navigation to each page to test.                                                                                                                                          |
-| page_list | `list[str \| dict]`        | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
+| Argument  | Format                       | Description                                                                                                                                                                                                 |
+| --------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| page      | `playwright.sync_api.Page`   | A Playwright Page object to drive navigation to each page to test.                                                                                                                                          |
+| page_list | `list[` `str` or  `dict` `]` | A list of URLs to execute against (e.g. `["home", "profile", "product/test"]`). If a dict is provided, basic actions and assertions can be conducted as part of the list prior to the scan being conducted. |
 
 > NOTE: It is heavily recommended that when using the `run_list` command, that you set a `--base-url` either via the pytest.ini file or by passing in the value when using the `pytest` command in the command line. By doing this, the list you pass in will not need to contain the base URL value and therefore make any scanning transferrable between environments.
 
-#### `page_list` dict Structure
+#### `page_list dict` Structure
 
 The `page_list` supports providing a list made up of `str` format urls (that will just navigate to the page and scan) and providing
 a `dict`, whereby a basic action can be provided along with a basic assertion (to prove the action completed successfully) before the
@@ -210,26 +225,28 @@ This function can be used independently, but when set to a variable returns a `d
 
 When using the following command: `pytest --base-url https://www.github.com`:
 
-    from pytest_playwright_axe import Axe
-    from playwright.sync_api import Page
+```python
+from pytest_playwright_axe import Axe
+from playwright.sync_api import Page
 
-    def test_accessibility(page: Page) -> None:
-        # A list of URLs to loop through
-        urls_to_check = [
-            "davethepunkyone/pytest-playwright-axe",
-            "davethepunkyone/pytest-playwright-axe/issues",
-            {
-                "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
-                "action": "click", 
-                "locator": page.get_by_test_id("anchor-button"), 
-                "assert_type": "to_contain_text", 
-                "assert_locator": page.get_by_test_id("overlay-content"),
-                "assert_value": "rework-axe-to-include-init",
-                "wait_time": 1000
-            }
-          ]
+def test_accessibility(page: Page) -> None:
+    # A list of URLs to loop through
+    urls_to_check = [
+        "davethepunkyone/pytest-playwright-axe",
+        "davethepunkyone/pytest-playwright-axe/issues",
+        {
+            "url": "https://github.com/davethepunkyone/pytest-playwright-axe",
+            "action": "click", 
+            "locator": page.get_by_test_id("anchor-button"), 
+            "assert_type": "to_contain_text", 
+            "assert_locator": page.get_by_test_id("overlay-content"),
+            "assert_value": "rework-axe-to-include-init",
+            "wait_time": 1000
+        }
+      ]
 
-        Axe().run_list(page, urls_to_check)
+    Axe().run_list(page, urls_to_check)
+```
 
 ## .get_rules(): Return rules
 
@@ -259,15 +276,17 @@ A Python `list[dict]` object with all matching rules and their descriptors.
 
 ### Example usage
 
-    import logging
-    from pytest_playwright_axe import Axe
-    from playwright.sync_api import Page
+```python
+import logging
+from pytest_playwright_axe import Axe
+from playwright.sync_api import Page
 
-    def test_get_rules(page: Page) -> None:
+def test_get_rules(page: Page) -> None:
 
-        rules = Axe().get_rules(page, ['wcag21aa'])
-        for rule in rules:
-            logging.info(rule)
+    rules = Axe().get_rules(page, ['wcag21aa'])
+    for rule in rules:
+        logging.info(rule)
+```
 
 ## Rulesets
 
@@ -279,19 +298,108 @@ The following rulesets can also be imported via the `pytest_playwright_axe` modu
 
 Example:
 
-    from pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
-    from playwright.sync_api import Page
+```python
+from pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
+from playwright.sync_api import Page
 
-    def test_axe_example(page: Page) -> None:
-        page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
-        Axe().run(page, options=OPTIONS_WCAG_22AA)
+def test_axe_example(page: Page) -> None:
+    page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+    Axe().run(page, options=OPTIONS_WCAG_22AA)
+```
+
+## Working With Snapshots
+
+From release 4.11.0.post1, this package provides the ability to compare to a
+previous scan of the page and highlight changes between then and now.
+Scans are conducted against the JSON output of a previous run, so to use this
+functionality you will need to ensure you save JSON files as part of your outputs.
+
+If any changes are detected and snapshot scanning is enabled, a new section will
+be populated at the start of the HTML report that outlines the detected changes, as
+shown in the screenshot below.
+
+![An image of the Changes Since Last Scan section, displayed as the first section of the HTML report and showing a new and a resolved violation](https://raw.githubusercontent.com/davethepunkyone/pytest-playwright-axe/main/examples/changes_since_last_scan_example.png)
+
+When working with snapshots, the following needs to be considered:
+
+- Snapshots are detected from the designated snapshot directory based on the expected filename, so to use this logic the URLs under test will need to be consistent.
+- The comparison output is only presented on the HTML version of the report.
+
+### Example Snapshot Usage
+
+**1 - Get Initial Snapshot**
+
+An initial scan of the page is conducted, with JSON output enabled.
+
+For the purposes of this example, the following test is located in the
+`tests/accessibility` directory in `tests_accessibility.py`:
+
+```python
+from playwright.sync_api import Page
+from pytest_playwright_axe import Axe
+
+def test_axe_example(page: Page) -> None:
+    page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+    Axe().run(page)
+```
+
+This generates the following output in the `axe-reports` directory:
+
+    axe-reports/
+      |- github_com_davethepunkyone_pytest-playwright-axe.html
+      |- github_com_davethepunkyone_pytest-playwright-axe.json
+
+The `.json` file should then be copied into an appropriate directory to be
+referenced later (e.g. `tests/accessibility/snapshots`).
+
+This should then result in a file structure like so:
+
+    axe-reports/
+      |- github_com_davethepunkyone_pytest-playwright-axe.html
+      |- github_com_davethepunkyone_pytest-playwright-axe.json
+    tests/
+      |- accessibility/
+      |  |- snapshots/
+      |  |  |- github_com_davethepunkyone_pytest-playwright-axe.json
+      |  |- tests_accessibility.py
+
+**2 - Compare Snapshots**
+
+To allow for the snapshot comparison, the test needs to be amended to check
+for available snapshots, by adding the `snapshot_directory=<path>` to the
+initialised Axe instance.
+
+Using our example above, we would modify the existing test as follows:
+
+```python
+from playwright.sync_api import Page
+from pytest_playwright_axe import Axe
+from pathlib import Path
+
+# Reference the snapshot directory
+SNAPSHOT_DIRECTORY = Path(__file__).parent.joinpath("snapshots")
+
+def test_axe_example(page: Page) -> None:
+    page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
+    # Initialise Axe referencing the snapshot directory
+    Axe(snapshot_directory=SNAPSHOT_DIRECTORY).run(page)
+```
+
+With this change in place, the test will now check the `snapshots` directory
+and as this will generate a JSON file matching the one we have added, it will
+load the JSON file from `snapshots/github_com_davethepunkyone_pytest-playwright-axe.json`
+and check for changes between the two files, outputting the results in a new
+section on the HTML report.
+
 
 ## Example Reports
 
 The following are examples of the reports generated using this package:
 
-- HTML Format (Use download file to see report): [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.html)
-- JSON Format: [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.json)
+| Format                                 | Example                                                                                                                |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| HTML (Use download file to see report) | [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.html) |
+| JSON                                   | [Example File](https://github.com/davethepunkyone/pytest-playwright-axe/tree/main/examples/example_result_report.json) |
 
 ## Versioning
 
@@ -314,7 +422,8 @@ would require amending existing logic:
 
 ## Licence
 
-Unless stated otherwise, the codebase is released under the [MIT Licence](LICENCE.md).
+Unless stated otherwise, the codebase is released under the
+[MIT Licence](LICENCE.md) (note the UK spelling for the filename).
 This covers both the codebase and any sample code in the documentation.
 
 ## Acknowledgements

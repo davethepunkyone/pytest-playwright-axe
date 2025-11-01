@@ -8,14 +8,14 @@ def test_basic_example(page: Page) -> None:
     page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
 
     # Assert repo text is present
-    Axe().run(page, options=OPTIONS_WCAG_22AA)
+    Axe(snapshot_directory=Path(__file__).parent.joinpath("snapshots")).run(page, options=OPTIONS_WCAG_22AA)
 
 
 def test_minified_example(page: Page) -> None:
     page.goto("https://github.com/davethepunkyone/pytest-playwright-axe")
 
     # Assert repo text is present
-    Axe(use_minified_file=True).run(page, options=OPTIONS_WCAG_22AA)
+    Axe(output_directory=Path(__file__).parent.parent.joinpath("accessibility-results"), use_minified_file=True).run(page, options=OPTIONS_WCAG_22AA)
 
 
 def test_get_rules(page: Page) -> None:
