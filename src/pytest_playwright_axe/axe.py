@@ -9,12 +9,12 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-RESOURCES_DIR = Path(__file__).parent / "resources"
-AXE_PATH = RESOURCES_DIR / "axe.js"
-MIN_AXE_PATH = RESOURCES_DIR / "axe.min.js"
-DEFAULT_CSS_PATH = RESOURCES_DIR / "default.css"
+RESOURCES_DIR = Path(__file__).parent.joinpath("resources")
+AXE_PATH = RESOURCES_DIR.joinpath("axe.js")
+MIN_AXE_PATH = RESOURCES_DIR.joinpath("axe.min.js")
+DEFAULT_CSS_PATH = RESOURCES_DIR.joinpath("default.css")
 
-DEFAULT_REPORT_PATH = Path(os.getcwd()) / "axe-reports"
+DEFAULT_REPORT_PATH = Path(os.getcwd()).joinpath("axe-reports")
 
 WCAG_KEYS = {
     'wcag2a': 'WCAG 2.0 (A)',
@@ -59,10 +59,10 @@ class Axe:
                  css_override: str = "", 
                  use_minified_file: bool = False,
                  snapshot_directory: str | Path = None) -> None:
-        self.output_directory = output_directory
+        self.output_directory = Path(output_directory)
         self.css_override = css_override
         self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
-        self.snapshot_directory = snapshot_directory
+        self.snapshot_directory = Path(snapshot_directory) if snapshot_directory else None
 
     def run(self,
             page: Page,
@@ -95,9 +95,13 @@ class Axe:
         response = page.evaluate(
             "axe.run(" + self._build_run_command(context, options) + ").then(results => {return results;})")
 
-        logger.info(f"""Axe scan summary of [{response["url"]}]: Passes = {len(response["passes"])},
-                    Violations = {len(response["violations"])}, Inapplicable = {len(response["inapplicable"])},
-                    Incomplete = {len(response["incomplete"])}""")
+        logger.info(
+            f"Axe scan summary of [{response['url']}]:\n"
+            f"- Passes = {len(response['passes'])}\n"
+            f"- Violations = {len(response['violations'])}\n"
+            f"- Inapplicable = {len(response['inapplicable'])}\n"
+            f"- Incomplete = {len(response['incomplete'])}"
+        )
 
         violations_detected = len(response["violations"]) > 0
         if not report_on_violation_only or (report_on_violation_only and violations_detected):
@@ -157,6 +161,7 @@ class Axe:
             if isinstance(selected_page, dict):
                 page.goto(selected_page["url"])
                 self._complete_pre_scan_actions(page, selected_page)
+                results_key = f"{selected_page["url"]}_{selected_page["action"]}"
                 filename = self._modify_filename_for_report(
                     f"{selected_page["url"]}_{selected_page["action"]}") if use_list_for_filename else ""
             else:
@@ -199,6 +204,9 @@ class Axe:
 
         if "action" not in actions or "locator" not in actions:
             raise AxeAccessibilityException("action and locator are required within each action dictionary provided.")
+
+        if "value" in actions and not isinstance(actions["value"], str):
+            raise AxeAccessibilityException("value must be a string.")
 
         if "value" not in actions and actions["action"] in ["fill", "type", "select_option"]:
             raise AxeAccessibilityException("value is required for this action type.")
@@ -288,8 +296,7 @@ class Axe:
         if not filename_to_modify:
             raise AxeAccessibilityException("Filename to modify cannot be empty")
         
-        if filename_to_modify[-1] == "/":
-            filename_to_modify = filename_to_modify[:-1]
+        filename_to_modify = filename_to_modify.rstrip("/")
         for item_to_remove in ["http://", "https://"]:
             filename_to_modify = filename_to_modify.replace(item_to_remove, "")
         filename_to_modify = re.sub(r'[^a-zA-Z0-9-_]', '_', filename_to_modify)
@@ -298,8 +305,8 @@ class Axe:
 
     def _create_path_for_report(self, filename: str) -> Path:
         """This creates the report path (if it doesn't exist) and returns the full path."""
-        os.makedirs(self.output_directory, exist_ok=True)
-        return Path(self.output_directory).joinpath(filename)
+        self.output_directory.mkdir(parents=True, exist_ok=True)
+        return self.output_directory.joinpath(filename)
 
     def _create_json_report(self, data: dict, filename_override: str = "") -> None:
         """This creates a JSON report for the generated report data."""
@@ -518,11 +525,11 @@ class Axe:
         if not self.snapshot_directory:
             return None
         
-        snapshot_path = Path(self.snapshot_directory).joinpath(f"{filename}.json")
+        snapshot_path = self.snapshot_directory.joinpath(f"{filename}.json")
         if not snapshot_path.exists():
             return None
 
-        with open(snapshot_path) as file:
+        with open(snapshot_path, encoding='utf-8') as file:
             return json.loads(file.read())
 
     def _generate_changes_section(self, data: dict, snapshot_data: dict | None) -> str:
