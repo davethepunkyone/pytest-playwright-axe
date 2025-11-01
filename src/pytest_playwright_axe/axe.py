@@ -52,6 +52,19 @@ class Axe:
         css_override (str): [Optional] If provided, overrides the default CSS used within the HTML report generated.
         use_minified_file (bool): [Optional] If true, use the minified axe-core file. If false (default), use the full axe-core file.
         snapshot_directory (str | pathlib.Path): [Optional] The directory to check for JSON snapshots from previous runs to compare against.
+
+    Example:
+        ```
+        # Default usage
+        axe = Axe()
+        # Custom output directory using minified file
+        axe = Axe(output_directory="accessibility-results", use_minified_file=True)
+        # Snapshot directory specified and custom CSS
+        axe = Axe(
+            snapshot_directory=Path(__file__).parent.joinpath("snapshots"), 
+            css_override=Path(__file__).parent.joinpath("style.css")
+        )
+        ```
     """
 
     def __init__(self, 
@@ -88,6 +101,21 @@ class Axe:
 
         Returns:
             dict: A Python dictionary with the axe-core output of the page scanned.
+        
+        Example:
+            ```
+            # Default usage
+            def test_example(page: Page) -> None:
+                axe = Axe()
+                axe.run(page)
+
+                # With no HTML or JSON reports, capture results in variable
+                results = axe.run(
+                    page, 
+                    html_report_generated=False, 
+                    json_report_generated=False
+                )
+            ```        
         """
 
         page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
@@ -142,18 +170,46 @@ class Axe:
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
 
-        Returns:
-            dict: A Python dictionary with the axe-core output of all the pages scanned, with the page list used as the key for each report.
-        
         For page_list, the following key/value pairs can be provided if using a dict:
-            - url (str): The url to initially navigate to.
-            - action (str): The action to undertake. Can be one of the following: "click", "dblclick", "hover", "fill", "type" or "select_option".
-            - locator (playwright.sync_api.Locator): The locator for the element to interact with.
-            - value (str): The value to use (if the action is "fill", "type" or "select_option").
-            - assert_locator (playwright.sync_api.Locator): [Optional] The locator to do an assertion on.
-            - assert_type (str): [Optional] The type of assertion to do against the locator. Can be one of the following: "to_be_visible", "to_be_hidden", "to_be_enabled", "to_contain_text" or "to_not_contain_text".
-            - assert_value (str): [Optional] The value to assert (if the action is "to_contain_text" or "to_not_contain_text")
-            - wait_time (int): [Optional] If specified, the amount of time to wait after completing the action in milliseconds.
+
+        - **url (str)**: The url to initially navigate to.
+        - **action (str)**: The action to undertake. Can be one of the following: "click", "dblclick", "hover", "fill", "type" or "select_option".
+        - **locator (playwright.sync_api.Locator)**: The locator for the element to interact with.
+        - **value (str)**: The value to use (if the action is "fill", "type" or "select_option").
+        - **assert_locator (playwright.sync_api.Locator)**: [Optional] The locator to do an assertion on.
+        - **assert_type (str)**: [Optional] The type of assertion to do against the locator. Can be one of the following: "to_be_visible", "to_be_hidden", "to_be_enabled", "to_contain_text" or "to_not_contain_text".
+        - **assert_value (str)**: [Optional] The value to assert (if the action is "to_contain_text" or "to_not_contain_text")
+        - **wait_time (int)**: [Optional] If specified, the amount of time to wait after completing the action in milliseconds.
+
+        Returns:
+            dict: A Python dictionary with the axe-core output of all the pages scanned, with the page_list value used as the key for each report.
+ 
+        Example:
+            ```
+            # --base-url set to: https://example.com
+            def test_example(page: Page) -> None:
+                # Default usage
+                Axe().run_list(
+                    page, 
+                    ["/home", "/search"]
+                )
+                
+                # Usage with page_list including str and dict
+                page_list = [
+                    "/home",
+                    {
+                        "url": "/search",
+                        "action": "fill",
+                        "locator": page.locator("#search-bar"),
+                        "value": "test item",
+                        "assert_locator": page.locator("#search-results-summary"),
+                        "assert_type": "to_contain_text",
+                        "assert_value": "1 of 1 results"
+                    }
+                ]
+                axe = Axe()
+                axe.run_list(page, page_list)
+            ``` 
         """
 
         results = {}
@@ -193,6 +249,15 @@ class Axe:
         
         Returns:
             list[dict]: A list of dictionaries containing the axe-core rules returned.
+        
+        Example:
+            ```
+            # Standard usage
+            axe = Axe()
+            rules = axe.get_rules(page)
+            # Get only specific rules
+            rules = axe.get_rules(page, rules=["color-contrast", "image-alt"])
+            ```
         """
         page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
 
