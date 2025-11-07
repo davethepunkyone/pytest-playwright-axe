@@ -3,10 +3,9 @@ import pytest
 import os
 from pathlib import Path
 from src.pytest_playwright_axe import Axe, AxeAccessibilityException
+from src.pytest_playwright_axe.axe import DEFAULT_CSS_PATH
 from playwright.sync_api import Locator
 
-
-DEFAULT_CSS_PATH = Path(__file__).parent.parent / "src" / "pytest_playwright_axe" / "resources" / "default.css"
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
 
@@ -14,6 +13,7 @@ TEST_JSON_DEFAULT_FILENAME = "www_test_com_1.json"
 TEST_JSON_CUSTOM_FILENAME = "test_json_file.json"
 TEST_HTML_DEFAULT_FILENAME = "www_test_com_1.html"
 TEST_HTML_CUSTOM_FILENAME = "test_html_file.html"
+TEST_SNAPSHOT_DIR = Path(__file__).parent / "snapshots"
 
 @pytest.fixture(scope="session", autouse=True)
 def remove_files_before_test() -> None:
@@ -275,18 +275,23 @@ def test_get_snapshot_data_no_directory() -> None:
 
 def test_get_snapshot_data_file_not_exists() -> None:
     """Test when snapshot file doesn't exist"""
-    result = Axe(snapshot_directory=AXE_REPORTS_DIR)._get_snapshot_data("nonexistent")
+    result = Axe(snapshot_directory=TEST_SNAPSHOT_DIR)._get_snapshot_data("nonexistent")
+    assert result is None
+
+def test_get_snapshot_data_file_corrupted() -> None:
+    """Test when snapshot file is corruped or unparsable"""
+    result = Axe(snapshot_directory=TEST_SNAPSHOT_DIR)._get_snapshot_data("corrupt")
     assert result is None
 
 def test_get_snapshot_data_success() -> None:
     """Test successful snapshot data retrieval"""
     # Create a test snapshot file
     test_snapshot = {"url": "test", "violations": []}
-    snapshot_path = AXE_REPORTS_DIR / "test_snapshot.json"
+    snapshot_path = TEST_SNAPSHOT_DIR / "test_snapshot.json"
     with open(snapshot_path, 'w') as f:
         json.dump(test_snapshot, f)
     
-    result = Axe(snapshot_directory=AXE_REPORTS_DIR)._get_snapshot_data("test_snapshot")
+    result = Axe(snapshot_directory=TEST_SNAPSHOT_DIR)._get_snapshot_data("test_snapshot")
     assert result == test_snapshot
     
     # Cleanup
@@ -343,3 +348,23 @@ def test_complete_pre_scan_actions_invalid_action(page, patch_locator) -> None:
     }
     with pytest.raises(AxeAccessibilityException):
         Axe()._complete_pre_scan_actions(page, actions)
+
+def test_collect_all_changes() -> None:
+    """Test collecting all changes between current and snapshot."""
+    data = {
+        "violations": [
+            {"id": "rule1", "description": "Test", "impact": "high", "tags": [], "nodes": [1, 2, 3]}
+        ]
+    }
+    snapshot_data = {
+        "violations": [
+            {"id": "rule1", "description": "Test", "impact": "high", "tags": [], "nodes": [1]}
+        ]
+    }
+    
+    axe = Axe()
+    changes = axe._collect_all_changes(data, snapshot_data)
+    
+    assert len(changes) == 1
+    assert changes[0]['type'] == 'Increased Count'
+    assert changes[0]['change'] == 2

@@ -594,8 +594,12 @@ class Axe:
         if not snapshot_path.exists():
             return None
 
-        with open(snapshot_path, encoding='utf-8') as file:
-            return json.loads(file.read())
+        try:
+            with open(snapshot_path, encoding='utf-8') as file:
+                return json.loads(file.read())
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse snapshot file {snapshot_path}: {e}")
+            return None
 
     def _generate_changes_section(self, data: dict, snapshot_data: dict | None) -> str:
         """Generate the changes section of the HTML report comparing current data with snapshot."""
