@@ -30,7 +30,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 'lts/*'
-          cache: 'npm'
 
       - name: Download and extract axe-core files
         run: |
