@@ -40,6 +40,11 @@ classifiers = [
   "Programming Language :: Python :: 3.14"
 ]
 
+[project.optional-dependencies]
+dev = [
+  "requests"
+]
+
 [project.urls]
 Homepage = "https://github.com/davethepunkyone/pytest-playwright-axe"
 Repository = "https://github.com/davethepunkyone/pytest-playwright-axe"
