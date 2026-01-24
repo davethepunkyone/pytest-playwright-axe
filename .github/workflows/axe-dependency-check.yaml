@@ -36,8 +36,18 @@ jobs:
           TEMP_DIR=$(mktemp -d)
           cd "$TEMP_DIR"
           npm install axe-core --no-save
-          cp node_modules/axe-core/axe.js $GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/
-          cp node_modules/axe-core/axe.min.js $GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/
+          
+          # Verify files exist
+          ls -la node_modules/axe-core/axe*.js
+          
+          # Copy files
+          cp -v node_modules/axe-core/axe.js "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/"
+          cp -v node_modules/axe-core/axe.min.js "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/"
+          
+          # Verify they were copied
+          ls -la "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/axe*.js"
+          
+          # Cleanup
           rm -rf "$TEMP_DIR"
 
       - name: Update version references
@@ -54,7 +64,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH_NAME"
-          git add src/pytest_playwright_axe/resources/axe*.js pyproject.toml src/pytest_playwright_axe/__init__.py
+          
+          # Show what files have changed
+          echo "Files changed:"
+          git status
+          
+          # Add files explicitly
+          git add src/pytest_playwright_axe/resources/axe.js
+          git add src/pytest_playwright_axe/resources/axe.min.js
+          git add pyproject.toml
+          git add src/pytest_playwright_axe/__init__.py
+          
+          # Show what will be committed
+          echo "Files to be committed:"
+          git status
+          
           git commit -m "chore: update axe-core to ${{ inputs.current_version }}"
           git push --set-upstream origin "$BRANCH_NAME"
           
