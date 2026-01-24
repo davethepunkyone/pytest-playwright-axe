@@ -37,15 +37,13 @@ jobs:
           cd "$TEMP_DIR"
           npm install axe-core --no-save
           
-          # Verify files exist
-          ls -la node_modules/axe-core/axe*.js
-          
           # Copy files
           cp -v node_modules/axe-core/axe.js "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/"
           cp -v node_modules/axe-core/axe.min.js "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/"
           
           # Verify they were copied
-          ls -la "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/axe*.js"
+          ls -la "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/axe.js"
+          ls -la "$GITHUB_WORKSPACE/src/pytest_playwright_axe/resources/axe.min.js"
           
           # Cleanup
           rm -rf "$TEMP_DIR"
