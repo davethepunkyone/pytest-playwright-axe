@@ -6,43 +6,47 @@ on:
   workflow_dispatch:
     # Manual trigger
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   axe-dependency-check:
     name: "Axe Version Comparison Check"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - run: |
-          git checkout ${{ github.head_ref }}
-      - name: Set up Python 3.13
+
+      - name: Set up Python
         uses: actions/setup-python@v6
         with:
             python-version: 3.13
+            cache: 'pip'
+
       - name: Install dependencies
         run: |
             python -m pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install poetry
-            poetry install --no-interaction --all-extras
-            poetry add requests
+            pip install -e .[dev]
+
       - name: Execute Python script to check axe-core version
         id: check_results
-        run: |
-            python scripts/check_axe_core_version.py
+        run: python scripts/check_axe_core_version.py
+
       - name: Echo if check required
         run: |
             echo "Update required: ${{ steps.check_results.outputs.update_required }}"
             echo "Current version of axe-core: ${{ steps.check_results.outputs.axe_core_version }}"
             echo "Current version of this package: ${{ steps.check_results.outputs.package_version }}"
-      - name: Trigger workflow_dispatch if axe-core version is different
+
+      - name: Trigger dependency update workflow
         if: steps.check_results.outputs.update_required == 'True'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            echo "Axe-core version is different. Triggering workflow_dispatch..."
-            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/axe-dependency-check.yaml/dispatches \
-            -d '{"ref": "${{ github.ref_name }}","inputs":{"current_version":"${{ steps.check_results.outputs.axe_core_version }}","old_version":"${{ steps.check_results.outputs.package_version }}"}}'
-            echo "Workflow dispatched successfully."
+          gh workflow run axe-dependency-update.yaml \
+            --ref ${{ github.ref_name }} \
+            --field current_version="${{ steps.check_results.outputs.axe_core_version }}" \
+            --field old_version="${{ steps.check_results.outputs.package_version }}"

@@ -1,4 +1,4 @@
-name: Build New Axe Version
+name: Update Axe Version
 
 on: 
   workflow_dispatch:
@@ -17,16 +17,14 @@ permissions:
   pull-requests: write
 
 jobs:
-  axe-dependency-check:
-    name: "Axe Version Check"
+  axe-dependency-update:
+    name: "Axe Version Update"
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.ref }}
 
       - name: Install Node.js
         uses: actions/setup-node@v6
