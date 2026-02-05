@@ -1,0 +1,85 @@
+name: Update Axe Version
+
+on: 
+  workflow_dispatch:
+    inputs:
+      old_version:
+        description: 'The old axe-core version to be replaced'
+        required: true
+        type: string
+      current_version:
+        description: 'The new axe-core version to use'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  axe-dependency-update:
+    name: "Axe Version Update"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+
+      - name: Install axe-core in temp dir
+        run: |
+          cd src/pytest_playwright_axe/resources
+          mkdir temp
+          cd temp
+          npm install axe-core --no-save
+
+      - name: Retrieve axe.js file
+        run: |
+          cd src/pytest_playwright_axe/resources/temp/node_modules/axe-core
+          mv axe.js ../../../
+          mv axe.min.js ../../../
+
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "${{ inputs.old_version }}"
+          replace: "${{ inputs.current_version }}"
+          regex: false
+          exclude: "**/*.js"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH_NAME: axe-dependency-check-${{ inputs.current_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Show what files have changed
+          echo "Files changed:"
+          git status
+          
+          # Add files explicitly
+          git add src/pytest_playwright_axe/resources/axe.js
+          git add src/pytest_playwright_axe/resources/axe.min.js
+          git add pyproject.toml
+          git add src/pytest_playwright_axe/__init__.py
+          
+          # Show what will be committed
+          echo "Files to be committed:"
+          git status
+          
+          git commit -m "chore: update axe-core to ${{ inputs.current_version }}"
+          git push --set-upstream origin "$BRANCH_NAME"
+          
+          gh pr create \
+            --title "Update axe-core to ${{ inputs.current_version }}" \
+            --body "Automated update of axe-core dependency from ${{ inputs.old_version }} to ${{ inputs.current_version }}." \
+            --label "feature,automated pr" \
+            --reviewer davethepunkyone
