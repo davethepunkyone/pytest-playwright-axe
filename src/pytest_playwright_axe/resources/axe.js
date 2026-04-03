@@ -1,4 +1,4 @@
-/*! axe v4.11.1
+/*! axe v4.11.2
  * Copyright (c) 2015 - 2026 Deque Systems, Inc.
  *
  * Your use of this Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@
     }, _typeof(o);
   }
   var axe = axe || {};
-  axe.version = '4.11.1';
+  axe.version = '4.11.2';
   if (typeof define === 'function' && define.amd) {
     define('axe-core', [], function() {
       return axe;
@@ -37,7 +37,7 @@
   }
   var commons;
   'use strict';
-  var _excluded = [ 'precision', 'format', 'inGamut' ], _excluded2 = [ 'space' ], _excluded3 = [ 'algorithm' ], _excluded4 = [ 'method' ], _excluded5 = [ 'maxDeltaE', 'deltaEMethod', 'steps', 'maxSteps' ], _excluded6 = [ 'variant' ], _excluded7 = [ 'matches' ], _excluded8 = [ 'chromium' ], _excluded9 = [ 'noImplicit' ], _excluded0 = [ 'noPresentational' ], _excluded1 = [ 'node' ], _excluded10 = [ 'relatedNodes' ], _excluded11 = [ 'node' ], _excluded12 = [ 'node' ], _excluded13 = [ 'environmentData' ], _excluded14 = [ 'environmentData' ], _excluded15 = [ 'environmentData' ], _excluded16 = [ 'environmentData' ], _excluded17 = [ 'environmentData' ];
+  var _excluded = [ 'precision', 'format', 'inGamut' ], _excluded2 = [ 'space' ], _excluded3 = [ 'algorithm' ], _excluded4 = [ 'method' ], _excluded5 = [ 'maxDeltaE', 'deltaEMethod', 'steps', 'maxSteps' ], _excluded6 = [ 'node' ], _excluded7 = [ 'relatedNodes' ], _excluded8 = [ 'node' ], _excluded9 = [ 'variant' ], _excluded0 = [ 'matches' ], _excluded1 = [ 'chromium' ], _excluded10 = [ 'noImplicit' ], _excluded11 = [ 'noPresentational' ], _excluded12 = [ 'node' ], _excluded13 = [ 'environmentData' ], _excluded14 = [ 'environmentData' ], _excluded15 = [ 'environmentData' ], _excluded16 = [ 'environmentData' ], _excluded17 = [ 'environmentData' ];
   function _toArray(r) {
     return _arrayWithHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableRest();
   }
@@ -1935,10 +1935,10 @@
       var SHARED = '__core-js_shared__';
       var store = module.exports = globalThis2[SHARED] || defineGlobalProperty(SHARED, {});
       (store.versions || (store.versions = [])).push({
-        version: '3.44.0',
+        version: '3.48.0',
         mode: IS_PURE ? 'pure' : 'global',
-        copyright: '\xa9 2014-2025 Denis Pushkarev (zloirock.ru)',
-        license: 'https://github.com/zloirock/core-js/blob/v3.44.0/LICENSE',
+        copyright: '\xa9 2013\u20132025 Denis Pushkarev (zloirock.ru), 2025\u20132026 CoreJS Company (core-js.io). All rights reserved.',
+        license: 'https://github.com/zloirock/core-js/blob/v3.48.0/LICENSE',
         source: 'https://github.com/zloirock/core-js'
       });
     });
@@ -3242,6 +3242,40 @@
         }
       };
     });
+    var require_is_array = __commonJS(function(exports, module) {
+      'use strict';
+      var classof = require_classof_raw();
+      module.exports = Array.isArray || function isArray(argument) {
+        return classof(argument) === 'Array';
+      };
+    });
+    var require_array_set_length = __commonJS(function(exports, module) {
+      'use strict';
+      var DESCRIPTORS = require_descriptors();
+      var isArray = require_is_array();
+      var $TypeError = TypeError;
+      var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+      var SILENT_ON_NON_WRITABLE_LENGTH_SET = DESCRIPTORS && !function() {
+        if (this !== void 0) {
+          return true;
+        }
+        try {
+          Object.defineProperty([], 'length', {
+            writable: false
+          }).length = 1;
+        } catch (error) {
+          return error instanceof TypeError;
+        }
+      }();
+      module.exports = SILENT_ON_NON_WRITABLE_LENGTH_SET ? function(O, length) {
+        if (isArray(O) && !getOwnPropertyDescriptor(O, 'length').writable) {
+          throw new $TypeError('Cannot set read only .length');
+        }
+        return O.length = length;
+      } : function(O, length) {
+        return O.length = length;
+      };
+    });
     var require_get_iterator_method = __commonJS(function(exports, module) {
       'use strict';
       var classof = require_classof();
@@ -3282,6 +3316,7 @@
       var isConstructor = require_is_constructor();
       var lengthOfArrayLike = require_length_of_array_like();
       var createProperty = require_create_property();
+      var setArrayLength = require_array_set_length();
       var getIterator = require_get_iterator();
       var getIteratorMethod = require_get_iterator_method();
       var $Array = Array;
@@ -3313,7 +3348,7 @@
             createProperty(result, index, value);
           }
         }
-        result.length = index;
+        setArrayLength(result, index);
         return result;
       };
     });
@@ -6844,6 +6879,9 @@
       getCheckOption: function getCheckOption() {
         return get_check_option_default;
       },
+      getElementSource: function getElementSource() {
+        return _getElementSource;
+      },
       getEnvironmentData: function getEnvironmentData() {
         return _getEnvironmentData;
       },
@@ -8110,8 +8148,8 @@
         format.type || (format.type = 'function');
         format.name || (format.name = 'color');
         format.coordGrammar = parseCoordGrammar(format.coords);
-        var coordFormats = Object.entries(this.coords).map(function(_ref149, i) {
-          var _ref150 = _slicedToArray(_ref149, 2), id = _ref150[0], coordMeta = _ref150[1];
+        var coordFormats = Object.entries(this.coords).map(function(_ref152, i) {
+          var _ref153 = _slicedToArray(_ref152, 2), id = _ref153[0], coordMeta = _ref153[1];
           var outputType = format.coordGrammar[i][0];
           var fromRange = coordMeta.range || coordMeta.refRange;
           var toRange = outputType.range, suffix = '';
@@ -11071,6 +11109,1259 @@
       return cache_default.get('nodeMap') ? cache_default.get('nodeMap').get(el) : null;
     }
     var get_node_from_tree_default = getNodeFromTree;
+    function _getElementSource(node) {
+      var _ref24 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref24$maxLength = _ref24.maxLength, maxLength = _ref24$maxLength === void 0 ? 300 : _ref24$maxLength, _ref24$attrLimit = _ref24.attrLimit, attrLimit = _ref24$attrLimit === void 0 ? 20 : _ref24$attrLimit;
+      if (!node) {
+        return '';
+      }
+      if (node.nodeType !== 1) {
+        var _node$nodeValue;
+        var value = (_node$nodeValue = node.nodeValue) !== null && _node$nodeValue !== void 0 ? _node$nodeValue : '';
+        return truncate(value, maxLength);
+      }
+      var deepStr = getOuterHtml(node);
+      if (deepStr.length > maxLength) {
+        return getTruncatedElementSource(node, {
+          maxLength: maxLength,
+          attrLimit: attrLimit
+        });
+      }
+      return deepStr;
+    }
+    function getOuterHtml(element) {
+      var source = element.outerHTML;
+      if (!source && typeof window.XMLSerializer === 'function') {
+        source = new window.XMLSerializer().serializeToString(element);
+      }
+      return source || '';
+    }
+    function getTruncatedElementSource(elm, _ref25) {
+      var maxLength = _ref25.maxLength, attrLimit = _ref25.attrLimit;
+      var nodeName2 = is_xhtml_default(elm.ownerDocument || document) ? elm.nodeName : elm.nodeName.toLowerCase();
+      var nodeAttrs = Array.from(get_node_attributes_default(elm)).map(function(_ref26) {
+        var name = _ref26.name, value = _ref26.value;
+        return {
+          name: name,
+          value: value
+        };
+      });
+      var attrsLength = nodeAttrs.reduce(function(acc, _ref27) {
+        var name = _ref27.name, value = _ref27.value;
+        return acc + name.length + value.length + 4;
+      }, 0);
+      if (2 + nodeName2.length + attrsLength > maxLength) {
+        nodeAttrs.forEach(function(attr) {
+          attr.name = truncate(attr.name, attrLimit);
+          attr.value = truncate(attr.value, attrLimit);
+        });
+      }
+      var source = '<'.concat(nodeName2);
+      var tagEnd = '>';
+      var truncateEnd = ' ...>';
+      var _iterator7 = _createForOfIteratorHelper(nodeAttrs), _step7;
+      try {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done; ) {
+          var attr = _step7.value;
+          var attrStr = ' '.concat(attr.name, '="').concat(attr.value, '"');
+          if (source.length + attrStr.length > maxLength - truncateEnd.length) {
+            tagEnd = truncateEnd;
+            continue;
+          }
+          source += attrStr;
+        }
+      } catch (err) {
+        _iterator7.e(err);
+      } finally {
+        _iterator7.f();
+      }
+      return source + tagEnd;
+    }
+    function truncate(str, attrLimit) {
+      return str.length <= attrLimit ? str : str.substring(0, attrLimit) + '...';
+    }
+    var CACHE_KEY = 'DqElm.RunOptions';
+    var DqElement = memoize_default(function DqElement2(elm, options, spec) {
+      var _this$spec$selector, _this$_virtualNode;
+      options !== null && options !== void 0 ? options : options = null;
+      spec !== null && spec !== void 0 ? spec : spec = {};
+      if (!options) {
+        var _cache_default$get;
+        options = (_cache_default$get = cache_default.get(CACHE_KEY)) !== null && _cache_default$get !== void 0 ? _cache_default$get : {};
+      }
+      this.spec = spec;
+      if (elm instanceof abstract_virtual_node_default) {
+        this._virtualNode = elm;
+        this._element = elm.actualNode;
+      } else {
+        this._element = elm;
+        this._virtualNode = get_node_from_tree_default(elm);
+      }
+      this.fromFrame = ((_this$spec$selector = this.spec.selector) === null || _this$spec$selector === void 0 ? void 0 : _this$spec$selector.length) > 1;
+      this._includeElementInJson = options.elementRef;
+      if (options.absolutePaths) {
+        this._options = {
+          toRoot: true
+        };
+      }
+      this.nodeIndexes = [];
+      if (Array.isArray(this.spec.nodeIndexes)) {
+        this.nodeIndexes = this.spec.nodeIndexes;
+      } else if (typeof ((_this$_virtualNode = this._virtualNode) === null || _this$_virtualNode === void 0 ? void 0 : _this$_virtualNode.nodeIndex) === 'number') {
+        this.nodeIndexes = [ this._virtualNode.nodeIndex ];
+      }
+      this.source = null;
+      if (!axe._audit.noHtml) {
+        var _this$spec$source;
+        this.source = (_this$spec$source = this.spec.source) !== null && _this$spec$source !== void 0 ? _this$spec$source : _getElementSource(this._element);
+      }
+      return this;
+    });
+    DqElement.prototype = {
+      get selector() {
+        return this.spec.selector || [ get_selector_default(this.element, this._options) ];
+      },
+      get ancestry() {
+        return this.spec.ancestry || [ _getAncestry(this.element) ];
+      },
+      get xpath() {
+        return this.spec.xpath || [ get_xpath_default(this.element) ];
+      },
+      get element() {
+        return this._element;
+      },
+      toJSON: function toJSON() {
+        var spec = {
+          selector: this.selector,
+          source: this.source,
+          xpath: this.xpath,
+          ancestry: this.ancestry,
+          nodeIndexes: this.nodeIndexes,
+          fromFrame: this.fromFrame
+        };
+        if (this._includeElementInJson) {
+          spec.element = this._element;
+        }
+        return spec;
+      }
+    };
+    DqElement.fromFrame = function fromFrame(node, options, frame) {
+      var spec = DqElement.mergeSpecs(node, frame);
+      return new DqElement(frame.element, options, spec);
+    };
+    DqElement.mergeSpecs = function mergeSpecs(child, parentFrame) {
+      return _extends({}, child, {
+        selector: [].concat(_toConsumableArray(parentFrame.selector), _toConsumableArray(child.selector)),
+        ancestry: [].concat(_toConsumableArray(parentFrame.ancestry), _toConsumableArray(child.ancestry)),
+        xpath: [].concat(_toConsumableArray(parentFrame.xpath), _toConsumableArray(child.xpath)),
+        nodeIndexes: [].concat(_toConsumableArray(parentFrame.nodeIndexes), _toConsumableArray(child.nodeIndexes)),
+        fromFrame: true
+      });
+    };
+    DqElement.setRunOptions = function setRunOptions(_ref28) {
+      var elementRef = _ref28.elementRef, absolutePaths = _ref28.absolutePaths;
+      cache_default.set(CACHE_KEY, {
+        elementRef: elementRef,
+        absolutePaths: absolutePaths
+      });
+    };
+    var dq_element_default = DqElement;
+    function checkHelper(checkResult, options, resolve, reject) {
+      return {
+        isAsync: false,
+        async: function async() {
+          this.isAsync = true;
+          return function(result) {
+            if (result instanceof Error === false) {
+              checkResult.result = result;
+              resolve(checkResult);
+            } else {
+              reject(result);
+            }
+          };
+        },
+        data: function data(_data) {
+          checkResult.data = _data;
+        },
+        relatedNodes: function relatedNodes(nodes) {
+          if (!window.Node) {
+            return;
+          }
+          if (nodes instanceof window.Node || nodes instanceof abstract_virtual_node_default) {
+            nodes = [ nodes ];
+          } else {
+            nodes = to_array_default(nodes);
+          }
+          checkResult.relatedNodes = [];
+          nodes.forEach(function(node) {
+            if (node instanceof abstract_virtual_node_default) {
+              node = node.actualNode;
+            }
+            if (node instanceof window.Node) {
+              var dqElm = new dq_element_default(node);
+              checkResult.relatedNodes.push(dqElm);
+            }
+          });
+        }
+      };
+    }
+    var check_helper_default = checkHelper;
+    function clone2(obj) {
+      return cloneRecused(obj, new Map());
+    }
+    function cloneRecused(obj, seen) {
+      var _window, _window2;
+      if (obj === null || _typeof(obj) !== 'object') {
+        return obj;
+      }
+      if ((_window = window) !== null && _window !== void 0 && _window.Node && obj instanceof window.Node || (_window2 = window) !== null && _window2 !== void 0 && _window2.HTMLCollection && obj instanceof window.HTMLCollection || 'nodeName' in obj && 'nodeType' in obj && 'ownerDocument' in obj) {
+        return obj;
+      }
+      if (seen.has(obj)) {
+        return seen.get(obj);
+      }
+      if (Array.isArray(obj)) {
+        var out2 = [];
+        seen.set(obj, out2);
+        obj.forEach(function(value) {
+          out2.push(cloneRecused(value, seen));
+        });
+        return out2;
+      }
+      var out = {};
+      seen.set(obj, out);
+      for (var _key6 in obj) {
+        out[_key6] = cloneRecused(obj[_key6], seen);
+      }
+      return out;
+    }
+    var parser = new import_css_selector_parser.CssSelectorParser();
+    parser.registerSelectorPseudos('not');
+    parser.registerSelectorPseudos('is');
+    parser.registerNestingOperators('>');
+    parser.registerAttrEqualityMods('^', '$', '*', '~');
+    var css_parser_default = parser;
+    function _matches(vNode, selector) {
+      var expressions = _convertSelector(selector);
+      return expressions.some(function(expression) {
+        return _matchesExpression(vNode, expression);
+      });
+    }
+    function matchesTag(vNode, exp) {
+      return vNode.props.nodeType === 1 && (exp.tag === '*' || vNode.props.nodeName === exp.tag);
+    }
+    function matchesClasses(vNode, exp) {
+      return !exp.classes || exp.classes.every(function(cl) {
+        return vNode.hasClass(cl.value);
+      });
+    }
+    function matchesAttributes(vNode, exp) {
+      return !exp.attributes || exp.attributes.every(function(att) {
+        var nodeAtt = vNode.attr(att.key);
+        return nodeAtt !== null && att.test(nodeAtt);
+      });
+    }
+    function matchesId(vNode, exp) {
+      return !exp.id || vNode.props.id === exp.id;
+    }
+    function matchesPseudos(target, exp) {
+      if (!exp.pseudos || exp.pseudos.every(function(pseudo) {
+        if (pseudo.name === 'not') {
+          return !pseudo.expressions.some(function(expression) {
+            return _matchesExpression(target, expression);
+          });
+        } else if (pseudo.name === 'is') {
+          return pseudo.expressions.some(function(expression) {
+            return _matchesExpression(target, expression);
+          });
+        }
+        throw new Error('the pseudo selector ' + pseudo.name + ' has not yet been implemented');
+      })) {
+        return true;
+      }
+      return false;
+    }
+    function matchExpression(vNode, expression) {
+      return matchesTag(vNode, expression) && matchesClasses(vNode, expression) && matchesAttributes(vNode, expression) && matchesId(vNode, expression) && matchesPseudos(vNode, expression);
+    }
+    var escapeRegExp = function() {
+      var from = /(?=[\-\[\]{}()*+?.\\\^$|,#\s])/g;
+      var to2 = '\\';
+      return function(string) {
+        return string.replace(from, to2);
+      };
+    }();
+    var reUnescape = /\\/g;
+    function convertAttributes(atts) {
+      if (!atts) {
+        return;
+      }
+      return atts.map(function(att) {
+        var attributeKey = att.name.replace(reUnescape, '');
+        var attributeValue = (att.value || '').replace(reUnescape, '');
+        var test, regexp;
+        switch (att.operator) {
+         case '^=':
+          regexp = new RegExp('^' + escapeRegExp(attributeValue));
+          break;
+
+         case '$=':
+          regexp = new RegExp(escapeRegExp(attributeValue) + '$');
+          break;
+
+         case '~=':
+          regexp = new RegExp('(^|\\s)' + escapeRegExp(attributeValue) + '(\\s|$)');
+          break;
+
+         case '|=':
+          regexp = new RegExp('^' + escapeRegExp(attributeValue) + '(-|$)');
+          break;
+
+         case '=':
+          test = function test(value) {
+            return attributeValue === value;
+          };
+          break;
+
+         case '*=':
+          test = function test(value) {
+            return value && value.includes(attributeValue);
+          };
+          break;
+
+         case '!=':
+          test = function test(value) {
+            return attributeValue !== value;
+          };
+          break;
+
+         default:
+          test = function test(value) {
+            return value !== null;
+          };
+        }
+        if (attributeValue === '' && /^[*$^]=$/.test(att.operator)) {
+          test = function test() {
+            return false;
+          };
+        }
+        if (!test) {
+          test = function test(value) {
+            return value && regexp.test(value);
+          };
+        }
+        return {
+          key: attributeKey,
+          value: attributeValue,
+          type: typeof att.value === 'undefined' ? 'attrExist' : 'attrValue',
+          test: test
+        };
+      });
+    }
+    function convertClasses(classes) {
+      if (!classes) {
+        return;
+      }
+      return classes.map(function(className) {
+        className = className.replace(reUnescape, '');
+        return {
+          value: className,
+          regexp: new RegExp('(^|\\s)' + escapeRegExp(className) + '(\\s|$)')
+        };
+      });
+    }
+    function convertPseudos(pseudos) {
+      if (!pseudos) {
+        return;
+      }
+      return pseudos.map(function(p2) {
+        var expressions;
+        if ([ 'is', 'not' ].includes(p2.name)) {
+          expressions = p2.value;
+          expressions = expressions.selectors ? expressions.selectors : [ expressions ];
+          expressions = convertExpressions(expressions);
+        }
+        return {
+          name: p2.name,
+          expressions: expressions,
+          value: p2.value
+        };
+      });
+    }
+    function convertExpressions(expressions) {
+      return expressions.map(function(exp) {
+        var newExp = [];
+        var rule = exp.rule;
+        while (rule) {
+          newExp.push({
+            tag: rule.tagName ? rule.tagName.toLowerCase() : '*',
+            combinator: rule.nestingOperator ? rule.nestingOperator : ' ',
+            id: rule.id,
+            attributes: convertAttributes(rule.attrs),
+            classes: convertClasses(rule.classNames),
+            pseudos: convertPseudos(rule.pseudos)
+          });
+          rule = rule.rule;
+        }
+        return newExp;
+      });
+    }
+    function _convertSelector(selector) {
+      var expressions = css_parser_default.parse(selector);
+      expressions = expressions.selectors ? expressions.selectors : [ expressions ];
+      return convertExpressions(expressions);
+    }
+    function optimizedMatchesExpression(vNode, expressions, index, matchAnyParent) {
+      if (!vNode) {
+        return false;
+      }
+      var isArray = Array.isArray(expressions);
+      var expression = isArray ? expressions[index] : expressions;
+      var machedExpression = matchExpression(vNode, expression);
+      while (!machedExpression && matchAnyParent && vNode.parent) {
+        vNode = vNode.parent;
+        machedExpression = matchExpression(vNode, expression);
+      }
+      if (index > 0) {
+        if ([ ' ', '>' ].includes(expression.combinator) === false) {
+          throw new Error('axe.utils.matchesExpression does not support the combinator: ' + expression.combinator);
+        }
+        machedExpression = machedExpression && optimizedMatchesExpression(vNode.parent, expressions, index - 1, expression.combinator === ' ');
+      }
+      return machedExpression;
+    }
+    function _matchesExpression(vNode, expressions, matchAnyParent) {
+      return optimizedMatchesExpression(vNode, expressions, expressions.length - 1, matchAnyParent);
+    }
+    function closest(vNode, selector) {
+      while (vNode) {
+        if (_matches(vNode, selector)) {
+          return vNode;
+        }
+        if (typeof vNode.parent === 'undefined') {
+          throw new TypeError('Cannot resolve parent for non-DOM nodes');
+        }
+        vNode = vNode.parent;
+      }
+      return null;
+    }
+    var closest_default = closest;
+    function noop() {}
+    function funcGuard(f) {
+      if (typeof f !== 'function') {
+        throw new TypeError('Queue methods require functions as arguments');
+      }
+    }
+    function queue() {
+      var tasks = [];
+      var started = 0;
+      var remaining = 0;
+      var completeQueue = noop;
+      var complete = false;
+      var err2;
+      var defaultFail = function defaultFail(e) {
+        err2 = e;
+        setTimeout(function() {
+          if (err2 !== void 0 && err2 !== null) {
+            log_default('Uncaught error (of queue)', err2);
+          }
+        }, 1);
+      };
+      var failed = defaultFail;
+      function createResolve(i) {
+        return function(r) {
+          tasks[i] = r;
+          remaining -= 1;
+          if (!remaining && completeQueue !== noop) {
+            complete = true;
+            completeQueue(tasks);
+          }
+        };
+      }
+      function abort(msg) {
+        completeQueue = noop;
+        failed(msg);
+        return tasks;
+      }
+      function pop() {
+        var length = tasks.length;
+        for (;started < length; started++) {
+          var task = tasks[started];
+          try {
+            task.call(null, createResolve(started), abort);
+          } catch (e) {
+            abort(e);
+          }
+        }
+      }
+      var q = {
+        defer: function defer(fn) {
+          if (_typeof(fn) === 'object' && fn.then && fn['catch']) {
+            var defer = fn;
+            fn = function fn(resolve, reject) {
+              defer.then(resolve)['catch'](reject);
+            };
+          }
+          funcGuard(fn);
+          if (err2 !== void 0) {
+            return;
+          } else if (complete) {
+            throw new Error('Queue already completed');
+          }
+          tasks.push(fn);
+          ++remaining;
+          pop();
+          return q;
+        },
+        then: function then(fn) {
+          funcGuard(fn);
+          if (completeQueue !== noop) {
+            throw new Error('queue `then` already set');
+          }
+          if (!err2) {
+            completeQueue = fn;
+            if (!remaining) {
+              complete = true;
+              completeQueue(tasks);
+            }
+          }
+          return q;
+        },
+        catch: function _catch(fn) {
+          funcGuard(fn);
+          if (failed !== defaultFail) {
+            throw new Error('queue `catch` already set');
+          }
+          if (!err2) {
+            failed = fn;
+          } else {
+            fn(err2);
+            err2 = null;
+          }
+          return q;
+        },
+        abort: abort
+      };
+      return q;
+    }
+    var queue_default = queue;
+    var uuid;
+    var _rng;
+    var _crypto = window.crypto || window.msCrypto;
+    if (!_rng && _crypto && _crypto.getRandomValues) {
+      var _rnds8 = new Uint8Array(16);
+      _rng = function whatwgRNG() {
+        _crypto.getRandomValues(_rnds8);
+        return _rnds8;
+      };
+    }
+    if (!_rng) {
+      var _rnds = new Array(16);
+      _rng = function _rng() {
+        for (var i = 0, r; i < 16; i++) {
+          if ((i & 3) === 0) {
+            r = Math.random() * 4294967296;
+          }
+          _rnds[i] = r >>> ((i & 3) << 3) & 255;
+        }
+        return _rnds;
+      };
+    }
+    var BufferClass = typeof window.Buffer == 'function' ? window.Buffer : Array;
+    var _byteToHex = [];
+    var _hexToByte = {};
+    for (var i = 0; i < 256; i++) {
+      _byteToHex[i] = (i + 256).toString(16).substr(1);
+      _hexToByte[_byteToHex[i]] = i;
+    }
+    function parse2(s, buf, offset) {
+      var i = buf && offset || 0, ii = 0;
+      buf = buf || [];
+      s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
+        if (ii < 16) {
+          buf[i + ii++] = _hexToByte[oct];
+        }
+      });
+      while (ii < 16) {
+        buf[i + ii++] = 0;
+      }
+      return buf;
+    }
+    function unparse(buf, offset) {
+      var i = offset || 0, bth = _byteToHex;
+      return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
+    }
+    var _seedBytes = _rng();
+    var _nodeId = [ _seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5] ];
+    var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
+    var _lastMSecs = 0;
+    var _lastNSecs = 0;
+    function v1(options, buf, offset) {
+      var i = buf && offset || 0;
+      var b2 = buf || [];
+      options = options || {};
+      var clockseq = options.clockseq != null ? options.clockseq : _clockseq;
+      var msecs = options.msecs != null ? options.msecs : new Date().getTime();
+      var nsecs = options.nsecs != null ? options.nsecs : _lastNSecs + 1;
+      var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 1e4;
+      if (dt < 0 && options.clockseq == null) {
+        clockseq = clockseq + 1 & 16383;
+      }
+      if ((dt < 0 || msecs > _lastMSecs) && options.nsecs == null) {
+        nsecs = 0;
+      }
+      if (nsecs >= 1e4) {
+        throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+      }
+      _lastMSecs = msecs;
+      _lastNSecs = nsecs;
+      _clockseq = clockseq;
+      msecs += 122192928e5;
+      var tl = ((msecs & 268435455) * 1e4 + nsecs) % 4294967296;
+      b2[i++] = tl >>> 24 & 255;
+      b2[i++] = tl >>> 16 & 255;
+      b2[i++] = tl >>> 8 & 255;
+      b2[i++] = tl & 255;
+      var tmh = msecs / 4294967296 * 1e4 & 268435455;
+      b2[i++] = tmh >>> 8 & 255;
+      b2[i++] = tmh & 255;
+      b2[i++] = tmh >>> 24 & 15 | 16;
+      b2[i++] = tmh >>> 16 & 255;
+      b2[i++] = clockseq >>> 8 | 128;
+      b2[i++] = clockseq & 255;
+      var node = options.node || _nodeId;
+      for (var n2 = 0; n2 < 6; n2++) {
+        b2[i + n2] = node[n2];
+      }
+      return buf ? buf : unparse(b2);
+    }
+    function v4(options, buf, offset) {
+      var i = buf && offset || 0;
+      if (typeof options == 'string') {
+        buf = options == 'binary' ? new BufferClass(16) : null;
+        options = null;
+      }
+      options = options || {};
+      var rnds = options.random || (options.rng || _rng)();
+      rnds[6] = rnds[6] & 15 | 64;
+      rnds[8] = rnds[8] & 63 | 128;
+      if (buf) {
+        for (var ii = 0; ii < 16; ii++) {
+          buf[i + ii] = rnds[ii];
+        }
+      }
+      return buf || unparse(rnds);
+    }
+    uuid = v4;
+    uuid.v1 = v1;
+    uuid.v4 = v4;
+    uuid.parse = parse2;
+    uuid.unparse = unparse;
+    uuid.BufferClass = BufferClass;
+    axe._uuid = v1();
+    var uuid_default = v4;
+    var errorTypes = Object.freeze([ 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError' ]);
+    function stringifyMessage(_ref29) {
+      var topic = _ref29.topic, channelId = _ref29.channelId, message = _ref29.message, messageId = _ref29.messageId, keepalive = _ref29.keepalive;
+      var data = {
+        channelId: channelId,
+        topic: topic,
+        messageId: messageId,
+        keepalive: !!keepalive,
+        source: getSource()
+      };
+      if (message instanceof Error) {
+        data.error = {
+          name: message.name,
+          message: message.message,
+          stack: message.stack
+        };
+      } else {
+        data.payload = message;
+      }
+      return JSON.stringify(data);
+    }
+    function parseMessage(dataString) {
+      var data;
+      try {
+        data = JSON.parse(dataString);
+      } catch (_unused) {
+        return;
+      }
+      if (!isRespondableMessage(data)) {
+        return;
+      }
+      var _data2 = data, topic = _data2.topic, channelId = _data2.channelId, messageId = _data2.messageId, keepalive = _data2.keepalive;
+      var message = _typeof(data.error) === 'object' ? buildErrorObject(data.error) : data.payload;
+      return {
+        topic: topic,
+        message: message,
+        messageId: messageId,
+        channelId: channelId,
+        keepalive: !!keepalive
+      };
+    }
+    function isRespondableMessage(postedMessage) {
+      return postedMessage !== null && _typeof(postedMessage) === 'object' && typeof postedMessage.channelId === 'string' && postedMessage.source === getSource();
+    }
+    function buildErrorObject(error) {
+      var msg = error.message || 'Unknown error occurred';
+      var errorName = errorTypes.includes(error.name) ? error.name : 'Error';
+      var ErrConstructor = window[errorName] || Error;
+      if (error.stack) {
+        msg += '\n' + error.stack.replace(error.message, '');
+      }
+      return new ErrConstructor(msg);
+    }
+    function getSource() {
+      var application = 'axeAPI';
+      var version = '';
+      if (typeof axe !== 'undefined' && axe._audit && axe._audit.application) {
+        application = axe._audit.application;
+      }
+      if (typeof axe !== 'undefined') {
+        version = axe.version;
+      }
+      return application + '.' + version;
+    }
+    function assertIsParentWindow(win) {
+      assetNotGlobalWindow(win);
+      assert_default(window.parent === win, 'Source of the response must be the parent window.');
+    }
+    function assertIsFrameWindow(win) {
+      assetNotGlobalWindow(win);
+      assert_default(win.parent === window, 'Respondable target must be a frame in the current window');
+    }
+    function assetNotGlobalWindow(win) {
+      assert_default(window !== win, 'Messages can not be sent to the same window.');
+    }
+    var channels = {};
+    function storeReplyHandler(channelId, replyHandler) {
+      var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      assert_default(!channels[channelId], 'A replyHandler already exists for this message channel.');
+      channels[channelId] = {
+        replyHandler: replyHandler,
+        sendToParent: sendToParent
+      };
+    }
+    function getReplyHandler(channelId) {
+      return channels[channelId];
+    }
+    function deleteReplyHandler(channelId) {
+      delete channels[channelId];
+    }
+    var messageIds = [];
+    function createMessageId() {
+      var uuid2 = ''.concat(v4(), ':').concat(v4());
+      if (messageIds.includes(uuid2)) {
+        return createMessageId();
+      }
+      messageIds.push(uuid2);
+      return uuid2;
+    }
+    function isNewMessage(uuid2) {
+      if (messageIds.includes(uuid2)) {
+        return false;
+      }
+      messageIds.push(uuid2);
+      return true;
+    }
+    function postMessage(win, data, sendToParent, replyHandler) {
+      sendToParent ? assertIsParentWindow(win) : assertIsFrameWindow(win);
+      if (data.message instanceof Error && !sendToParent) {
+        axe.log(data.message);
+        return false;
+      }
+      var dataString = stringifyMessage(_extends({
+        messageId: createMessageId()
+      }, data));
+      var allowedOrigins = axe._audit.allowedOrigins;
+      if (!allowedOrigins || !allowedOrigins.length) {
+        return false;
+      }
+      if (typeof replyHandler === 'function') {
+        storeReplyHandler(data.channelId, replyHandler, sendToParent);
+      }
+      allowedOrigins.forEach(function(origin) {
+        try {
+          win.postMessage(dataString, origin);
+        } catch (err2) {
+          if (err2 instanceof win.DOMException) {
+            throw new Error('allowedOrigins value "'.concat(origin, '" is not a valid origin'));
+          }
+          throw err2;
+        }
+      });
+      return true;
+    }
+    function processError(win, error, channelId) {
+      if (!win.parent !== window) {
+        return axe.log(error);
+      }
+      try {
+        postMessage(win, {
+          topic: null,
+          channelId: channelId,
+          message: error,
+          messageId: createMessageId(),
+          keepalive: true
+        }, true);
+      } catch (err2) {
+        return axe.log(err2);
+      }
+    }
+    function createResponder(win, channelId) {
+      var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      return function respond(message, keepalive, replyHandler) {
+        var data = {
+          channelId: channelId,
+          message: message,
+          keepalive: keepalive
+        };
+        postMessage(win, data, sendToParent, replyHandler);
+      };
+    }
+    function originIsAllowed(origin) {
+      var allowedOrigins = axe._audit.allowedOrigins;
+      return allowedOrigins && allowedOrigins.includes('*') || allowedOrigins.includes(origin);
+    }
+    function messageHandler(_ref30, topicHandler) {
+      var origin = _ref30.origin, dataString = _ref30.data, win = _ref30.source;
+      try {
+        var data = parseMessage(dataString) || {};
+        var channelId = data.channelId, message = data.message, messageId = data.messageId;
+        if (!originIsAllowed(origin) || !isNewMessage(messageId)) {
+          return;
+        }
+        if (message instanceof Error && win.parent !== window) {
+          axe.log(message);
+          return false;
+        }
+        try {
+          if (data.topic) {
+            var responder = createResponder(win, channelId);
+            assertIsParentWindow(win);
+            topicHandler(data, responder);
+          } else {
+            callReplyHandler(win, data);
+          }
+        } catch (error) {
+          processError(win, error, channelId);
+        }
+      } catch (error) {
+        axe.log(error);
+        return false;
+      }
+    }
+    function callReplyHandler(win, data) {
+      var channelId = data.channelId, message = data.message, keepalive = data.keepalive;
+      var _ref31 = getReplyHandler(channelId) || {}, replyHandler = _ref31.replyHandler, sendToParent = _ref31.sendToParent;
+      if (!replyHandler) {
+        return;
+      }
+      sendToParent ? assertIsParentWindow(win) : assertIsFrameWindow(win);
+      var responder = createResponder(win, channelId, sendToParent);
+      if (!keepalive && channelId) {
+        deleteReplyHandler(channelId);
+      }
+      try {
+        replyHandler(message, keepalive, responder);
+      } catch (error) {
+        axe.log(error);
+        responder(error, keepalive);
+      }
+    }
+    var frameMessenger = {
+      open: function open(topicHandler) {
+        if (typeof window.addEventListener !== 'function') {
+          return;
+        }
+        var handler = function handler(messageEvent) {
+          messageHandler(messageEvent, topicHandler);
+        };
+        window.addEventListener('message', handler, false);
+        return function() {
+          window.removeEventListener('message', handler, false);
+        };
+      },
+      post: function post(win, data, replyHandler) {
+        if (typeof window.addEventListener !== 'function') {
+          return false;
+        }
+        return postMessage(win, data, false, replyHandler);
+      }
+    };
+    function setDefaultFrameMessenger(respondable2) {
+      respondable2.updateMessenger(frameMessenger);
+    }
+    var closeHandler;
+    var postMessage2;
+    var topicHandlers = {};
+    function _respondable(win, topic, message, keepalive, replyHandler) {
+      var data = {
+        topic: topic,
+        message: message,
+        channelId: ''.concat(v4(), ':').concat(v4()),
+        keepalive: keepalive
+      };
+      return postMessage2(win, data, replyHandler);
+    }
+    function messageListener(data, responder) {
+      var topic = data.topic, message = data.message, keepalive = data.keepalive;
+      var topicHandler = topicHandlers[topic];
+      if (!topicHandler) {
+        return;
+      }
+      try {
+        topicHandler(message, keepalive, responder);
+      } catch (error) {
+        axe.log(error);
+        responder(error, keepalive);
+      }
+    }
+    _respondable.updateMessenger = function updateMessenger(_ref32) {
+      var open = _ref32.open, post = _ref32.post;
+      assert_default(typeof open === 'function', 'open callback must be a function');
+      assert_default(typeof post === 'function', 'post callback must be a function');
+      if (closeHandler) {
+        closeHandler();
+      }
+      var close = open(messageListener);
+      if (close) {
+        assert_default(typeof close === 'function', 'open callback must return a cleanup function');
+        closeHandler = close;
+      } else {
+        closeHandler = null;
+      }
+      postMessage2 = post;
+    };
+    _respondable.subscribe = function subscribe(topic, topicHandler) {
+      assert_default(typeof topicHandler === 'function', 'Subscriber callback must be a function');
+      assert_default(!topicHandlers[topic], 'Topic '.concat(topic, ' is already registered to.'));
+      topicHandlers[topic] = topicHandler;
+    };
+    _respondable.isInFrame = function isInFrame() {
+      var win = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window;
+      return !!win.frameElement;
+    };
+    setDefaultFrameMessenger(_respondable);
+    function _sendCommandToFrame(node, parameters, resolve, reject) {
+      var _parameters$options$p, _parameters$options;
+      var win = node.contentWindow;
+      var pingWaitTime = (_parameters$options$p = (_parameters$options = parameters.options) === null || _parameters$options === void 0 ? void 0 : _parameters$options.pingWaitTime) !== null && _parameters$options$p !== void 0 ? _parameters$options$p : 500;
+      if (!win) {
+        log_default('Frame does not have a content window', node);
+        resolve(null);
+        return;
+      }
+      if (pingWaitTime === 0) {
+        callAxeStart(node, parameters, resolve, reject);
+        return;
+      }
+      var timeout = setTimeout(function() {
+        timeout = setTimeout(function() {
+          if (!parameters.debug) {
+            resolve(null);
+          } else {
+            reject(err('No response from frame', node));
+          }
+        }, 0);
+      }, pingWaitTime);
+      _respondable(win, 'axe.ping', null, void 0, function() {
+        clearTimeout(timeout);
+        callAxeStart(node, parameters, resolve, reject);
+      });
+    }
+    function callAxeStart(node, parameters, resolve, reject) {
+      var _parameters$options$f, _parameters$options2;
+      var frameWaitTime = (_parameters$options$f = (_parameters$options2 = parameters.options) === null || _parameters$options2 === void 0 ? void 0 : _parameters$options2.frameWaitTime) !== null && _parameters$options$f !== void 0 ? _parameters$options$f : 6e4;
+      var win = node.contentWindow;
+      var timeout = setTimeout(function collectResultFramesTimeout() {
+        reject(err('Axe in frame timed out', node));
+      }, frameWaitTime);
+      _respondable(win, 'axe.start', parameters, void 0, function(data) {
+        clearTimeout(timeout);
+        if (data instanceof Error === false) {
+          resolve(data);
+        } else {
+          reject(data);
+        }
+      });
+    }
+    function err(message, node) {
+      var selector;
+      if (axe._tree) {
+        selector = get_selector_default(node);
+      }
+      return new Error(message + ': ' + (selector || node));
+    }
+    var customSerializer = null;
+    var nodeSerializer = {
+      update: function update(serializer) {
+        assert_default(_typeof(serializer) === 'object', 'serializer must be an object');
+        customSerializer = serializer;
+      },
+      toSpec: function toSpec(node) {
+        return nodeSerializer.dqElmToSpec(new dq_element_default(node));
+      },
+      dqElmToSpec: function dqElmToSpec(dqElm, runOptions) {
+        var _customSerializer;
+        if (dqElm instanceof dq_element_default === false) {
+          return dqElm;
+        }
+        if (runOptions) {
+          dqElm = cloneLimitedDqElement(dqElm, runOptions);
+        }
+        if (typeof ((_customSerializer = customSerializer) === null || _customSerializer === void 0 ? void 0 : _customSerializer.toSpec) === 'function') {
+          return customSerializer.toSpec(dqElm);
+        }
+        return dqElm.toJSON();
+      },
+      mergeSpecs: function mergeSpecs(nodeSpec, parentFrameSpec) {
+        var _customSerializer2;
+        if (typeof ((_customSerializer2 = customSerializer) === null || _customSerializer2 === void 0 ? void 0 : _customSerializer2.mergeSpecs) === 'function') {
+          return customSerializer.mergeSpecs(nodeSpec, parentFrameSpec);
+        }
+        return dq_element_default.mergeSpecs(nodeSpec, parentFrameSpec);
+      },
+      mapRawResults: function mapRawResults(rawResults) {
+        return rawResults.map(function(rawResult) {
+          return _extends({}, rawResult, {
+            nodes: nodeSerializer.mapRawNodeResults(rawResult.nodes)
+          });
+        });
+      },
+      mapRawNodeResults: function mapRawNodeResults(nodeResults) {
+        return nodeResults === null || nodeResults === void 0 ? void 0 : nodeResults.map(function(_ref33) {
+          var node = _ref33.node, nodeResult = _objectWithoutProperties(_ref33, _excluded6);
+          nodeResult.node = nodeSerializer.dqElmToSpec(node);
+          for (var _i6 = 0, _arr2 = [ 'any', 'all', 'none' ]; _i6 < _arr2.length; _i6++) {
+            var type2 = _arr2[_i6];
+            nodeResult[type2] = nodeResult[type2].map(function(_ref34) {
+              var relatedNodes = _ref34.relatedNodes, checkResult = _objectWithoutProperties(_ref34, _excluded7);
+              checkResult.relatedNodes = relatedNodes.map(nodeSerializer.dqElmToSpec);
+              return checkResult;
+            });
+          }
+          return nodeResult;
+        });
+      }
+    };
+    var node_serializer_default = nodeSerializer;
+    function cloneLimitedDqElement(dqElm, runOptions) {
+      var fromFrame2 = dqElm.fromFrame;
+      var hasAncestry = runOptions.ancestry, hasXpath = runOptions.xpath;
+      var hasSelectors = runOptions.selectors !== false || fromFrame2;
+      dqElm = new dq_element_default(dqElm.element, runOptions, {
+        source: dqElm.source,
+        nodeIndexes: dqElm.nodeIndexes,
+        selector: hasSelectors ? dqElm.selector : [ ':root' ],
+        ancestry: hasAncestry ? dqElm.ancestry : [ ':root' ],
+        xpath: hasXpath ? dqElm.xpath : '/'
+      });
+      dqElm.fromFrame = fromFrame2;
+      return dqElm;
+    }
+    function getAllChecks(object) {
+      var result = [];
+      return result.concat(object.any || []).concat(object.all || []).concat(object.none || []);
+    }
+    var get_all_checks_default = getAllChecks;
+    function findBy(array, key, value) {
+      if (Array.isArray(array)) {
+        return array.find(function(obj) {
+          return obj !== null && _typeof(obj) === 'object' && Object.hasOwn(obj, key) && obj[key] === value;
+        });
+      }
+    }
+    var find_by_default = findBy;
+    function pushFrame(resultSet, options, frameSpec) {
+      resultSet.forEach(function(res) {
+        res.node = node_serializer_default.mergeSpecs(res.node, frameSpec);
+        var checks = get_all_checks_default(res);
+        checks.forEach(function(check) {
+          check.relatedNodes = check.relatedNodes.map(function(node) {
+            return node_serializer_default.mergeSpecs(node, frameSpec);
+          });
+        });
+      });
+    }
+    function spliceNodes(target, to2) {
+      var firstFromFrame = to2[0].node;
+      var node;
+      for (var _i7 = 0; _i7 < target.length; _i7++) {
+        node = target[_i7].node;
+        var resultSort = nodeIndexSort(node.nodeIndexes, firstFromFrame.nodeIndexes);
+        if (resultSort > 0 || resultSort === 0 && firstFromFrame.selector.length < node.selector.length) {
+          target.splice.apply(target, [ _i7, 0 ].concat(_toConsumableArray(to2)));
+          return;
+        }
+      }
+      target.push.apply(target, _toConsumableArray(to2));
+    }
+    function normalizeResult(result) {
+      if (!result || !result.results) {
+        return null;
+      }
+      if (!Array.isArray(result.results)) {
+        return [ result.results ];
+      }
+      if (!result.results.length) {
+        return null;
+      }
+      return result.results;
+    }
+    function mergeResults(frameResults, options) {
+      var mergedResult = [];
+      frameResults.forEach(function(frameResult) {
+        var results = normalizeResult(frameResult);
+        if (!results || !results.length) {
+          return;
+        }
+        var frameSpec = getFrameSpec(frameResult);
+        results.forEach(function(ruleResult) {
+          if (ruleResult.nodes && frameSpec) {
+            pushFrame(ruleResult.nodes, options, frameSpec);
+          }
+          var res = find_by_default(mergedResult, 'id', ruleResult.id);
+          if (!res) {
+            mergedResult.push(ruleResult);
+          } else {
+            if (ruleResult.nodes.length) {
+              spliceNodes(res.nodes, ruleResult.nodes);
+            }
+            if (ruleResult.error) {
+              var _res$error;
+              (_res$error = res.error) !== null && _res$error !== void 0 ? _res$error : res.error = ruleResult.error;
+            }
+          }
+        });
+      });
+      mergedResult.forEach(function(result) {
+        if (result.nodes) {
+          result.nodes.sort(function(nodeA, nodeB) {
+            return nodeIndexSort(nodeA.node.nodeIndexes, nodeB.node.nodeIndexes);
+          });
+        }
+      });
+      return mergedResult;
+    }
+    function nodeIndexSort() {
+      var nodeIndexesA = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      var nodeIndexesB = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      var length = Math.max(nodeIndexesA === null || nodeIndexesA === void 0 ? void 0 : nodeIndexesA.length, nodeIndexesB === null || nodeIndexesB === void 0 ? void 0 : nodeIndexesB.length);
+      for (var _i8 = 0; _i8 < length; _i8++) {
+        var indexA = nodeIndexesA === null || nodeIndexesA === void 0 ? void 0 : nodeIndexesA[_i8];
+        var indexB = nodeIndexesB === null || nodeIndexesB === void 0 ? void 0 : nodeIndexesB[_i8];
+        if (typeof indexA !== 'number' || isNaN(indexA)) {
+          return _i8 === 0 ? 1 : -1;
+        }
+        if (typeof indexB !== 'number' || isNaN(indexB)) {
+          return _i8 === 0 ? -1 : 1;
+        }
+        if (indexA !== indexB) {
+          return indexA - indexB;
+        }
+      }
+      return 0;
+    }
+    var merge_results_default = mergeResults;
+    function getFrameSpec(frameResult) {
+      if (frameResult.frameElement) {
+        return node_serializer_default.toSpec(frameResult.frameElement);
+      } else if (frameResult.frameSpec) {
+        return frameResult.frameSpec;
+      }
+      return null;
+    }
+    function _collectResultsFromFrames(parentContent, options, command, parameter, resolve, reject) {
+      options = _extends({}, options, {
+        elementRef: false
+      });
+      var q = queue_default();
+      var frames = parentContent.frames;
+      frames.forEach(function(_ref35) {
+        var frameElement = _ref35.node, context = _objectWithoutProperties(_ref35, _excluded8);
+        q.defer(function(res, rej) {
+          var params = {
+            options: options,
+            command: command,
+            parameter: parameter,
+            context: context
+          };
+          function callback(results) {
+            if (!results) {
+              return res(null);
+            }
+            return res({
+              results: results,
+              frameElement: frameElement
+            });
+          }
+          _sendCommandToFrame(frameElement, params, callback, rej);
+        });
+      });
+      q.then(function(data) {
+        resolve(merge_results_default(data, options));
+      })['catch'](reject);
+    }
+    function _contains(vNode, otherVNode) {
+      if (!vNode.shadowId && !otherVNode.shadowId && vNode.actualNode && typeof vNode.actualNode.contains === 'function') {
+        return vNode.actualNode.contains(otherVNode.actualNode);
+      }
+      do {
+        if (vNode === otherVNode) {
+          return true;
+        } else if (otherVNode.nodeIndex < vNode.nodeIndex) {
+          return false;
+        }
+        otherVNode = otherVNode.parent;
+      } while (otherVNode);
+      return false;
+    }
+    function deepMerge() {
+      var target = {};
+      for (var _len6 = arguments.length, sources = new Array(_len6), _key7 = 0; _key7 < _len6; _key7++) {
+        sources[_key7] = arguments[_key7];
+      }
+      sources.forEach(function(source) {
+        if (!source || _typeof(source) !== 'object' || Array.isArray(source)) {
+          return;
+        }
+        for (var _i9 = 0, _Object$keys2 = Object.keys(source); _i9 < _Object$keys2.length; _i9++) {
+          var _key8 = _Object$keys2[_i9];
+          if (!target.hasOwnProperty(_key8) || _typeof(source[_key8]) !== 'object' || Array.isArray(target[_key8])) {
+            target[_key8] = source[_key8];
+          } else {
+            target[_key8] = deepMerge(target[_key8], source[_key8]);
+          }
+        }
+      });
+      return target;
+    }
+    var deep_merge_default = deepMerge;
+    function extendMetaData(to2, from) {
+      Object.assign(to2, from);
+      Object.keys(from).filter(function(prop) {
+        return typeof from[prop] === 'function';
+      }).forEach(function(prop) {
+        to2[prop] = null;
+        try {
+          to2[prop] = from[prop](to2);
+        } catch (_unused2) {}
+      });
+    }
+    var extend_meta_data_default = extendMetaData;
+    var possibleShadowRoots = [ 'article', 'aside', 'blockquote', 'body', 'div', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'main', 'nav', 'p', 'section', 'span' ];
+    function isShadowRoot(node) {
+      if (node.shadowRoot) {
+        var nodeName2 = node.nodeName.toLowerCase();
+        if (possibleShadowRoots.includes(nodeName2) || /^[a-z][a-z0-9_.-]*-[a-z0-9_.-]*$/.test(nodeName2)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    var is_shadow_root_default = isShadowRoot;
     var dom_exports = {};
     __export(dom_exports, {
       createGrid: function createGrid() {
@@ -11236,8 +12527,8 @@
     }
     var get_root_node_default = getRootNode;
     var get_root_node_default2 = get_root_node_default;
-    function findElmsInContext(_ref24) {
-      var context = _ref24.context, value = _ref24.value, attr = _ref24.attr, _ref24$elm = _ref24.elm, elm = _ref24$elm === void 0 ? '' : _ref24$elm;
+    function findElmsInContext(_ref36) {
+      var context = _ref36.context, value = _ref36.value, attr = _ref36.attr, _ref36$elm = _ref36.elm, elm = _ref36$elm === void 0 ? '' : _ref36$elm;
       var root;
       var escapedValue = escape_selector_default(value);
       if (context.nodeType === 9 || context.nodeType === 11) {
@@ -11304,11 +12595,11 @@
       return vNode.getComputedStylePropertyValue('display') === 'none';
     }
     function visibilityHidden(vNode) {
-      var _ref25 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref25.isAncestor;
+      var _ref37 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref37.isAncestor;
       return !isAncestor && [ 'hidden', 'collapse' ].includes(vNode.getComputedStylePropertyValue('visibility'));
     }
     function contentVisibiltyHidden(vNode) {
-      var _ref26 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref26.isAncestor;
+      var _ref38 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref38.isAncestor;
       return !!isAncestor && vNode.getComputedStylePropertyValue('content-visibility') === 'hidden';
     }
     function ariaHidden(vNode) {
@@ -11324,7 +12615,7 @@
       return !!scroll && (elHeight === 0 || elWidth === 0);
     }
     function overflowHidden(vNode) {
-      var _ref27 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref27.isAncestor;
+      var _ref39 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref39.isAncestor;
       if (isAncestor) {
         return false;
       }
@@ -11420,7 +12711,7 @@
     }
     var hiddenMethods = [ displayHidden, visibilityHidden, contentVisibiltyHidden, detailsHidden ];
     function _isHiddenForEveryone(vNode) {
-      var _ref28 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref28.skipAncestors, _ref28$isAncestor = _ref28.isAncestor, isAncestor = _ref28$isAncestor === void 0 ? false : _ref28$isAncestor;
+      var _ref40 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref40.skipAncestors, _ref40$isAncestor = _ref40.isAncestor, isAncestor = _ref40$isAncestor === void 0 ? false : _ref40$isAncestor;
       vNode = _nodeLookup(vNode).vNode;
       if (skipAncestors) {
         return isHiddenSelf(vNode, isAncestor);
@@ -11534,7 +12825,7 @@
       return true;
     }
     function isOffscreen(element) {
-      var _ref29 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref29.isAncestor;
+      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref41.isAncestor;
       if (isAncestor) {
         return false;
       }
@@ -11600,9 +12891,9 @@
       var left = Math.min(rectA.left, rectB.left);
       return new window.DOMRect(left, top, right - left, bottom - top);
     }
-    function _isPointInRect(_ref30, _ref31) {
-      var x = _ref30.x, y = _ref30.y;
-      var top = _ref31.top, right = _ref31.right, bottom = _ref31.bottom, left = _ref31.left;
+    function _isPointInRect(_ref42, _ref43) {
+      var x = _ref42.x, y = _ref42.y;
+      var top = _ref43.top, right = _ref43.right, bottom = _ref43.bottom, left = _ref43.left;
       return y >= top && x <= right && y <= bottom && x >= left;
     }
     var math_exports = {};
@@ -11645,13 +12936,13 @@
       }
       return new window.DOMRect(leftX, topY, rightX - leftX, bottomY - topY);
     }
-    function _getRectCenter(_ref32) {
-      var left = _ref32.left, top = _ref32.top, width = _ref32.width, height = _ref32.height;
+    function _getRectCenter(_ref44) {
+      var left = _ref44.left, top = _ref44.top, width = _ref44.width, height = _ref44.height;
       return new window.DOMPoint(left + width / 2, top + height / 2);
     }
     var roundingMargin = .05;
-    function _rectHasMinimumSize(minSize, _ref33) {
-      var width = _ref33.width, height = _ref33.height;
+    function _rectHasMinimumSize(minSize, _ref45) {
+      var width = _ref45.width, height = _ref45.height;
       return width + roundingMargin >= minSize && height + roundingMargin >= minSize;
     }
     function _getOffset(vTarget, vNeighbor) {
@@ -11661,33 +12952,33 @@
       if (!targetRects.length || !neighborRects.length) {
         return null;
       }
-      var targetBoundingBox = targetRects.reduce(_getBoundingRect);
-      var targetCenter = _getRectCenter(targetBoundingBox);
-      var minDistance = Infinity;
-      var _iterator7 = _createForOfIteratorHelper(neighborRects), _step7;
-      try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done; ) {
-          var rect = _step7.value;
-          if (_isPointInRect(targetCenter, rect)) {
-            return 0;
+      return targetRects.reduce(function(minDistance, targetRect) {
+        var targetCenter = _getRectCenter(targetRect);
+        var _iterator8 = _createForOfIteratorHelper(neighborRects), _step8;
+        try {
+          for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
+            var rect = _step8.value;
+            if (_isPointInRect(targetCenter, rect)) {
+              return 0;
+            }
+            var closestPoint = getClosestPoint(targetCenter, rect);
+            var distance2 = pointDistance(targetCenter, closestPoint);
+            minDistance = Math.min(minDistance, distance2);
           }
-          var closestPoint = getClosestPoint(targetCenter, rect);
-          var distance2 = pointDistance(targetCenter, closestPoint);
-          minDistance = Math.min(minDistance, distance2);
+        } catch (err) {
+          _iterator8.e(err);
+        } finally {
+          _iterator8.f();
         }
-      } catch (err) {
-        _iterator7.e(err);
-      } finally {
-        _iterator7.f();
-      }
-      var neighborTargetSize = get_target_size_default(vNeighbor);
-      if (_rectHasMinimumSize(minRadiusNeighbour * 2, neighborTargetSize)) {
-        return minDistance;
-      }
-      var neighborBoundingBox = neighborRects.reduce(_getBoundingRect);
-      var neighborCenter = _getRectCenter(neighborBoundingBox);
-      var centerDistance = pointDistance(targetCenter, neighborCenter) - minRadiusNeighbour;
-      return Math.max(0, Math.min(minDistance, centerDistance));
+        var neighborTargetSize = get_target_size_default(vNeighbor);
+        if (_rectHasMinimumSize(minRadiusNeighbour * 2, neighborTargetSize)) {
+          return minDistance;
+        }
+        var neighborBoundingBox = neighborRects.reduce(_getBoundingRect);
+        var neighborCenter = _getRectCenter(neighborBoundingBox);
+        var centerDistance = pointDistance(targetCenter, neighborCenter) - minRadiusNeighbour;
+        return Math.max(0, Math.min(minDistance, centerDistance));
+      }, Infinity);
     }
     function getClosestPoint(point, rect) {
       var x;
@@ -11723,11 +13014,11 @@
       return _visuallySort(vNodeA, vNodeB) > 0;
     }
     function _splitRects(outerRect, overlapRects) {
-      var uniqueRects = [ outerRect ];
-      var _iterator8 = _createForOfIteratorHelper(overlapRects), _step8;
+      var uniqueRects = Array.isArray(outerRect) ? outerRect : [ outerRect ];
+      var _iterator9 = _createForOfIteratorHelper(overlapRects), _step9;
       try {
         var _loop6 = function _loop6() {
-          var overlapRect = _step8.value;
+          var overlapRect = _step9.value;
           uniqueRects = uniqueRects.reduce(function(rects, inputRect) {
             return rects.concat(splitRect(inputRect, overlapRect));
           }, []);
@@ -11735,13 +13026,13 @@
             throw new Error('splitRects: Too many rects');
           }
         };
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done; ) {
           _loop6();
         }
       } catch (err) {
-        _iterator8.e(err);
+        _iterator9.e(err);
       } finally {
-        _iterator8.f();
+        _iterator9.f();
       }
       return uniqueRects;
     }
@@ -11933,8 +13224,8 @@
     function createStackingOrder(vNode, parentVNode, treeOrder) {
       var stackingOrder = parentVNode._stackingOrder.slice();
       if (isStackingContext(vNode, parentVNode)) {
-        var index = stackingOrder.findIndex(function(_ref34) {
-          var stackLevel2 = _ref34.stackLevel;
+        var index = stackingOrder.findIndex(function(_ref46) {
+          var stackLevel2 = _ref46.stackLevel;
           return [ ROOT_LEVEL, FLOAT_LEVEL, POSITION_LEVEL ].includes(stackLevel2);
         });
         if (index !== -1) {
@@ -12030,9 +13321,9 @@
         }
       }, {
         key: 'getCellFromPoint',
-        value: function getCellFromPoint(_ref35) {
+        value: function getCellFromPoint(_ref47) {
           var _this$cells, _row;
-          var x = _ref35.x, y = _ref35.y;
+          var x = _ref47.x, y = _ref47.y;
           assert_default(this.boundaries, 'Grid does not have cells added');
           var rowIndex = this.toGridIndex(y);
           var colIndex = this.toGridIndex(x);
@@ -12062,8 +13353,8 @@
         }
       }, {
         key: 'getGridPositionOfRect',
-        value: function getGridPositionOfRect(_ref36) {
-          var top = _ref36.top, right = _ref36.right, bottom = _ref36.bottom, left = _ref36.left;
+        value: function getGridPositionOfRect(_ref48) {
+          var top = _ref48.top, right = _ref48.right, bottom = _ref48.bottom, left = _ref48.left;
           var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
           top = this.toGridIndex(top - margin);
           right = this.toGridIndex(right + margin - 1);
@@ -12077,7 +13368,7 @@
       var _matrix$_negativeInde;
       (_matrix$_negativeInde = matrix._negativeIndex) !== null && _matrix$_negativeInde !== void 0 ? _matrix$_negativeInde : matrix._negativeIndex = 0;
       if (start < matrix._negativeIndex) {
-        for (var i = 0; i < matrix._negativeIndex - start; i++) {
+        for (var _i0 = 0; _i0 < matrix._negativeIndex - start; _i0++) {
           matrix.splice(0, 0, []);
         }
         matrix._negativeIndex = start;
@@ -12107,18 +13398,18 @@
       var gridPosition = grid.getGridPositionOfRect(rect, margin);
       var neighbors = [];
       grid.loopGridPosition(gridPosition, function(vNeighbors) {
-        var _iterator9 = _createForOfIteratorHelper(vNeighbors), _step9;
+        var _iterator0 = _createForOfIteratorHelper(vNeighbors), _step0;
         try {
-          for (_iterator9.s(); !(_step9 = _iterator9.n()).done; ) {
-            var vNeighbor = _step9.value;
+          for (_iterator0.s(); !(_step0 = _iterator0.n()).done; ) {
+            var vNeighbor = _step0.value;
             if (vNeighbor && vNeighbor !== vNode && !neighbors.includes(vNeighbor) && selfIsFixed === hasFixedPosition(vNeighbor)) {
               neighbors.push(vNeighbor);
             }
           }
         } catch (err) {
-          _iterator9.e(err);
+          _iterator0.e(err);
         } finally {
-          _iterator9.f();
+          _iterator0.f();
         }
       });
       return neighbors;
@@ -12155,7 +13446,7 @@
       }
       return (_dialogs$find = dialogs.find(function(dialog) {
         var _getNodeFromGrid;
-        var _ref37 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref37.vNode, rect = _ref37.rect;
+        var _ref49 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref49.vNode, rect = _ref49.rect;
         if (!vNode) {
           return false;
         }
@@ -12181,8 +13472,8 @@
           if (!cells) {
             continue;
           }
-          for (var i = 0; i < cells.length; i++) {
-            var vNode = cells[i];
+          for (var _i1 = 0; _i1 < cells.length; _i1++) {
+            var vNode = cells[_i1];
             var rect = vNode.boundingClientRect;
             var intersection = _getIntersectionRect(rect, viewRect);
             if (vNode.props.nodeName !== 'html' && vNode !== dialog && vNode.getComputedStylePropertyValue('pointer-events') !== 'none' && intersection) {
@@ -12196,7 +13487,7 @@
       }
     }
     function _isInert(vNode) {
-      var _ref38 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref38.skipAncestors, isAncestor = _ref38.isAncestor;
+      var _ref50 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref50.skipAncestors, isAncestor = _ref50.isAncestor;
       if (skipAncestors) {
         return isInertSelf(vNode, isAncestor);
       }
@@ -12324,20 +13615,20 @@
     function _visuallySort(a2, b2) {
       _createGrid();
       var length = Math.max(a2._stackingOrder.length, b2._stackingOrder.length);
-      for (var i = 0; i < length; i++) {
-        if (typeof b2._stackingOrder[i] === 'undefined') {
+      for (var _i10 = 0; _i10 < length; _i10++) {
+        if (typeof b2._stackingOrder[_i10] === 'undefined') {
           return -1;
-        } else if (typeof a2._stackingOrder[i] === 'undefined') {
+        } else if (typeof a2._stackingOrder[_i10] === 'undefined') {
           return 1;
         }
-        if (b2._stackingOrder[i].stackLevel > a2._stackingOrder[i].stackLevel) {
+        if (b2._stackingOrder[_i10].stackLevel > a2._stackingOrder[_i10].stackLevel) {
           return 1;
         }
-        if (b2._stackingOrder[i].stackLevel < a2._stackingOrder[i].stackLevel) {
+        if (b2._stackingOrder[_i10].stackLevel < a2._stackingOrder[_i10].stackLevel) {
           return -1;
         }
-        if (b2._stackingOrder[i].treeOrder !== a2._stackingOrder[i].treeOrder) {
-          return b2._stackingOrder[i].treeOrder - a2._stackingOrder[i].treeOrder;
+        if (b2._stackingOrder[_i10].treeOrder !== a2._stackingOrder[_i10].treeOrder) {
+          return b2._stackingOrder[_i10].treeOrder - a2._stackingOrder[_i10].treeOrder;
         }
       }
       var aNode = a2.actualNode;
@@ -12498,18 +13789,19 @@
     }
     var get_target_rects_default = memoize_default(getTargetRects);
     function getTargetRects(vNode) {
-      var nodeRect = vNode.boundingClientRect;
+      var display2 = vNode.getComputedStylePropertyValue('display');
+      var nodeRects = display2 === 'inline' ? vNode.clientRects : [ vNode.boundingClientRect ];
       var overlappingVNodes = _findNearbyElms(vNode).filter(function(vNeighbor) {
         return _hasVisualOverlap(vNode, vNeighbor) && vNeighbor.getComputedStylePropertyValue('pointer-events') !== 'none' && !isDescendantNotInTabOrder(vNode, vNeighbor);
       });
       if (!overlappingVNodes.length) {
-        return [ nodeRect ];
+        return nodeRects;
       }
-      var obscuringRects = overlappingVNodes.map(function(_ref39) {
-        var rect = _ref39.boundingClientRect;
-        return rect;
-      });
-      return _splitRects(nodeRect, obscuringRects);
+      var obscuringRects = overlappingVNodes.map(function(overlappingVNode) {
+        var overlappingDisplay = overlappingVNode.getComputedStylePropertyValue('display');
+        return overlappingDisplay === 'inline' ? overlappingVNode.clientRects : overlappingVNode.boundingClientRect;
+      }).flat(Infinity);
+      return _splitRects(nodeRects, obscuringRects);
     }
     function isDescendantNotInTabOrder(vAncestor, vNode) {
       return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
@@ -12616,7 +13908,7 @@
           }
         }
         return result;
-      } catch (_unused) {
+      } catch (_unused3) {
         throw new TypeError('Cannot resolve id references for non-DOM nodes');
       }
     }
@@ -14579,7 +15871,7 @@
     }
     var is_unsupported_role_default = isUnsupportedRole;
     function isValidRole(role) {
-      var _ref40 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref40.allowAbstract, _ref40$flagUnsupporte = _ref40.flagUnsupported, flagUnsupported = _ref40$flagUnsupporte === void 0 ? false : _ref40$flagUnsupporte;
+      var _ref51 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref51.allowAbstract, _ref51$flagUnsupporte = _ref51.flagUnsupported, flagUnsupported = _ref51$flagUnsupporte === void 0 ? false : _ref51$flagUnsupporte;
       var roleDefinition = standards_default.ariaRoles[role];
       var isRoleUnsupported = is_unsupported_role_default(role);
       if (!roleDefinition || flagUnsupported && isRoleUnsupported) {
@@ -14589,7 +15881,7 @@
     }
     var is_valid_role_default = isValidRole;
     function getExplicitRole(vNode) {
-      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref41.fallback, abstracts = _ref41.abstracts, dpub = _ref41.dpub;
+      var _ref52 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref52.fallback, abstracts = _ref52.abstracts, dpub = _ref52.dpub;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -14634,20 +15926,20 @@
     function toGrid(node) {
       var table = [];
       var rows = node.rows;
-      for (var i = 0, rowLength = rows.length; i < rowLength; i++) {
-        var cells = rows[i].cells;
-        table[i] = table[i] || [];
+      for (var _i11 = 0, rowLength = rows.length; _i11 < rowLength; _i11++) {
+        var cells = rows[_i11].cells;
+        table[_i11] = table[_i11] || [];
         var columnIndex = 0;
         for (var j = 0, cellLength = cells.length; j < cellLength; j++) {
           for (var colSpan = 0; colSpan < cells[j].colSpan; colSpan++) {
             var rowspanAttr = cells[j].getAttribute('rowspan');
             var rowspanValue = parseInt(rowspanAttr) === 0 || cells[j].rowspan === 0 ? rows.length : cells[j].rowSpan;
             for (var rowSpan = 0; rowSpan < rowspanValue; rowSpan++) {
-              table[i + rowSpan] = table[i + rowSpan] || [];
-              while (table[i + rowSpan][columnIndex]) {
+              table[_i11 + rowSpan] = table[_i11 + rowSpan] || [];
+              while (table[_i11 + rowSpan][columnIndex]) {
                 columnIndex++;
               }
-              table[i + rowSpan][columnIndex] = cells[j];
+              table[_i11 + rowSpan][columnIndex] = cells[j];
             }
             columnIndex++;
           }
@@ -14738,7 +16030,7 @@
       });
     };
     function hasAccessibleName(vNode) {
-      var _ref42 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref42$checkTitle = _ref42.checkTitle, checkTitle = _ref42$checkTitle === void 0 ? false : _ref42$checkTitle;
+      var _ref53 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref53$checkTitle = _ref53.checkTitle, checkTitle = _ref53$checkTitle === void 0 ? false : _ref53$checkTitle;
       return !!(sanitize_default(arialabelledby_text_default(vNode)) || sanitize_default(_arialabelText(vNode)) || checkTitle && (vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) === 1 && sanitize_default(vNode.attr('title')));
     }
     var implicitHtmlRoles = {
@@ -14989,7 +16281,7 @@
     matches_default.semanticRole = semantic_role_default;
     var matches_default2 = matches_default;
     function getElementSpec(vNode) {
-      var _ref43 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref43$noMatchAccessi = _ref43.noMatchAccessibleName, noMatchAccessibleName = _ref43$noMatchAccessi === void 0 ? false : _ref43$noMatchAccessi;
+      var _ref54 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref54$noMatchAccessi = _ref54.noMatchAccessibleName, noMatchAccessibleName = _ref54$noMatchAccessi === void 0 ? false : _ref54$noMatchAccessi;
       var standard = standards_default.htmlElms[vNode.props.nodeName];
       if (!standard) {
         return {};
@@ -14997,15 +16289,15 @@
       if (!standard.variant) {
         return standard;
       }
-      var variant = standard.variant, spec = _objectWithoutProperties(standard, _excluded6);
+      var variant = standard.variant, spec = _objectWithoutProperties(standard, _excluded9);
       for (var variantName in variant) {
         if (!variant.hasOwnProperty(variantName) || variantName === 'default') {
           continue;
         }
-        var _variant$variantName = variant[variantName], matches4 = _variant$variantName.matches, props = _objectWithoutProperties(_variant$variantName, _excluded7);
+        var _variant$variantName = variant[variantName], matches4 = _variant$variantName.matches, props = _objectWithoutProperties(_variant$variantName, _excluded0);
         var matchProperties = Array.isArray(matches4) ? matches4 : [ matches4 ];
-        for (var i = 0; i < matchProperties.length && noMatchAccessibleName; i++) {
-          if (matchProperties[i].hasOwnProperty('hasAccessibleName')) {
+        for (var _i12 = 0; _i12 < matchProperties.length && noMatchAccessibleName; _i12++) {
+          if (matchProperties[_i12].hasOwnProperty('hasAccessibleName')) {
             return standard;
           }
         }
@@ -15026,7 +16318,7 @@
     }
     var get_element_spec_default = getElementSpec;
     function implicitRole2(node) {
-      var _ref44 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref44.chromium;
+      var _ref55 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref55.chromium;
       var vNode = node instanceof abstract_virtual_node_default ? node : get_node_from_tree_default(node);
       node = vNode.actualNode;
       if (!vNode) {
@@ -15079,8 +16371,8 @@
       }
       return getInheritedRole(vNode.parent, explicitRoleOptions);
     }
-    function resolveImplicitRole(vNode, _ref45) {
-      var chromium = _ref45.chromium, explicitRoleOptions = _objectWithoutProperties(_ref45, _excluded8);
+    function resolveImplicitRole(vNode, _ref56) {
+      var chromium = _ref56.chromium, explicitRoleOptions = _objectWithoutProperties(_ref56, _excluded1);
       var implicitRole3 = implicit_role_default(vNode, {
         chromium: chromium
       });
@@ -15100,8 +16392,8 @@
       return hasGlobalAria || _isFocusable(vNode);
     }
     function resolveRole(node) {
-      var _ref46 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noImplicit = _ref46.noImplicit, roleOptions = _objectWithoutProperties(_ref46, _excluded9);
+      var _ref57 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noImplicit = _ref57.noImplicit, roleOptions = _objectWithoutProperties(_ref57, _excluded10);
       var _nodeLookup1 = _nodeLookup(node), vNode = _nodeLookup1.vNode;
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -15119,8 +16411,8 @@
       return explicitRole2;
     }
     function getRole(node) {
-      var _ref47 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noPresentational = _ref47.noPresentational, options = _objectWithoutProperties(_ref47, _excluded0);
+      var _ref58 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noPresentational = _ref58.noPresentational, options = _objectWithoutProperties(_ref58, _excluded11);
       var role = resolveRole(node, options);
       if (noPresentational && [ 'presentation', 'none' ].includes(role)) {
         return null;
@@ -15141,7 +16433,7 @@
     }
     var title_text_default = titleText;
     function namedFromContents(vNode) {
-      var _ref48 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref48.strict;
+      var _ref59 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref59.strict;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return false;
@@ -15168,7 +16460,13 @@
         }).map(function(element) {
           return axe.utils.getNodeFromTree(element);
         });
-        return [].concat(_toConsumableArray(children), _toConsumableArray(owns));
+        var uniqueOwns = owns.filter(function(own, index) {
+          return owns.indexOf(own) === index;
+        });
+        var nativeChildren = children.filter(function(child) {
+          return !uniqueOwns.includes(child);
+        });
+        return [].concat(_toConsumableArray(nativeChildren), _toConsumableArray(uniqueOwns));
       }
       return _toConsumableArray(children);
     }
@@ -15463,8 +16761,8 @@
     function attrText(attr, vNode) {
       return vNode.attr(attr) || '';
     }
-    function descendantText(nodeName2, _ref49, context) {
-      var actualNode = _ref49.actualNode;
+    function descendantText(nodeName2, _ref60, context) {
+      var actualNode = _ref60.actualNode;
       nodeName2 = nodeName2.toLowerCase();
       var nodeNames2 = [ nodeName2, actualNode.nodeName.toLowerCase() ].join(',');
       var candidate = actualNode.querySelector(nodeNames2);
@@ -15729,7 +17027,7 @@
       locations: [ 'billing', 'shipping' ]
     };
     function isValidAutocomplete(autocompleteValue) {
-      var _ref50 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref50$looseTyped = _ref50.looseTyped, looseTyped = _ref50$looseTyped === void 0 ? false : _ref50$looseTyped, _ref50$stateTerms = _ref50.stateTerms, stateTerms = _ref50$stateTerms === void 0 ? [] : _ref50$stateTerms, _ref50$locations = _ref50.locations, locations = _ref50$locations === void 0 ? [] : _ref50$locations, _ref50$qualifiers = _ref50.qualifiers, qualifiers = _ref50$qualifiers === void 0 ? [] : _ref50$qualifiers, _ref50$standaloneTerm = _ref50.standaloneTerms, standaloneTerms = _ref50$standaloneTerm === void 0 ? [] : _ref50$standaloneTerm, _ref50$qualifiedTerms = _ref50.qualifiedTerms, qualifiedTerms = _ref50$qualifiedTerms === void 0 ? [] : _ref50$qualifiedTerms, _ref50$ignoredValues = _ref50.ignoredValues, ignoredValues = _ref50$ignoredValues === void 0 ? [] : _ref50$ignoredValues;
+      var _ref61 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref61$looseTyped = _ref61.looseTyped, looseTyped = _ref61$looseTyped === void 0 ? false : _ref61$looseTyped, _ref61$stateTerms = _ref61.stateTerms, stateTerms = _ref61$stateTerms === void 0 ? [] : _ref61$stateTerms, _ref61$locations = _ref61.locations, locations = _ref61$locations === void 0 ? [] : _ref61$locations, _ref61$qualifiers = _ref61.qualifiers, qualifiers = _ref61$qualifiers === void 0 ? [] : _ref61$qualifiers, _ref61$standaloneTerm = _ref61.standaloneTerms, standaloneTerms = _ref61$standaloneTerm === void 0 ? [] : _ref61$standaloneTerm, _ref61$qualifiedTerms = _ref61.qualifiedTerms, qualifiedTerms = _ref61$qualifiedTerms === void 0 ? [] : _ref61$qualifiedTerms, _ref61$ignoredValues = _ref61.ignoredValues, ignoredValues = _ref61$ignoredValues === void 0 ? [] : _ref61$ignoredValues;
       autocompleteValue = autocompleteValue.toLowerCase().trim();
       stateTerms = stateTerms.concat(_autocomplete.stateTerms);
       if (stateTerms.includes(autocompleteValue) || autocompleteValue === '') {
@@ -15995,8 +17293,8 @@
       if (hiddenTextElms.includes(elm.props.nodeName)) {
         return false;
       }
-      return elm.children.some(function(_ref51) {
-        var props = _ref51.props;
+      return elm.children.some(function(_ref62) {
+        var props = _ref62.props;
         return props.nodeType === 3 && props.nodeValue.trim();
       });
     }
@@ -16079,42 +17377,30 @@
     }
     var is_html5_default = isHTML5;
     function getRoleType(role) {
-      var _window;
-      if (role instanceof abstract_virtual_node_default || (_window = window) !== null && _window !== void 0 && _window.Node && role instanceof window.Node) {
+      var _window3;
+      if (role instanceof abstract_virtual_node_default || (_window3 = window) !== null && _window3 !== void 0 && _window3.Node && role instanceof window.Node) {
         role = axe.commons.aria.getRole(role);
       }
       var roleDef = standards_default.ariaRoles[role];
       return (roleDef === null || roleDef === void 0 ? void 0 : roleDef.type) || null;
     }
     var get_role_type_default = getRoleType;
-    function walkDomNode(node, functor) {
-      if (functor(node.actualNode) !== false) {
-        node.children.forEach(function(child) {
-          return walkDomNode(child, functor);
-        });
-      }
-    }
-    var blockLike = [ 'block', 'list-item', 'table', 'flex', 'grid', 'inline-block' ];
-    function isBlock(elm) {
-      var display2 = window.getComputedStyle(elm).getPropertyValue('display');
-      return blockLike.includes(display2) || display2.substr(0, 6) === 'table-';
-    }
-    function getBlockParent(node) {
-      var parentBlock = get_composed_parent_default(node);
-      while (parentBlock && !isBlock(parentBlock)) {
-        parentBlock = get_composed_parent_default(parentBlock);
-      }
-      return get_node_from_tree_default(parentBlock);
-    }
-    function isInTextBlock(node, options) {
-      if (isBlock(node)) {
+    var blockLike = [ 'block', 'list-item', 'table', 'flex', 'grid' ];
+    var inlineBlockLike = [ 'inline-block', 'inline-flex', 'inline-grid' ];
+    function isInTextBlock(node) {
+      var _ref63 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref63.noLengthCompare, _ref63$includeInlineB = _ref63.includeInlineBlock, includeInlineBlock = _ref63$includeInlineB === void 0 ? false : _ref63$includeInlineB;
+      var _nodeLookup20 = _nodeLookup(node), vNode = _nodeLookup20.vNode, domNode = _nodeLookup20.domNode;
+      if (isBlock(domNode) || !includeInlineBlock && isInlineBlockLike(vNode)) {
         return false;
       }
-      var virtualParent = getBlockParent(node);
+      var virtualParent = getBlockParent(domNode);
       var parentText = '';
       var widgetText = '';
       var inBrBlock = 0;
       walkDomNode(virtualParent, function(currNode) {
+        if (currNode === virtualParent.actualNode) {
+          return true;
+        }
         if (inBrBlock === 2) {
           return false;
         }
@@ -16125,17 +17411,19 @@
           return;
         }
         var nodeName2 = (currNode.nodeName || '').toUpperCase();
-        if (currNode === node) {
+        if (currNode === domNode) {
           inBrBlock = 1;
         }
-        if ([ 'BR', 'HR' ].includes(nodeName2)) {
+        var nodeIsBlock = isBlock(currNode);
+        if (nodeIsBlock || [ 'BR', 'HR' ].includes(nodeName2)) {
           if (inBrBlock === 0) {
             parentText = '';
             widgetText = '';
           } else {
             inBrBlock = 2;
           }
-        } else if (currNode.style.display === 'none' || currNode.style.overflow === 'hidden' || ![ '', null, 'none' ].includes(currNode.style['float']) || ![ '', null, 'relative' ].includes(currNode.style.position)) {
+        }
+        if (nodeIsBlock || currNode.style.display === 'none' || currNode.style.overflow === 'hidden' || ![ '', null, 'none' ].includes(currNode.style['float']) || ![ '', null, 'relative' ].includes(currNode.style.position)) {
           return false;
         } else if (get_role_type_default(currNode) === 'widget') {
           widgetText += currNode.textContent;
@@ -16143,13 +17431,36 @@
         }
       });
       parentText = sanitize_default(parentText);
-      if (options !== null && options !== void 0 && options.noLengthCompare) {
+      if (noLengthCompare) {
         return parentText.length !== 0;
       }
       widgetText = sanitize_default(widgetText);
       return parentText.length > widgetText.length;
     }
     var is_in_text_block_default = isInTextBlock;
+    function isBlock(node) {
+      var _nodeLookup21 = _nodeLookup(node), vNode = _nodeLookup21.vNode;
+      var display2 = vNode.getComputedStylePropertyValue('display');
+      return blockLike.includes(display2) || display2.substr(0, 6) === 'table-';
+    }
+    function isInlineBlockLike(vNode) {
+      var display2 = vNode.getComputedStylePropertyValue('display');
+      return inlineBlockLike.includes(display2);
+    }
+    function walkDomNode(node, functor) {
+      if (functor(node.actualNode) !== false) {
+        node.children.forEach(function(child) {
+          return walkDomNode(child, functor);
+        });
+      }
+    }
+    function getBlockParent(node) {
+      var parentBlock = get_composed_parent_default(node);
+      while (parentBlock && !isBlock(parentBlock)) {
+        parentBlock = get_composed_parent_default(parentBlock);
+      }
+      return get_node_from_tree_default(parentBlock);
+    }
     function isModalOpen(options) {
       options = options || {};
       var modalPercent = options.modalPercent || .75;
@@ -16186,7 +17497,7 @@
         return Array.from(document.elementsFromPoint(point.x, point.y));
       });
       var _loop7 = function _loop7() {
-        var modalElement = stacks[i].find(function(elm) {
+        var modalElement = stacks[_i13].find(function(elm) {
           var style = window.getComputedStyle(elm);
           return parseInt(style.width, 10) >= percentWidth && parseInt(style.height, 10) >= percentHeight && style.getPropertyValue('pointer-events') !== 'none' && (style.position === 'absolute' || style.position === 'fixed');
         });
@@ -16199,7 +17510,7 @@
           };
         }
       }, _ret3;
-      for (var i = 0; i < stacks.length; i++) {
+      for (var _i13 = 0; _i13 < stacks.length; _i13++) {
         _ret3 = _loop7();
         if (_ret3) {
           return _ret3.v;
@@ -16216,10 +17527,10 @@
       range2.setEnd(domNode, domNode.childNodes.length);
       var lastLineEnd = 0;
       var lineCount = 0;
-      var _iterator0 = _createForOfIteratorHelper(range2.getClientRects()), _step0;
+      var _iterator1 = _createForOfIteratorHelper(range2.getClientRects()), _step1;
       try {
-        for (_iterator0.s(); !(_step0 = _iterator0.n()).done; ) {
-          var rect = _step0.value;
+        for (_iterator1.s(); !(_step1 = _iterator1.n()).done; ) {
+          var rect = _step1.value;
           if (rect.height <= margin) {
             continue;
           }
@@ -16233,9 +17544,9 @@
           }
         }
       } catch (err) {
-        _iterator0.e(err);
+        _iterator1.e(err);
       } finally {
-        _iterator0.f();
+        _iterator1.f();
       }
       return false;
     }
@@ -16415,7 +17726,7 @@
             this.g = _color2.g;
             this.b = _color2.b;
             this.alpha = +_color2.alpha;
-          } catch (_unused2) {
+          } catch (_unused4) {
             incomplete_data_default.set('colorParse', colorString);
             throw new Error('Unable to parse color "'.concat(colorString, '"'));
           }
@@ -16610,8 +17921,8 @@
       if (!refs || !refs.length) {
         return false;
       }
-      return refs.some(function(_ref52) {
-        var actualNode = _ref52.actualNode;
+      return refs.some(function(_ref64) {
+        var actualNode = _ref64.actualNode;
         return isVisible(actualNode, screenReader, recursed);
       });
     }
@@ -16623,7 +17934,7 @@
       var vNode = el instanceof abstract_virtual_node_default ? el : get_node_from_tree_default(el);
       el = vNode ? vNode.actualNode : el;
       var cacheName = '_isVisible' + (screenReader ? 'ScreenReader' : '');
-      var _ref53 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref53.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref53.DOCUMENT_FRAGMENT_NODE;
+      var _ref65 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref65.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref65.DOCUMENT_FRAGMENT_NODE;
       var nodeType = vNode ? vNode.props.nodeType : el.nodeType;
       var nodeName2 = vNode ? vNode.props.nodeName : el.nodeName.toLowerCase();
       if (vNode && typeof vNode[cacheName] !== 'undefined') {
@@ -16826,8 +18137,8 @@
       }
       for (var index = 0; index < pairs.length; index++) {
         var pair = pairs[index];
-        var _pair$split = pair.split('='), _pair$split2 = _slicedToArray(_pair$split, 2), _key6 = _pair$split2[0], _pair$split2$ = _pair$split2[1], value = _pair$split2$ === void 0 ? '' : _pair$split2$;
-        query[decodeURIComponent(_key6)] = decodeURIComponent(value);
+        var _pair$split = pair.split('='), _pair$split2 = _slicedToArray(_pair$split, 2), _key9 = _pair$split2[0], _pair$split2$ = _pair$split2[1], value = _pair$split2$ === void 0 ? '' : _pair$split2$;
+        query[decodeURIComponent(_key9)] = decodeURIComponent(value);
       }
       return query;
     }
@@ -17001,1271 +18312,6 @@
       } ]);
     }(abstract_virtual_node_default);
     var virtual_node_default = VirtualNode;
-    var CACHE_KEY = 'DqElm.RunOptions';
-    function getOuterHtml(element) {
-      var source = element.outerHTML;
-      if (!source && typeof window.XMLSerializer === 'function') {
-        source = new window.XMLSerializer().serializeToString(element);
-      }
-      return source || '';
-    }
-    function truncateElement(element) {
-      var maxLen = 300;
-      var maxAttrNameOrValueLen = 20;
-      var deepStr = getOuterHtml(element);
-      var vNode = get_node_from_tree_default(element);
-      if (!vNode) {
-        vNode = new virtual_node_default(element);
-      }
-      var nodeName2 = vNode.props.nodeName;
-      if (deepStr.length < maxLen) {
-        return deepStr;
-      }
-      var attributeStrList = [];
-      var shallowNode = element.cloneNode(false);
-      var elementNodeMap = get_node_attributes_default(shallowNode);
-      var str = getOuterHtml(shallowNode);
-      if (str.length < maxLen) {
-        var attrString = '';
-        var _iterator1 = _createForOfIteratorHelper(elementNodeMap), _step1;
-        try {
-          for (_iterator1.s(); !(_step1 = _iterator1.n()).done; ) {
-            var _step1$value = _step1.value, name = _step1$value.name, value = _step1$value.value;
-            var attr = {
-              name: name,
-              value: value
-            };
-            attrString += ' '.concat(attr.name, '="').concat(attr.value, '"');
-          }
-        } catch (err) {
-          _iterator1.e(err);
-        } finally {
-          _iterator1.f();
-        }
-        str = '<'.concat(nodeName2).concat(attrString, '>');
-        return str;
-      }
-      var strLen = '<'.concat(nodeName2, '>').length;
-      var _iterator10 = _createForOfIteratorHelper(elementNodeMap), _step10;
-      try {
-        for (_iterator10.s(); !(_step10 = _iterator10.n()).done; ) {
-          var _step10$value = _step10.value, _name = _step10$value.name, _value = _step10$value.value;
-          if (strLen > maxLen) {
-            break;
-          }
-          var _attr = {
-            name: _name,
-            value: _value
-          };
-          var attrName = _attr.name;
-          var attrValue = _attr.value;
-          attrName = attrName.length > maxAttrNameOrValueLen ? attrName.substring(0, maxAttrNameOrValueLen) + '...' : attrName;
-          attrValue = attrValue.length > maxAttrNameOrValueLen ? attrValue.substring(0, maxAttrNameOrValueLen) + '...' : attrValue;
-          var strAttr = ''.concat(attrName, '="').concat(attrValue, '"');
-          strLen += (' ' + strAttr).length;
-          attributeStrList.push(strAttr);
-        }
-      } catch (err) {
-        _iterator10.e(err);
-      } finally {
-        _iterator10.f();
-      }
-      str = '<'.concat(nodeName2, ' ').concat(attributeStrList.join(' '), '>');
-      if (str.length > maxLen) {
-        str = str.substring(0, maxLen) + ' ...>';
-      } else if (attributeStrList.length < elementNodeMap.length) {
-        str = str.substring(0, str.length - 1) + ' ...>';
-      }
-      return str;
-    }
-    function getSource(element) {
-      if (!element) {
-        return '';
-      }
-      return truncateElement(element);
-    }
-    var DqElement = memoize_default(function DqElement2(elm, options, spec) {
-      var _this$spec$selector, _this$_virtualNode;
-      options !== null && options !== void 0 ? options : options = null;
-      spec !== null && spec !== void 0 ? spec : spec = {};
-      if (!options) {
-        var _cache_default$get;
-        options = (_cache_default$get = cache_default.get(CACHE_KEY)) !== null && _cache_default$get !== void 0 ? _cache_default$get : {};
-      }
-      this.spec = spec;
-      if (elm instanceof abstract_virtual_node_default) {
-        this._virtualNode = elm;
-        this._element = elm.actualNode;
-      } else {
-        this._element = elm;
-        this._virtualNode = get_node_from_tree_default(elm);
-      }
-      this.fromFrame = ((_this$spec$selector = this.spec.selector) === null || _this$spec$selector === void 0 ? void 0 : _this$spec$selector.length) > 1;
-      this._includeElementInJson = options.elementRef;
-      if (options.absolutePaths) {
-        this._options = {
-          toRoot: true
-        };
-      }
-      this.nodeIndexes = [];
-      if (Array.isArray(this.spec.nodeIndexes)) {
-        this.nodeIndexes = this.spec.nodeIndexes;
-      } else if (typeof ((_this$_virtualNode = this._virtualNode) === null || _this$_virtualNode === void 0 ? void 0 : _this$_virtualNode.nodeIndex) === 'number') {
-        this.nodeIndexes = [ this._virtualNode.nodeIndex ];
-      }
-      this.source = null;
-      if (!axe._audit.noHtml) {
-        var _this$spec$source;
-        this.source = (_this$spec$source = this.spec.source) !== null && _this$spec$source !== void 0 ? _this$spec$source : getSource(this._element);
-      }
-      return this;
-    });
-    DqElement.prototype = {
-      get selector() {
-        return this.spec.selector || [ get_selector_default(this.element, this._options) ];
-      },
-      get ancestry() {
-        return this.spec.ancestry || [ _getAncestry(this.element) ];
-      },
-      get xpath() {
-        return this.spec.xpath || [ get_xpath_default(this.element) ];
-      },
-      get element() {
-        return this._element;
-      },
-      toJSON: function toJSON() {
-        var spec = {
-          selector: this.selector,
-          source: this.source,
-          xpath: this.xpath,
-          ancestry: this.ancestry,
-          nodeIndexes: this.nodeIndexes,
-          fromFrame: this.fromFrame
-        };
-        if (this._includeElementInJson) {
-          spec.element = this._element;
-        }
-        return spec;
-      }
-    };
-    DqElement.fromFrame = function fromFrame(node, options, frame) {
-      var spec = DqElement.mergeSpecs(node, frame);
-      return new DqElement(frame.element, options, spec);
-    };
-    DqElement.mergeSpecs = function mergeSpecs(child, parentFrame) {
-      return _extends({}, child, {
-        selector: [].concat(_toConsumableArray(parentFrame.selector), _toConsumableArray(child.selector)),
-        ancestry: [].concat(_toConsumableArray(parentFrame.ancestry), _toConsumableArray(child.ancestry)),
-        xpath: [].concat(_toConsumableArray(parentFrame.xpath), _toConsumableArray(child.xpath)),
-        nodeIndexes: [].concat(_toConsumableArray(parentFrame.nodeIndexes), _toConsumableArray(child.nodeIndexes)),
-        fromFrame: true
-      });
-    };
-    DqElement.setRunOptions = function setRunOptions(_ref54) {
-      var elementRef = _ref54.elementRef, absolutePaths = _ref54.absolutePaths;
-      cache_default.set(CACHE_KEY, {
-        elementRef: elementRef,
-        absolutePaths: absolutePaths
-      });
-    };
-    var dq_element_default = DqElement;
-    function checkHelper(checkResult, options, resolve, reject) {
-      return {
-        isAsync: false,
-        async: function async() {
-          this.isAsync = true;
-          return function(result) {
-            if (result instanceof Error === false) {
-              checkResult.result = result;
-              resolve(checkResult);
-            } else {
-              reject(result);
-            }
-          };
-        },
-        data: function data(_data) {
-          checkResult.data = _data;
-        },
-        relatedNodes: function relatedNodes(nodes) {
-          if (!window.Node) {
-            return;
-          }
-          if (nodes instanceof window.Node || nodes instanceof abstract_virtual_node_default) {
-            nodes = [ nodes ];
-          } else {
-            nodes = to_array_default(nodes);
-          }
-          checkResult.relatedNodes = [];
-          nodes.forEach(function(node) {
-            if (node instanceof abstract_virtual_node_default) {
-              node = node.actualNode;
-            }
-            if (node instanceof window.Node) {
-              var dqElm = new dq_element_default(node);
-              checkResult.relatedNodes.push(dqElm);
-            }
-          });
-        }
-      };
-    }
-    var check_helper_default = checkHelper;
-    function clone2(obj) {
-      return cloneRecused(obj, new Map());
-    }
-    function cloneRecused(obj, seen) {
-      var _window2, _window3;
-      if (obj === null || _typeof(obj) !== 'object') {
-        return obj;
-      }
-      if ((_window2 = window) !== null && _window2 !== void 0 && _window2.Node && obj instanceof window.Node || (_window3 = window) !== null && _window3 !== void 0 && _window3.HTMLCollection && obj instanceof window.HTMLCollection || 'nodeName' in obj && 'nodeType' in obj && 'ownerDocument' in obj) {
-        return obj;
-      }
-      if (seen.has(obj)) {
-        return seen.get(obj);
-      }
-      if (Array.isArray(obj)) {
-        var out2 = [];
-        seen.set(obj, out2);
-        obj.forEach(function(value) {
-          out2.push(cloneRecused(value, seen));
-        });
-        return out2;
-      }
-      var out = {};
-      seen.set(obj, out);
-      for (var _key7 in obj) {
-        out[_key7] = cloneRecused(obj[_key7], seen);
-      }
-      return out;
-    }
-    var parser = new import_css_selector_parser.CssSelectorParser();
-    parser.registerSelectorPseudos('not');
-    parser.registerSelectorPseudos('is');
-    parser.registerNestingOperators('>');
-    parser.registerAttrEqualityMods('^', '$', '*', '~');
-    var css_parser_default = parser;
-    function _matches(vNode, selector) {
-      var expressions = _convertSelector(selector);
-      return expressions.some(function(expression) {
-        return _matchesExpression(vNode, expression);
-      });
-    }
-    function matchesTag(vNode, exp) {
-      return vNode.props.nodeType === 1 && (exp.tag === '*' || vNode.props.nodeName === exp.tag);
-    }
-    function matchesClasses(vNode, exp) {
-      return !exp.classes || exp.classes.every(function(cl) {
-        return vNode.hasClass(cl.value);
-      });
-    }
-    function matchesAttributes(vNode, exp) {
-      return !exp.attributes || exp.attributes.every(function(att) {
-        var nodeAtt = vNode.attr(att.key);
-        return nodeAtt !== null && att.test(nodeAtt);
-      });
-    }
-    function matchesId(vNode, exp) {
-      return !exp.id || vNode.props.id === exp.id;
-    }
-    function matchesPseudos(target, exp) {
-      if (!exp.pseudos || exp.pseudos.every(function(pseudo) {
-        if (pseudo.name === 'not') {
-          return !pseudo.expressions.some(function(expression) {
-            return _matchesExpression(target, expression);
-          });
-        } else if (pseudo.name === 'is') {
-          return pseudo.expressions.some(function(expression) {
-            return _matchesExpression(target, expression);
-          });
-        }
-        throw new Error('the pseudo selector ' + pseudo.name + ' has not yet been implemented');
-      })) {
-        return true;
-      }
-      return false;
-    }
-    function matchExpression(vNode, expression) {
-      return matchesTag(vNode, expression) && matchesClasses(vNode, expression) && matchesAttributes(vNode, expression) && matchesId(vNode, expression) && matchesPseudos(vNode, expression);
-    }
-    var escapeRegExp = function() {
-      var from = /(?=[\-\[\]{}()*+?.\\\^$|,#\s])/g;
-      var to2 = '\\';
-      return function(string) {
-        return string.replace(from, to2);
-      };
-    }();
-    var reUnescape = /\\/g;
-    function convertAttributes(atts) {
-      if (!atts) {
-        return;
-      }
-      return atts.map(function(att) {
-        var attributeKey = att.name.replace(reUnescape, '');
-        var attributeValue = (att.value || '').replace(reUnescape, '');
-        var test, regexp;
-        switch (att.operator) {
-         case '^=':
-          regexp = new RegExp('^' + escapeRegExp(attributeValue));
-          break;
-
-         case '$=':
-          regexp = new RegExp(escapeRegExp(attributeValue) + '$');
-          break;
-
-         case '~=':
-          regexp = new RegExp('(^|\\s)' + escapeRegExp(attributeValue) + '(\\s|$)');
-          break;
-
-         case '|=':
-          regexp = new RegExp('^' + escapeRegExp(attributeValue) + '(-|$)');
-          break;
-
-         case '=':
-          test = function test(value) {
-            return attributeValue === value;
-          };
-          break;
-
-         case '*=':
-          test = function test(value) {
-            return value && value.includes(attributeValue);
-          };
-          break;
-
-         case '!=':
-          test = function test(value) {
-            return attributeValue !== value;
-          };
-          break;
-
-         default:
-          test = function test(value) {
-            return value !== null;
-          };
-        }
-        if (attributeValue === '' && /^[*$^]=$/.test(att.operator)) {
-          test = function test() {
-            return false;
-          };
-        }
-        if (!test) {
-          test = function test(value) {
-            return value && regexp.test(value);
-          };
-        }
-        return {
-          key: attributeKey,
-          value: attributeValue,
-          type: typeof att.value === 'undefined' ? 'attrExist' : 'attrValue',
-          test: test
-        };
-      });
-    }
-    function convertClasses(classes) {
-      if (!classes) {
-        return;
-      }
-      return classes.map(function(className) {
-        className = className.replace(reUnescape, '');
-        return {
-          value: className,
-          regexp: new RegExp('(^|\\s)' + escapeRegExp(className) + '(\\s|$)')
-        };
-      });
-    }
-    function convertPseudos(pseudos) {
-      if (!pseudos) {
-        return;
-      }
-      return pseudos.map(function(p2) {
-        var expressions;
-        if ([ 'is', 'not' ].includes(p2.name)) {
-          expressions = p2.value;
-          expressions = expressions.selectors ? expressions.selectors : [ expressions ];
-          expressions = convertExpressions(expressions);
-        }
-        return {
-          name: p2.name,
-          expressions: expressions,
-          value: p2.value
-        };
-      });
-    }
-    function convertExpressions(expressions) {
-      return expressions.map(function(exp) {
-        var newExp = [];
-        var rule = exp.rule;
-        while (rule) {
-          newExp.push({
-            tag: rule.tagName ? rule.tagName.toLowerCase() : '*',
-            combinator: rule.nestingOperator ? rule.nestingOperator : ' ',
-            id: rule.id,
-            attributes: convertAttributes(rule.attrs),
-            classes: convertClasses(rule.classNames),
-            pseudos: convertPseudos(rule.pseudos)
-          });
-          rule = rule.rule;
-        }
-        return newExp;
-      });
-    }
-    function _convertSelector(selector) {
-      var expressions = css_parser_default.parse(selector);
-      expressions = expressions.selectors ? expressions.selectors : [ expressions ];
-      return convertExpressions(expressions);
-    }
-    function optimizedMatchesExpression(vNode, expressions, index, matchAnyParent) {
-      if (!vNode) {
-        return false;
-      }
-      var isArray = Array.isArray(expressions);
-      var expression = isArray ? expressions[index] : expressions;
-      var machedExpression = matchExpression(vNode, expression);
-      while (!machedExpression && matchAnyParent && vNode.parent) {
-        vNode = vNode.parent;
-        machedExpression = matchExpression(vNode, expression);
-      }
-      if (index > 0) {
-        if ([ ' ', '>' ].includes(expression.combinator) === false) {
-          throw new Error('axe.utils.matchesExpression does not support the combinator: ' + expression.combinator);
-        }
-        machedExpression = machedExpression && optimizedMatchesExpression(vNode.parent, expressions, index - 1, expression.combinator === ' ');
-      }
-      return machedExpression;
-    }
-    function _matchesExpression(vNode, expressions, matchAnyParent) {
-      return optimizedMatchesExpression(vNode, expressions, expressions.length - 1, matchAnyParent);
-    }
-    function closest(vNode, selector) {
-      while (vNode) {
-        if (_matches(vNode, selector)) {
-          return vNode;
-        }
-        if (typeof vNode.parent === 'undefined') {
-          throw new TypeError('Cannot resolve parent for non-DOM nodes');
-        }
-        vNode = vNode.parent;
-      }
-      return null;
-    }
-    var closest_default = closest;
-    function noop() {}
-    function funcGuard(f) {
-      if (typeof f !== 'function') {
-        throw new TypeError('Queue methods require functions as arguments');
-      }
-    }
-    function queue() {
-      var tasks = [];
-      var started = 0;
-      var remaining = 0;
-      var completeQueue = noop;
-      var complete = false;
-      var err2;
-      var defaultFail = function defaultFail(e) {
-        err2 = e;
-        setTimeout(function() {
-          if (err2 !== void 0 && err2 !== null) {
-            log_default('Uncaught error (of queue)', err2);
-          }
-        }, 1);
-      };
-      var failed = defaultFail;
-      function createResolve(i) {
-        return function(r) {
-          tasks[i] = r;
-          remaining -= 1;
-          if (!remaining && completeQueue !== noop) {
-            complete = true;
-            completeQueue(tasks);
-          }
-        };
-      }
-      function abort(msg) {
-        completeQueue = noop;
-        failed(msg);
-        return tasks;
-      }
-      function pop() {
-        var length = tasks.length;
-        for (;started < length; started++) {
-          var task = tasks[started];
-          try {
-            task.call(null, createResolve(started), abort);
-          } catch (e) {
-            abort(e);
-          }
-        }
-      }
-      var q = {
-        defer: function defer(fn) {
-          if (_typeof(fn) === 'object' && fn.then && fn['catch']) {
-            var defer = fn;
-            fn = function fn(resolve, reject) {
-              defer.then(resolve)['catch'](reject);
-            };
-          }
-          funcGuard(fn);
-          if (err2 !== void 0) {
-            return;
-          } else if (complete) {
-            throw new Error('Queue already completed');
-          }
-          tasks.push(fn);
-          ++remaining;
-          pop();
-          return q;
-        },
-        then: function then(fn) {
-          funcGuard(fn);
-          if (completeQueue !== noop) {
-            throw new Error('queue `then` already set');
-          }
-          if (!err2) {
-            completeQueue = fn;
-            if (!remaining) {
-              complete = true;
-              completeQueue(tasks);
-            }
-          }
-          return q;
-        },
-        catch: function _catch(fn) {
-          funcGuard(fn);
-          if (failed !== defaultFail) {
-            throw new Error('queue `catch` already set');
-          }
-          if (!err2) {
-            failed = fn;
-          } else {
-            fn(err2);
-            err2 = null;
-          }
-          return q;
-        },
-        abort: abort
-      };
-      return q;
-    }
-    var queue_default = queue;
-    var uuid;
-    var _rng;
-    var _crypto = window.crypto || window.msCrypto;
-    if (!_rng && _crypto && _crypto.getRandomValues) {
-      var _rnds8 = new Uint8Array(16);
-      _rng = function whatwgRNG() {
-        _crypto.getRandomValues(_rnds8);
-        return _rnds8;
-      };
-    }
-    if (!_rng) {
-      var _rnds = new Array(16);
-      _rng = function _rng() {
-        for (var i = 0, r; i < 16; i++) {
-          if ((i & 3) === 0) {
-            r = Math.random() * 4294967296;
-          }
-          _rnds[i] = r >>> ((i & 3) << 3) & 255;
-        }
-        return _rnds;
-      };
-    }
-    var BufferClass = typeof window.Buffer == 'function' ? window.Buffer : Array;
-    var _byteToHex = [];
-    var _hexToByte = {};
-    for (var i = 0; i < 256; i++) {
-      _byteToHex[i] = (i + 256).toString(16).substr(1);
-      _hexToByte[_byteToHex[i]] = i;
-    }
-    function parse2(s, buf, offset) {
-      var i = buf && offset || 0, ii = 0;
-      buf = buf || [];
-      s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
-        if (ii < 16) {
-          buf[i + ii++] = _hexToByte[oct];
-        }
-      });
-      while (ii < 16) {
-        buf[i + ii++] = 0;
-      }
-      return buf;
-    }
-    function unparse(buf, offset) {
-      var i = offset || 0, bth = _byteToHex;
-      return bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + '-' + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]] + bth[buf[i++]];
-    }
-    var _seedBytes = _rng();
-    var _nodeId = [ _seedBytes[0] | 1, _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5] ];
-    var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 16383;
-    var _lastMSecs = 0;
-    var _lastNSecs = 0;
-    function v1(options, buf, offset) {
-      var i = buf && offset || 0;
-      var b2 = buf || [];
-      options = options || {};
-      var clockseq = options.clockseq != null ? options.clockseq : _clockseq;
-      var msecs = options.msecs != null ? options.msecs : new Date().getTime();
-      var nsecs = options.nsecs != null ? options.nsecs : _lastNSecs + 1;
-      var dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 1e4;
-      if (dt < 0 && options.clockseq == null) {
-        clockseq = clockseq + 1 & 16383;
-      }
-      if ((dt < 0 || msecs > _lastMSecs) && options.nsecs == null) {
-        nsecs = 0;
-      }
-      if (nsecs >= 1e4) {
-        throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
-      }
-      _lastMSecs = msecs;
-      _lastNSecs = nsecs;
-      _clockseq = clockseq;
-      msecs += 122192928e5;
-      var tl = ((msecs & 268435455) * 1e4 + nsecs) % 4294967296;
-      b2[i++] = tl >>> 24 & 255;
-      b2[i++] = tl >>> 16 & 255;
-      b2[i++] = tl >>> 8 & 255;
-      b2[i++] = tl & 255;
-      var tmh = msecs / 4294967296 * 1e4 & 268435455;
-      b2[i++] = tmh >>> 8 & 255;
-      b2[i++] = tmh & 255;
-      b2[i++] = tmh >>> 24 & 15 | 16;
-      b2[i++] = tmh >>> 16 & 255;
-      b2[i++] = clockseq >>> 8 | 128;
-      b2[i++] = clockseq & 255;
-      var node = options.node || _nodeId;
-      for (var n2 = 0; n2 < 6; n2++) {
-        b2[i + n2] = node[n2];
-      }
-      return buf ? buf : unparse(b2);
-    }
-    function v4(options, buf, offset) {
-      var i = buf && offset || 0;
-      if (typeof options == 'string') {
-        buf = options == 'binary' ? new BufferClass(16) : null;
-        options = null;
-      }
-      options = options || {};
-      var rnds = options.random || (options.rng || _rng)();
-      rnds[6] = rnds[6] & 15 | 64;
-      rnds[8] = rnds[8] & 63 | 128;
-      if (buf) {
-        for (var ii = 0; ii < 16; ii++) {
-          buf[i + ii] = rnds[ii];
-        }
-      }
-      return buf || unparse(rnds);
-    }
-    uuid = v4;
-    uuid.v1 = v1;
-    uuid.v4 = v4;
-    uuid.parse = parse2;
-    uuid.unparse = unparse;
-    uuid.BufferClass = BufferClass;
-    axe._uuid = v1();
-    var uuid_default = v4;
-    var errorTypes = Object.freeze([ 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError' ]);
-    function stringifyMessage(_ref55) {
-      var topic = _ref55.topic, channelId = _ref55.channelId, message = _ref55.message, messageId = _ref55.messageId, keepalive = _ref55.keepalive;
-      var data = {
-        channelId: channelId,
-        topic: topic,
-        messageId: messageId,
-        keepalive: !!keepalive,
-        source: getSource2()
-      };
-      if (message instanceof Error) {
-        data.error = {
-          name: message.name,
-          message: message.message,
-          stack: message.stack
-        };
-      } else {
-        data.payload = message;
-      }
-      return JSON.stringify(data);
-    }
-    function parseMessage(dataString) {
-      var data;
-      try {
-        data = JSON.parse(dataString);
-      } catch (_unused3) {
-        return;
-      }
-      if (!isRespondableMessage(data)) {
-        return;
-      }
-      var _data2 = data, topic = _data2.topic, channelId = _data2.channelId, messageId = _data2.messageId, keepalive = _data2.keepalive;
-      var message = _typeof(data.error) === 'object' ? buildErrorObject(data.error) : data.payload;
-      return {
-        topic: topic,
-        message: message,
-        messageId: messageId,
-        channelId: channelId,
-        keepalive: !!keepalive
-      };
-    }
-    function isRespondableMessage(postedMessage) {
-      return postedMessage !== null && _typeof(postedMessage) === 'object' && typeof postedMessage.channelId === 'string' && postedMessage.source === getSource2();
-    }
-    function buildErrorObject(error) {
-      var msg = error.message || 'Unknown error occurred';
-      var errorName = errorTypes.includes(error.name) ? error.name : 'Error';
-      var ErrConstructor = window[errorName] || Error;
-      if (error.stack) {
-        msg += '\n' + error.stack.replace(error.message, '');
-      }
-      return new ErrConstructor(msg);
-    }
-    function getSource2() {
-      var application = 'axeAPI';
-      var version = '';
-      if (typeof axe !== 'undefined' && axe._audit && axe._audit.application) {
-        application = axe._audit.application;
-      }
-      if (typeof axe !== 'undefined') {
-        version = axe.version;
-      }
-      return application + '.' + version;
-    }
-    function assertIsParentWindow(win) {
-      assetNotGlobalWindow(win);
-      assert_default(window.parent === win, 'Source of the response must be the parent window.');
-    }
-    function assertIsFrameWindow(win) {
-      assetNotGlobalWindow(win);
-      assert_default(win.parent === window, 'Respondable target must be a frame in the current window');
-    }
-    function assetNotGlobalWindow(win) {
-      assert_default(window !== win, 'Messages can not be sent to the same window.');
-    }
-    var channels = {};
-    function storeReplyHandler(channelId, replyHandler) {
-      var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-      assert_default(!channels[channelId], 'A replyHandler already exists for this message channel.');
-      channels[channelId] = {
-        replyHandler: replyHandler,
-        sendToParent: sendToParent
-      };
-    }
-    function getReplyHandler(channelId) {
-      return channels[channelId];
-    }
-    function deleteReplyHandler(channelId) {
-      delete channels[channelId];
-    }
-    var messageIds = [];
-    function createMessageId() {
-      var uuid2 = ''.concat(v4(), ':').concat(v4());
-      if (messageIds.includes(uuid2)) {
-        return createMessageId();
-      }
-      messageIds.push(uuid2);
-      return uuid2;
-    }
-    function isNewMessage(uuid2) {
-      if (messageIds.includes(uuid2)) {
-        return false;
-      }
-      messageIds.push(uuid2);
-      return true;
-    }
-    function postMessage(win, data, sendToParent, replyHandler) {
-      sendToParent ? assertIsParentWindow(win) : assertIsFrameWindow(win);
-      if (data.message instanceof Error && !sendToParent) {
-        axe.log(data.message);
-        return false;
-      }
-      var dataString = stringifyMessage(_extends({
-        messageId: createMessageId()
-      }, data));
-      var allowedOrigins = axe._audit.allowedOrigins;
-      if (!allowedOrigins || !allowedOrigins.length) {
-        return false;
-      }
-      if (typeof replyHandler === 'function') {
-        storeReplyHandler(data.channelId, replyHandler, sendToParent);
-      }
-      allowedOrigins.forEach(function(origin) {
-        try {
-          win.postMessage(dataString, origin);
-        } catch (err2) {
-          if (err2 instanceof win.DOMException) {
-            throw new Error('allowedOrigins value "'.concat(origin, '" is not a valid origin'));
-          }
-          throw err2;
-        }
-      });
-      return true;
-    }
-    function processError(win, error, channelId) {
-      if (!win.parent !== window) {
-        return axe.log(error);
-      }
-      try {
-        postMessage(win, {
-          topic: null,
-          channelId: channelId,
-          message: error,
-          messageId: createMessageId(),
-          keepalive: true
-        }, true);
-      } catch (err2) {
-        return axe.log(err2);
-      }
-    }
-    function createResponder(win, channelId) {
-      var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-      return function respond(message, keepalive, replyHandler) {
-        var data = {
-          channelId: channelId,
-          message: message,
-          keepalive: keepalive
-        };
-        postMessage(win, data, sendToParent, replyHandler);
-      };
-    }
-    function originIsAllowed(origin) {
-      var allowedOrigins = axe._audit.allowedOrigins;
-      return allowedOrigins && allowedOrigins.includes('*') || allowedOrigins.includes(origin);
-    }
-    function messageHandler(_ref56, topicHandler) {
-      var origin = _ref56.origin, dataString = _ref56.data, win = _ref56.source;
-      try {
-        var data = parseMessage(dataString) || {};
-        var channelId = data.channelId, message = data.message, messageId = data.messageId;
-        if (!originIsAllowed(origin) || !isNewMessage(messageId)) {
-          return;
-        }
-        if (message instanceof Error && win.parent !== window) {
-          axe.log(message);
-          return false;
-        }
-        try {
-          if (data.topic) {
-            var responder = createResponder(win, channelId);
-            assertIsParentWindow(win);
-            topicHandler(data, responder);
-          } else {
-            callReplyHandler(win, data);
-          }
-        } catch (error) {
-          processError(win, error, channelId);
-        }
-      } catch (error) {
-        axe.log(error);
-        return false;
-      }
-    }
-    function callReplyHandler(win, data) {
-      var channelId = data.channelId, message = data.message, keepalive = data.keepalive;
-      var _ref57 = getReplyHandler(channelId) || {}, replyHandler = _ref57.replyHandler, sendToParent = _ref57.sendToParent;
-      if (!replyHandler) {
-        return;
-      }
-      sendToParent ? assertIsParentWindow(win) : assertIsFrameWindow(win);
-      var responder = createResponder(win, channelId, sendToParent);
-      if (!keepalive && channelId) {
-        deleteReplyHandler(channelId);
-      }
-      try {
-        replyHandler(message, keepalive, responder);
-      } catch (error) {
-        axe.log(error);
-        responder(error, keepalive);
-      }
-    }
-    var frameMessenger = {
-      open: function open(topicHandler) {
-        if (typeof window.addEventListener !== 'function') {
-          return;
-        }
-        var handler = function handler(messageEvent) {
-          messageHandler(messageEvent, topicHandler);
-        };
-        window.addEventListener('message', handler, false);
-        return function() {
-          window.removeEventListener('message', handler, false);
-        };
-      },
-      post: function post(win, data, replyHandler) {
-        if (typeof window.addEventListener !== 'function') {
-          return false;
-        }
-        return postMessage(win, data, false, replyHandler);
-      }
-    };
-    function setDefaultFrameMessenger(respondable2) {
-      respondable2.updateMessenger(frameMessenger);
-    }
-    var closeHandler;
-    var postMessage2;
-    var topicHandlers = {};
-    function _respondable(win, topic, message, keepalive, replyHandler) {
-      var data = {
-        topic: topic,
-        message: message,
-        channelId: ''.concat(v4(), ':').concat(v4()),
-        keepalive: keepalive
-      };
-      return postMessage2(win, data, replyHandler);
-    }
-    function messageListener(data, responder) {
-      var topic = data.topic, message = data.message, keepalive = data.keepalive;
-      var topicHandler = topicHandlers[topic];
-      if (!topicHandler) {
-        return;
-      }
-      try {
-        topicHandler(message, keepalive, responder);
-      } catch (error) {
-        axe.log(error);
-        responder(error, keepalive);
-      }
-    }
-    _respondable.updateMessenger = function updateMessenger(_ref58) {
-      var open = _ref58.open, post = _ref58.post;
-      assert_default(typeof open === 'function', 'open callback must be a function');
-      assert_default(typeof post === 'function', 'post callback must be a function');
-      if (closeHandler) {
-        closeHandler();
-      }
-      var close = open(messageListener);
-      if (close) {
-        assert_default(typeof close === 'function', 'open callback must return a cleanup function');
-        closeHandler = close;
-      } else {
-        closeHandler = null;
-      }
-      postMessage2 = post;
-    };
-    _respondable.subscribe = function subscribe(topic, topicHandler) {
-      assert_default(typeof topicHandler === 'function', 'Subscriber callback must be a function');
-      assert_default(!topicHandlers[topic], 'Topic '.concat(topic, ' is already registered to.'));
-      topicHandlers[topic] = topicHandler;
-    };
-    _respondable.isInFrame = function isInFrame() {
-      var win = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window;
-      return !!win.frameElement;
-    };
-    setDefaultFrameMessenger(_respondable);
-    function _sendCommandToFrame(node, parameters, resolve, reject) {
-      var _parameters$options$p, _parameters$options;
-      var win = node.contentWindow;
-      var pingWaitTime = (_parameters$options$p = (_parameters$options = parameters.options) === null || _parameters$options === void 0 ? void 0 : _parameters$options.pingWaitTime) !== null && _parameters$options$p !== void 0 ? _parameters$options$p : 500;
-      if (!win) {
-        log_default('Frame does not have a content window', node);
-        resolve(null);
-        return;
-      }
-      if (pingWaitTime === 0) {
-        callAxeStart(node, parameters, resolve, reject);
-        return;
-      }
-      var timeout = setTimeout(function() {
-        timeout = setTimeout(function() {
-          if (!parameters.debug) {
-            resolve(null);
-          } else {
-            reject(err('No response from frame', node));
-          }
-        }, 0);
-      }, pingWaitTime);
-      _respondable(win, 'axe.ping', null, void 0, function() {
-        clearTimeout(timeout);
-        callAxeStart(node, parameters, resolve, reject);
-      });
-    }
-    function callAxeStart(node, parameters, resolve, reject) {
-      var _parameters$options$f, _parameters$options2;
-      var frameWaitTime = (_parameters$options$f = (_parameters$options2 = parameters.options) === null || _parameters$options2 === void 0 ? void 0 : _parameters$options2.frameWaitTime) !== null && _parameters$options$f !== void 0 ? _parameters$options$f : 6e4;
-      var win = node.contentWindow;
-      var timeout = setTimeout(function collectResultFramesTimeout() {
-        reject(err('Axe in frame timed out', node));
-      }, frameWaitTime);
-      _respondable(win, 'axe.start', parameters, void 0, function(data) {
-        clearTimeout(timeout);
-        if (data instanceof Error === false) {
-          resolve(data);
-        } else {
-          reject(data);
-        }
-      });
-    }
-    function err(message, node) {
-      var selector;
-      if (axe._tree) {
-        selector = get_selector_default(node);
-      }
-      return new Error(message + ': ' + (selector || node));
-    }
-    var customSerializer = null;
-    var nodeSerializer = {
-      update: function update(serializer) {
-        assert_default(_typeof(serializer) === 'object', 'serializer must be an object');
-        customSerializer = serializer;
-      },
-      toSpec: function toSpec(node) {
-        return nodeSerializer.dqElmToSpec(new dq_element_default(node));
-      },
-      dqElmToSpec: function dqElmToSpec(dqElm, runOptions) {
-        var _customSerializer;
-        if (dqElm instanceof dq_element_default === false) {
-          return dqElm;
-        }
-        if (runOptions) {
-          dqElm = cloneLimitedDqElement(dqElm, runOptions);
-        }
-        if (typeof ((_customSerializer = customSerializer) === null || _customSerializer === void 0 ? void 0 : _customSerializer.toSpec) === 'function') {
-          return customSerializer.toSpec(dqElm);
-        }
-        return dqElm.toJSON();
-      },
-      mergeSpecs: function mergeSpecs(nodeSpec, parentFrameSpec) {
-        var _customSerializer2;
-        if (typeof ((_customSerializer2 = customSerializer) === null || _customSerializer2 === void 0 ? void 0 : _customSerializer2.mergeSpecs) === 'function') {
-          return customSerializer.mergeSpecs(nodeSpec, parentFrameSpec);
-        }
-        return dq_element_default.mergeSpecs(nodeSpec, parentFrameSpec);
-      },
-      mapRawResults: function mapRawResults(rawResults) {
-        return rawResults.map(function(rawResult) {
-          return _extends({}, rawResult, {
-            nodes: nodeSerializer.mapRawNodeResults(rawResult.nodes)
-          });
-        });
-      },
-      mapRawNodeResults: function mapRawNodeResults(nodeResults) {
-        return nodeResults === null || nodeResults === void 0 ? void 0 : nodeResults.map(function(_ref59) {
-          var node = _ref59.node, nodeResult = _objectWithoutProperties(_ref59, _excluded1);
-          nodeResult.node = nodeSerializer.dqElmToSpec(node);
-          for (var _i6 = 0, _arr2 = [ 'any', 'all', 'none' ]; _i6 < _arr2.length; _i6++) {
-            var type2 = _arr2[_i6];
-            nodeResult[type2] = nodeResult[type2].map(function(_ref60) {
-              var relatedNodes = _ref60.relatedNodes, checkResult = _objectWithoutProperties(_ref60, _excluded10);
-              checkResult.relatedNodes = relatedNodes.map(nodeSerializer.dqElmToSpec);
-              return checkResult;
-            });
-          }
-          return nodeResult;
-        });
-      }
-    };
-    var node_serializer_default = nodeSerializer;
-    function cloneLimitedDqElement(dqElm, runOptions) {
-      var fromFrame2 = dqElm.fromFrame;
-      var hasAncestry = runOptions.ancestry, hasXpath = runOptions.xpath;
-      var hasSelectors = runOptions.selectors !== false || fromFrame2;
-      dqElm = new dq_element_default(dqElm.element, runOptions, {
-        source: dqElm.source,
-        nodeIndexes: dqElm.nodeIndexes,
-        selector: hasSelectors ? dqElm.selector : [ ':root' ],
-        ancestry: hasAncestry ? dqElm.ancestry : [ ':root' ],
-        xpath: hasXpath ? dqElm.xpath : '/'
-      });
-      dqElm.fromFrame = fromFrame2;
-      return dqElm;
-    }
-    function getAllChecks(object) {
-      var result = [];
-      return result.concat(object.any || []).concat(object.all || []).concat(object.none || []);
-    }
-    var get_all_checks_default = getAllChecks;
-    function findBy(array, key, value) {
-      if (Array.isArray(array)) {
-        return array.find(function(obj) {
-          return obj !== null && _typeof(obj) === 'object' && Object.hasOwn(obj, key) && obj[key] === value;
-        });
-      }
-    }
-    var find_by_default = findBy;
-    function pushFrame(resultSet, options, frameSpec) {
-      resultSet.forEach(function(res) {
-        res.node = node_serializer_default.mergeSpecs(res.node, frameSpec);
-        var checks = get_all_checks_default(res);
-        checks.forEach(function(check) {
-          check.relatedNodes = check.relatedNodes.map(function(node) {
-            return node_serializer_default.mergeSpecs(node, frameSpec);
-          });
-        });
-      });
-    }
-    function spliceNodes(target, to2) {
-      var firstFromFrame = to2[0].node;
-      var node;
-      for (var _i7 = 0; _i7 < target.length; _i7++) {
-        node = target[_i7].node;
-        var resultSort = nodeIndexSort(node.nodeIndexes, firstFromFrame.nodeIndexes);
-        if (resultSort > 0 || resultSort === 0 && firstFromFrame.selector.length < node.selector.length) {
-          target.splice.apply(target, [ _i7, 0 ].concat(_toConsumableArray(to2)));
-          return;
-        }
-      }
-      target.push.apply(target, _toConsumableArray(to2));
-    }
-    function normalizeResult(result) {
-      if (!result || !result.results) {
-        return null;
-      }
-      if (!Array.isArray(result.results)) {
-        return [ result.results ];
-      }
-      if (!result.results.length) {
-        return null;
-      }
-      return result.results;
-    }
-    function mergeResults(frameResults, options) {
-      var mergedResult = [];
-      frameResults.forEach(function(frameResult) {
-        var results = normalizeResult(frameResult);
-        if (!results || !results.length) {
-          return;
-        }
-        var frameSpec = getFrameSpec(frameResult);
-        results.forEach(function(ruleResult) {
-          if (ruleResult.nodes && frameSpec) {
-            pushFrame(ruleResult.nodes, options, frameSpec);
-          }
-          var res = find_by_default(mergedResult, 'id', ruleResult.id);
-          if (!res) {
-            mergedResult.push(ruleResult);
-          } else {
-            if (ruleResult.nodes.length) {
-              spliceNodes(res.nodes, ruleResult.nodes);
-            }
-            if (ruleResult.error) {
-              var _res$error;
-              (_res$error = res.error) !== null && _res$error !== void 0 ? _res$error : res.error = ruleResult.error;
-            }
-          }
-        });
-      });
-      mergedResult.forEach(function(result) {
-        if (result.nodes) {
-          result.nodes.sort(function(nodeA, nodeB) {
-            return nodeIndexSort(nodeA.node.nodeIndexes, nodeB.node.nodeIndexes);
-          });
-        }
-      });
-      return mergedResult;
-    }
-    function nodeIndexSort() {
-      var nodeIndexesA = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-      var nodeIndexesB = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-      var length = Math.max(nodeIndexesA === null || nodeIndexesA === void 0 ? void 0 : nodeIndexesA.length, nodeIndexesB === null || nodeIndexesB === void 0 ? void 0 : nodeIndexesB.length);
-      for (var _i8 = 0; _i8 < length; _i8++) {
-        var indexA = nodeIndexesA === null || nodeIndexesA === void 0 ? void 0 : nodeIndexesA[_i8];
-        var indexB = nodeIndexesB === null || nodeIndexesB === void 0 ? void 0 : nodeIndexesB[_i8];
-        if (typeof indexA !== 'number' || isNaN(indexA)) {
-          return _i8 === 0 ? 1 : -1;
-        }
-        if (typeof indexB !== 'number' || isNaN(indexB)) {
-          return _i8 === 0 ? -1 : 1;
-        }
-        if (indexA !== indexB) {
-          return indexA - indexB;
-        }
-      }
-      return 0;
-    }
-    var merge_results_default = mergeResults;
-    function getFrameSpec(frameResult) {
-      if (frameResult.frameElement) {
-        return node_serializer_default.toSpec(frameResult.frameElement);
-      } else if (frameResult.frameSpec) {
-        return frameResult.frameSpec;
-      }
-      return null;
-    }
-    function _collectResultsFromFrames(parentContent, options, command, parameter, resolve, reject) {
-      options = _extends({}, options, {
-        elementRef: false
-      });
-      var q = queue_default();
-      var frames = parentContent.frames;
-      frames.forEach(function(_ref61) {
-        var frameElement = _ref61.node, context = _objectWithoutProperties(_ref61, _excluded11);
-        q.defer(function(res, rej) {
-          var params = {
-            options: options,
-            command: command,
-            parameter: parameter,
-            context: context
-          };
-          function callback(results) {
-            if (!results) {
-              return res(null);
-            }
-            return res({
-              results: results,
-              frameElement: frameElement
-            });
-          }
-          _sendCommandToFrame(frameElement, params, callback, rej);
-        });
-      });
-      q.then(function(data) {
-        resolve(merge_results_default(data, options));
-      })['catch'](reject);
-    }
-    function _contains(vNode, otherVNode) {
-      if (!vNode.shadowId && !otherVNode.shadowId && vNode.actualNode && typeof vNode.actualNode.contains === 'function') {
-        return vNode.actualNode.contains(otherVNode.actualNode);
-      }
-      do {
-        if (vNode === otherVNode) {
-          return true;
-        } else if (otherVNode.nodeIndex < vNode.nodeIndex) {
-          return false;
-        }
-        otherVNode = otherVNode.parent;
-      } while (otherVNode);
-      return false;
-    }
-    function deepMerge() {
-      var target = {};
-      for (var _len6 = arguments.length, sources = new Array(_len6), _key8 = 0; _key8 < _len6; _key8++) {
-        sources[_key8] = arguments[_key8];
-      }
-      sources.forEach(function(source) {
-        if (!source || _typeof(source) !== 'object' || Array.isArray(source)) {
-          return;
-        }
-        for (var _i9 = 0, _Object$keys2 = Object.keys(source); _i9 < _Object$keys2.length; _i9++) {
-          var _key9 = _Object$keys2[_i9];
-          if (!target.hasOwnProperty(_key9) || _typeof(source[_key9]) !== 'object' || Array.isArray(target[_key9])) {
-            target[_key9] = source[_key9];
-          } else {
-            target[_key9] = deepMerge(target[_key9], source[_key9]);
-          }
-        }
-      });
-      return target;
-    }
-    var deep_merge_default = deepMerge;
-    function extendMetaData(to2, from) {
-      Object.assign(to2, from);
-      Object.keys(from).filter(function(prop) {
-        return typeof from[prop] === 'function';
-      }).forEach(function(prop) {
-        to2[prop] = null;
-        try {
-          to2[prop] = from[prop](to2);
-        } catch (_unused4) {}
-      });
-    }
-    var extend_meta_data_default = extendMetaData;
-    var possibleShadowRoots = [ 'article', 'aside', 'blockquote', 'body', 'div', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'main', 'nav', 'p', 'section', 'span' ];
-    function isShadowRoot(node) {
-      if (node.shadowRoot) {
-        var nodeName2 = node.nodeName.toLowerCase();
-        if (possibleShadowRoots.includes(nodeName2) || /^[a-z][a-z0-9_.-]*-[a-z0-9_.-]*$/.test(nodeName2)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    var is_shadow_root_default = isShadowRoot;
     function tokenList(str) {
       return (str || '').trim().replace(/\s{2,}/g, ' ').split(' ');
     }
@@ -18277,8 +18323,8 @@
         return;
       }
       var shadowId = domTree[0].shadowId;
-      for (var _i0 = 0; _i0 < expressions.length; _i0++) {
-        if (expressions[_i0].length > 1 && expressions[_i0].some(function(expression) {
+      for (var _i14 = 0; _i14 < expressions.length; _i14++) {
+        if (expressions[_i14].length > 1 && expressions[_i14].some(function(expression) {
           return isGlobalSelector(expression);
         })) {
           return;
@@ -18339,9 +18385,9 @@
           nodes = nodes ? getSharedValues(_cachedNodes, nodes) : _cachedNodes;
         }
         if (exp.attributes) {
-          for (var _i1 = 0; _i1 < exp.attributes.length; _i1++) {
+          for (var _i15 = 0; _i15 < exp.attributes.length; _i15++) {
             var _selectorMap;
-            var attr = exp.attributes[_i1];
+            var attr = exp.attributes[_i15];
             if (attr.type === 'attrValue') {
               isComplexSelector = true;
             }
@@ -18687,7 +18733,7 @@
         return {};
       }
       var navigator = win.navigator, innerHeight = win.innerHeight, innerWidth = win.innerWidth;
-      var _ref62 = getOrientation(win) || {}, angle = _ref62.angle, type2 = _ref62.type;
+      var _ref66 = getOrientation(win) || {}, angle = _ref66.angle, type2 = _ref66.type;
       return {
         userAgent: navigator.userAgent,
         windowWidth: innerWidth,
@@ -18696,12 +18742,12 @@
         orientationType: type2
       };
     }
-    function getOrientation(_ref63) {
-      var screen = _ref63.screen;
+    function getOrientation(_ref67) {
+      var screen = _ref67.screen;
       return screen.orientation || screen.msOrientation || screen.mozOrientation;
     }
-    function createFrameContext(frame, _ref64) {
-      var focusable = _ref64.focusable, page = _ref64.page;
+    function createFrameContext(frame, _ref68) {
+      var focusable = _ref68.focusable, page = _ref68.page;
       return {
         node: frame,
         include: [],
@@ -18761,8 +18807,8 @@
       if (!_isArrayLike(selectorList)) {
         selectorList = [ selectorList ];
       }
-      for (var _i10 = 0; _i10 < selectorList.length; _i10++) {
-        var normalizedSelector = normalizeContextSelector(selectorList[_i10]);
+      for (var _i16 = 0; _i16 < selectorList.length; _i16++) {
+        var normalizedSelector = normalizeContextSelector(selectorList[_i16]);
         if (normalizedSelector) {
           normalizedList.push(normalizedSelector);
         }
@@ -18789,10 +18835,10 @@
         return;
       }
       var normalizedSelectors = [];
-      var _iterator11 = _createForOfIteratorHelper(frameSelectors), _step11;
+      var _iterator10 = _createForOfIteratorHelper(frameSelectors), _step10;
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done; ) {
-          var selector = _step11.value;
+        for (_iterator10.s(); !(_step10 = _iterator10.n()).done; ) {
+          var selector = _step10.value;
           if (_isLabelledShadowDomSelector(selector)) {
             assertLabelledShadowDomSelector(selector);
             selector = selector.fromShadowDom;
@@ -18803,9 +18849,9 @@
           normalizedSelectors.push(selector);
         }
       } catch (err) {
-        _iterator11.e(err);
+        _iterator10.e(err);
       } finally {
-        _iterator11.f();
+        _iterator10.f();
       }
       return normalizedSelectors;
     }
@@ -18835,8 +18881,8 @@
     }
     function parseSelectorArray(context, type2) {
       var result = [];
-      for (var _i11 = 0, l = context[type2].length; _i11 < l; _i11++) {
-        var item = context[type2][_i11];
+      for (var _i17 = 0, l = context[type2].length; _i17 < l; _i17++) {
+        var item = context[type2][_i17];
         if (item instanceof window.Node) {
           if (item.documentElement instanceof window.Node) {
             result.push(context.flatTree[0]);
@@ -18915,8 +18961,8 @@
       }
       context.frames.push(createFrameContext(frame, context));
     }
-    function isPageContext(_ref65) {
-      var include = _ref65.include;
+    function isPageContext(_ref69) {
+      var include = _ref69.include;
       return include.length === 1 && include[0].actualNode === document.documentElement;
     }
     function validateContext(context) {
@@ -18925,11 +18971,11 @@
         throw new Error('No elements found for include in ' + env + ' Context');
       }
     }
-    function getRootNode2(_ref66) {
-      var include = _ref66.include, exclude = _ref66.exclude;
+    function getRootNode2(_ref70) {
+      var include = _ref70.include, exclude = _ref70.exclude;
       var selectors = Array.from(include).concat(Array.from(exclude));
-      for (var _i12 = 0; _i12 < selectors.length; _i12++) {
-        var item = selectors[_i12];
+      for (var _i18 = 0; _i18 < selectors.length; _i18++) {
+        var item = selectors[_i18];
         if (item instanceof window.Element) {
           return item.ownerDocument.documentElement;
         }
@@ -18945,8 +18991,8 @@
         return [];
       }
       var _Context = new Context(context), frames = _Context.frames;
-      return frames.map(function(_ref67) {
-        var node = _ref67.node, frameContext = _objectWithoutProperties(_ref67, _excluded12);
+      return frames.map(function(_ref71) {
+        var node = _ref71.node, frameContext = _objectWithoutProperties(_ref71, _excluded12);
         frameContext.initiator = false;
         var frameSelector = _getAncestry(node);
         return {
@@ -18956,8 +19002,8 @@
       });
     }
     function _getRule(ruleId) {
-      var rule = axe._audit.rules.find(function(_ref68) {
-        var id = _ref68.id;
+      var rule = axe._audit.rules.find(function(_ref72) {
+        var id = _ref72.id;
         return id === ruleId;
       });
       if (!rule) {
@@ -19122,8 +19168,8 @@
       return !!standards_default.htmlElms[nodeName2];
     }
     var is_html_element_default = isHtmlElement;
-    function _isNodeInContext(node, _ref69) {
-      var _ref69$include = _ref69.include, include = _ref69$include === void 0 ? [] : _ref69$include, _ref69$exclude = _ref69.exclude, exclude = _ref69$exclude === void 0 ? [] : _ref69$exclude;
+    function _isNodeInContext(node, _ref73) {
+      var _ref73$include = _ref73.include, include = _ref73$include === void 0 ? [] : _ref73$include, _ref73$exclude = _ref73.exclude, exclude = _ref73$exclude === void 0 ? [] : _ref73$exclude;
       var filterInclude = include.filter(function(candidate) {
         return _contains(candidate, node);
       });
@@ -19142,18 +19188,18 @@
     }
     function getDeepest(collection) {
       var deepest;
-      var _iterator12 = _createForOfIteratorHelper(collection), _step12;
+      var _iterator11 = _createForOfIteratorHelper(collection), _step11;
       try {
-        for (_iterator12.s(); !(_step12 = _iterator12.n()).done; ) {
-          var node = _step12.value;
+        for (_iterator11.s(); !(_step11 = _iterator11.n()).done; ) {
+          var node = _step11.value;
           if (!deepest || !_contains(node, deepest)) {
             deepest = node;
           }
         }
       } catch (err) {
-        _iterator12.e(err);
+        _iterator11.e(err);
       } finally {
-        _iterator12.f();
+        _iterator11.f();
       }
       return deepest;
     }
@@ -19378,8 +19424,8 @@
           var measures = window.performance.getEntriesByType('measure').filter(function(measure) {
             return measure.startTime >= axeStart.startTime;
           });
-          for (var _i13 = 0; _i13 < measures.length; ++_i13) {
-            var req = measures[_i13];
+          for (var _i19 = 0; _i19 < measures.length; ++_i19) {
+            var req = measures[_i19];
             if (req.name === measureName) {
               logMeasure(req);
               return;
@@ -19400,8 +19446,8 @@
           for (var _len7 = arguments.length, markNames = new Array(_len7), _key0 = 0; _key0 < _len7; _key0++) {
             markNames[_key0] = arguments[_key0];
           }
-          for (var _i14 = 0, _markNames = markNames; _i14 < _markNames.length; _i14++) {
-            var markName = _markNames[_i14];
+          for (var _i20 = 0, _markNames = markNames; _i20 < _markNames.length; _i20++) {
+            var markName = _markNames[_i20];
             window.performance.clearMarks(markName);
           }
         },
@@ -19487,9 +19533,9 @@
         var childAny = null;
         var combinedLength = (((_currentLevel$anyLeve = currentLevel.anyLevel) === null || _currentLevel$anyLeve === void 0 ? void 0 : _currentLevel$anyLeve.length) || 0) + (((_currentLevel$thisLev = currentLevel.thisLevel) === null || _currentLevel$thisLev === void 0 ? void 0 : _currentLevel$thisLev.length) || 0);
         var added = false;
-        for (var _i15 = 0; _i15 < combinedLength; _i15++) {
+        for (var _i21 = 0; _i21 < combinedLength; _i21++) {
           var _currentLevel$anyLeve2, _currentLevel$anyLeve3, _currentLevel$anyLeve4;
-          var exp = _i15 < (((_currentLevel$anyLeve2 = currentLevel.anyLevel) === null || _currentLevel$anyLeve2 === void 0 ? void 0 : _currentLevel$anyLeve2.length) || 0) ? currentLevel.anyLevel[_i15] : currentLevel.thisLevel[_i15 - (((_currentLevel$anyLeve3 = currentLevel.anyLevel) === null || _currentLevel$anyLeve3 === void 0 ? void 0 : _currentLevel$anyLeve3.length) || 0)];
+          var exp = _i21 < (((_currentLevel$anyLeve2 = currentLevel.anyLevel) === null || _currentLevel$anyLeve2 === void 0 ? void 0 : _currentLevel$anyLeve2.length) || 0) ? currentLevel.anyLevel[_i21] : currentLevel.thisLevel[_i21 - (((_currentLevel$anyLeve3 = currentLevel.anyLevel) === null || _currentLevel$anyLeve3 === void 0 ? void 0 : _currentLevel$anyLeve3.length) || 0)];
           if ((!exp[0].id || vNode.shadowId === currentLevel.parentShadowId) && _matchesExpression(vNode, exp[0])) {
             if (exp.length === 1) {
               if (!added && (!filter || filter(vNode))) {
@@ -19533,8 +19579,8 @@
       return matchExpressions(domTree, expressions, filter);
     }
     var query_selector_all_filter_default = querySelectorAllFilter;
-    function preloadCssom(_ref70) {
-      var _ref70$treeRoot = _ref70.treeRoot, treeRoot = _ref70$treeRoot === void 0 ? axe._tree[0] : _ref70$treeRoot;
+    function preloadCssom(_ref74) {
+      var _ref74$treeRoot = _ref74.treeRoot, treeRoot = _ref74$treeRoot === void 0 ? axe._tree[0] : _ref74$treeRoot;
       var rootNodes = getAllRootNodesInTree(treeRoot);
       if (!rootNodes.length) {
         return Promise.resolve();
@@ -19564,8 +19610,8 @@
     }
     function getCssomForAllRootNodes(rootNodes, convertDataToStylesheet) {
       var promises = [];
-      rootNodes.forEach(function(_ref71, index) {
-        var rootNode = _ref71.rootNode, shadowId = _ref71.shadowId;
+      rootNodes.forEach(function(_ref75, index) {
+        var rootNode = _ref75.rootNode, shadowId = _ref75.shadowId;
         var sheets = getStylesheetsOfRootNode(rootNode, shadowId, convertDataToStylesheet);
         if (!sheets) {
           return Promise.all(promises);
@@ -19651,10 +19697,10 @@
         return true;
       });
     }
-    function preloadMedia(_ref72) {
-      var _ref72$treeRoot = _ref72.treeRoot, treeRoot = _ref72$treeRoot === void 0 ? axe._tree[0] : _ref72$treeRoot;
-      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref73) {
-        var actualNode = _ref73.actualNode;
+    function preloadMedia(_ref76) {
+      var _ref76$treeRoot = _ref76.treeRoot, treeRoot = _ref76$treeRoot === void 0 ? axe._tree[0] : _ref76$treeRoot;
+      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref77) {
+        var actualNode = _ref77.actualNode;
         if (actualNode.preload === 'none' && actualNode.readyState === 0 && actualNode.networkState !== actualNode.NETWORK_LOADING) {
           return false;
         }
@@ -19672,8 +19718,8 @@
         }
         return true;
       });
-      return Promise.all(mediaVirtualNodes.map(function(_ref74) {
-        var actualNode = _ref74.actualNode;
+      return Promise.all(mediaVirtualNodes.map(function(_ref78) {
+        var actualNode = _ref78.actualNode;
         return isMediaElementReady(actualNode);
       }));
     }
@@ -19922,8 +19968,8 @@
       }
       var outerIncludes = getOuterIncludes(context.include);
       var isInContext = getContextFilter(context);
-      for (var _i16 = 0; _i16 < outerIncludes.length; _i16++) {
-        candidate = outerIncludes[_i16];
+      for (var _i22 = 0; _i22 < outerIncludes.length; _i22++) {
+        candidate = outerIncludes[_i22];
         var nodes = query_selector_all_filter_default(candidate, selector, isInContext);
         result = mergeArrayUniques(result, nodes);
       }
@@ -19960,9 +20006,9 @@
         arr1 = arr2;
         arr2 = temp;
       }
-      for (var _i17 = 0, l = arr2.length; _i17 < l; _i17++) {
-        if (!arr1.includes(arr2[_i17])) {
-          arr1.push(arr2[_i17]);
+      for (var _i23 = 0, l = arr2.length; _i23 < l; _i23++) {
+        if (!arr1.includes(arr2[_i23])) {
+          arr1.push(arr2[_i23]);
         }
       }
       return arr1;
@@ -19975,18 +20021,18 @@
         };
       }
       var serial = {};
-      var _iterator13 = _createForOfIteratorHelper(constants_default.serializableErrorProps), _step13;
+      var _iterator12 = _createForOfIteratorHelper(constants_default.serializableErrorProps), _step12;
       try {
-        for (_iterator13.s(); !(_step13 = _iterator13.n()).done; ) {
-          var prop = _step13.value;
+        for (_iterator12.s(); !(_step12 = _iterator12.n()).done; ) {
+          var prop = _step12.value;
           if ([ 'string', 'number', 'boolean' ].includes(_typeof(err2[prop]))) {
             serial[prop] = err2[prop];
           }
         }
       } catch (err) {
-        _iterator13.e(err);
+        _iterator12.e(err);
       } finally {
-        _iterator13.f();
+        _iterator12.f();
       }
       if (err2.cause) {
         serial.cause = iteration < 10 ? _serializeError(err2.cause, iteration + 1) : '...';
@@ -19994,10 +20040,10 @@
       return serial;
     }
     var RuleError = function(_Error) {
-      function RuleError(_ref76) {
+      function RuleError(_ref80) {
         var _error$name;
         var _this7;
-        var error = _ref76.error, ruleId = _ref76.ruleId, method = _ref76.method, errorNode = _ref76.errorNode;
+        var error = _ref80.error, ruleId = _ref80.ruleId, method = _ref80.method, errorNode = _ref80.errorNode;
         _classCallCheck(this, RuleError);
         _this7 = _callSuper(this, RuleError);
         _this7.name = (_error$name = error.name) !== null && _error$name !== void 0 ? _error$name : 'RuleError';
@@ -20031,8 +20077,8 @@
       }
     }
     function setScrollState(scrollState) {
-      scrollState.forEach(function(_ref77) {
-        var elm = _ref77.elm, top = _ref77.top, left = _ref77.left;
+      scrollState.forEach(function(_ref81) {
+        var elm = _ref81.elm, top = _ref81.top, left = _ref81.left;
         return setScroll(elm, top, left);
       });
     }
@@ -20060,25 +20106,25 @@
       }
       return selectAllRecursive(selectorArr, doc);
     }
-    function selectAllRecursive(_ref78, doc) {
-      var _ref79 = _toArray(_ref78), selectorStr = _ref79[0], restSelector = _arrayLikeToArray(_ref79).slice(1);
+    function selectAllRecursive(_ref82, doc) {
+      var _ref83 = _toArray(_ref82), selectorStr = _ref83[0], restSelector = _arrayLikeToArray(_ref83).slice(1);
       var elms = doc.querySelectorAll(selectorStr);
       if (restSelector.length === 0) {
         return Array.from(elms);
       }
       var selected = [];
-      var _iterator14 = _createForOfIteratorHelper(elms), _step14;
+      var _iterator13 = _createForOfIteratorHelper(elms), _step13;
       try {
-        for (_iterator14.s(); !(_step14 = _iterator14.n()).done; ) {
-          var elm = _step14.value;
+        for (_iterator13.s(); !(_step13 = _iterator13.n()).done; ) {
+          var elm = _step13.value;
           if (elm !== null && elm !== void 0 && elm.shadowRoot) {
             selected.push.apply(selected, _toConsumableArray(selectAllRecursive(restSelector, elm.shadowRoot)));
           }
         }
       } catch (err) {
-        _iterator14.e(err);
+        _iterator13.e(err);
       } finally {
-        _iterator14.f();
+        _iterator13.f();
       }
       return selected;
     }
@@ -20092,8 +20138,8 @@
       while (lang.length < 3) {
         lang += '`';
       }
-      for (var _i18 = 0; _i18 <= lang.length - 1; _i18++) {
-        var index = lang.charCodeAt(_i18) - 96;
+      for (var _i24 = 0; _i24 <= lang.length - 1; _i24++) {
+        var index = lang.charCodeAt(_i24) - 96;
         array = array[index];
         if (!array) {
           return false;
@@ -20163,9 +20209,9 @@
       nodeTypeToName[nodeNamesToTypes[nodeName2]] = nodeName2;
     });
     function normaliseProps(serialNode) {
-      var _serialNode$nodeName, _ref80, _serialNode$nodeType;
+      var _serialNode$nodeName, _ref84, _serialNode$nodeType;
       var nodeName2 = (_serialNode$nodeName = serialNode.nodeName) !== null && _serialNode$nodeName !== void 0 ? _serialNode$nodeName : nodeTypeToName[serialNode.nodeType];
-      var nodeType = (_ref80 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref80 !== void 0 ? _ref80 : 1;
+      var nodeType = (_ref84 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref84 !== void 0 ? _ref84 : 1;
       assert_default(typeof nodeType === 'number', 'nodeType has to be a number, got \''.concat(nodeType, '\''));
       assert_default(typeof nodeName2 === 'string', 'nodeName has to be a string, got \''.concat(nodeName2, '\''));
       nodeName2 = nodeName2.toLowerCase();
@@ -20186,8 +20232,8 @@
       delete props.attributes;
       return Object.freeze(props);
     }
-    function normaliseAttrs(_ref81) {
-      var _ref81$attributes = _ref81.attributes, attributes2 = _ref81$attributes === void 0 ? {} : _ref81$attributes;
+    function normaliseAttrs(_ref85) {
+      var _ref85$attributes = _ref85.attributes, attributes2 = _ref85$attributes === void 0 ? {} : _ref85$attributes;
       var attrMap = {
         htmlFor: 'for',
         className: 'class'
@@ -20785,16 +20831,16 @@
             idRefs.get(_id5).push(node);
           }
         }
-        for (var _i19 = 0; _i19 < refAttrs.length; ++_i19) {
-          var attr = refAttrs[_i19];
+        for (var _i25 = 0; _i25 < refAttrs.length; ++_i25) {
+          var attr = refAttrs[_i25];
           var attrValue = sanitize_default(node.getAttribute(attr) || '');
           if (!attrValue) {
             continue;
           }
-          var _iterator15 = _createForOfIteratorHelper(token_list_default(attrValue)), _step15;
+          var _iterator14 = _createForOfIteratorHelper(token_list_default(attrValue)), _step14;
           try {
-            for (_iterator15.s(); !(_step15 = _iterator15.n()).done; ) {
-              var token = _step15.value;
+            for (_iterator14.s(); !(_step14 = _iterator14.n()).done; ) {
+              var token = _step14.value;
               if (!idRefs.has(token)) {
                 idRefs.set(token, [ node ]);
               } else {
@@ -20802,15 +20848,15 @@
               }
             }
           } catch (err) {
-            _iterator15.e(err);
+            _iterator14.e(err);
           } finally {
-            _iterator15.f();
+            _iterator14.f();
           }
         }
       }
-      for (var _i20 = 0; _i20 < node.childNodes.length; _i20++) {
-        if (node.childNodes[_i20].nodeType === 1) {
-          cacheIdRefs(node.childNodes[_i20], idRefs, refAttrs);
+      for (var _i26 = 0; _i26 < node.childNodes.length; _i26++) {
+        if (node.childNodes[_i26].nodeType === 1) {
+          cacheIdRefs(node.childNodes[_i26], idRefs, refAttrs);
         }
       }
     }
@@ -20868,7 +20914,7 @@
     }
     function getElementUnallowedRoles(node) {
       var allowImplicit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var _nodeLookup20 = _nodeLookup(node), vNode = _nodeLookup20.vNode;
+      var _nodeLookup22 = _nodeLookup(node), vNode = _nodeLookup22.vNode;
       if (!is_html_element_default(vNode)) {
         return [];
       }
@@ -22658,8 +22704,8 @@
       nodeName: [ 'abbr', 'address', 'canvas', 'div', 'p', 'pre', 'blockquote', 'ins', 'del', 'output', 'span', 'table', 'tbody', 'thead', 'tfoot', 'td', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'br', 'wbr', 'th', 'tr' ]
     } ];
     lookupTable.evaluateRoleForElement = {
-      A: function A(_ref82) {
-        var node = _ref82.node, out = _ref82.out;
+      A: function A(_ref86) {
+        var node = _ref86.node, out = _ref86.out;
         if (node.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -22668,19 +22714,19 @@
         }
         return true;
       },
-      AREA: function AREA(_ref83) {
-        var node = _ref83.node;
+      AREA: function AREA(_ref87) {
+        var node = _ref87.node;
         return !node.href;
       },
-      BUTTON: function BUTTON(_ref84) {
-        var node = _ref84.node, role = _ref84.role, out = _ref84.out;
+      BUTTON: function BUTTON(_ref88) {
+        var node = _ref88.node, role = _ref88.role, out = _ref88.out;
         if (node.getAttribute('type') === 'menu') {
           return role === 'menuitem';
         }
         return out;
       },
-      IMG: function IMG(_ref85) {
-        var node = _ref85.node, role = _ref85.role, out = _ref85.out;
+      IMG: function IMG(_ref89) {
+        var node = _ref89.node, role = _ref89.role, out = _ref89.out;
         switch (node.alt) {
          case null:
           return out;
@@ -22692,8 +22738,8 @@
           return role !== 'presentation' && role !== 'none';
         }
       },
-      INPUT: function INPUT(_ref86) {
-        var node = _ref86.node, role = _ref86.role, out = _ref86.out;
+      INPUT: function INPUT(_ref90) {
+        var node = _ref90.node, role = _ref90.role, out = _ref90.out;
         switch (node.type) {
          case 'button':
          case 'image':
@@ -22723,32 +22769,32 @@
           return false;
         }
       },
-      LI: function LI(_ref87) {
-        var node = _ref87.node, out = _ref87.out;
+      LI: function LI(_ref91) {
+        var node = _ref91.node, out = _ref91.out;
         var hasImplicitListitemRole = axe.utils.matchesSelector(node, 'ol li, ul li');
         if (hasImplicitListitemRole) {
           return out;
         }
         return true;
       },
-      MENU: function MENU(_ref88) {
-        var node = _ref88.node;
+      MENU: function MENU(_ref92) {
+        var node = _ref92.node;
         if (node.getAttribute('type') === 'context') {
           return false;
         }
         return true;
       },
-      OPTION: function OPTION(_ref89) {
-        var node = _ref89.node;
+      OPTION: function OPTION(_ref93) {
+        var node = _ref93.node;
         var withinOptionList = axe.utils.matchesSelector(node, 'select > option, datalist > option, optgroup > option');
         return !withinOptionList;
       },
-      SELECT: function SELECT(_ref90) {
-        var node = _ref90.node, role = _ref90.role;
+      SELECT: function SELECT(_ref94) {
+        var node = _ref94.node, role = _ref94.role;
         return !node.multiple && node.size <= 1 && role === 'menu';
       },
-      SVG: function SVG(_ref91) {
-        var node = _ref91.node, out = _ref91.out;
+      SVG: function SVG(_ref95) {
+        var node = _ref95.node, out = _ref95.out;
         if (node.parentNode && node.parentNode.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -22773,7 +22819,7 @@
     }
     var is_accessible_ref_default = isAccessibleRef;
     function _isComboboxPopup(virtualNode) {
-      var _ref92 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref92.popupRoles;
+      var _ref96 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref96.popupRoles;
       var role = get_role_default(virtualNode);
       popupRoles !== null && popupRoles !== void 0 ? popupRoles : popupRoles = aria_attrs_default['aria-haspopup'].values;
       if (!popupRoles.includes(role)) {
@@ -22976,10 +23022,10 @@
           }
         });
       });
-      var _iterator16 = _createForOfIteratorHelper(messageKeys), _step16;
+      var _iterator15 = _createForOfIteratorHelper(messageKeys), _step15;
       try {
-        for (_iterator16.s(); !(_step16 = _iterator16.n()).done; ) {
-          var messageKey = _step16.value;
+        for (_iterator15.s(); !(_step15 = _iterator15.n()).done; ) {
+          var messageKey = _step15.value;
           if (badCells[messageKey].size > 0) {
             this.relatedNodes(_toConsumableArray(badCells[messageKey]));
             if (messageKey === emptyHdrs) {
@@ -22992,9 +23038,9 @@
           }
         }
       } catch (err) {
-        _iterator16.e(err);
+        _iterator15.e(err);
       } finally {
-        _iterator16.f();
+        _iterator15.f();
       }
       return true;
     }
@@ -23062,8 +23108,8 @@
       if (!virtualNode.children) {
         return void 0;
       }
-      var titleNode = virtualNode.children.find(function(_ref93) {
-        var props = _ref93.props;
+      var titleNode = virtualNode.children.find(function(_ref97) {
+        var props = _ref97.props;
         return props.nodeName === 'title';
       });
       if (!titleNode) {
@@ -23200,8 +23246,8 @@
       }
       return false;
     }
-    function getNumberValue(domNode, _ref94) {
-      var cssProperty = _ref94.cssProperty, absoluteValues = _ref94.absoluteValues, normalValue = _ref94.normalValue;
+    function getNumberValue(domNode, _ref98) {
+      var cssProperty = _ref98.cssProperty, absoluteValues = _ref98.absoluteValues, normalValue = _ref98.normalValue;
       var computedStyle = window.getComputedStyle(domNode);
       var cssPropValue = computedStyle.getPropertyValue(cssProperty);
       if (cssPropValue === 'normal') {
@@ -23348,8 +23394,8 @@
       } else if (node !== document.body && has_content_default(node, true) && !isShallowlyHidden(virtualNode)) {
         return [ virtualNode ];
       } else {
-        return virtualNode.children.filter(function(_ref95) {
-          var actualNode = _ref95.actualNode;
+        return virtualNode.children.filter(function(_ref99) {
+          var actualNode = _ref99.actualNode;
           return actualNode.nodeType === 1;
         }).map(function(vNode) {
           return findRegionlessElms(vNode, options);
@@ -23386,19 +23432,19 @@
           return;
         }
         var frameAncestry = r.node.ancestry.slice(0, -1);
-        var _iterator17 = _createForOfIteratorHelper(iframeResults), _step17;
+        var _iterator16 = _createForOfIteratorHelper(iframeResults), _step16;
         try {
-          for (_iterator17.s(); !(_step17 = _iterator17.n()).done; ) {
-            var iframeResult = _step17.value;
+          for (_iterator16.s(); !(_step16 = _iterator16.n()).done; ) {
+            var iframeResult = _step16.value;
             if (_matchAncestry(frameAncestry, iframeResult.node.ancestry)) {
               r.result = iframeResult.result;
               break;
             }
           }
         } catch (err) {
-          _iterator17.e(err);
+          _iterator16.e(err);
         } finally {
-          _iterator17.f();
+          _iterator16.f();
         }
       });
       iframeResults.forEach(function(r) {
@@ -23431,16 +23477,16 @@
       var outerText = elm.textContent.trim();
       var innerText = outerText;
       while (innerText === outerText && nextNode !== void 0) {
-        var _i21 = -1;
+        var _i27 = -1;
         elm = nextNode;
         if (elm.children.length === 0) {
           return elm;
         }
         do {
-          _i21++;
-          innerText = elm.children[_i21].textContent.trim();
-        } while (innerText === '' && _i21 + 1 < elm.children.length);
-        nextNode = elm.children[_i21];
+          _i27++;
+          innerText = elm.children[_i27].textContent.trim();
+        } while (innerText === '' && _i27 + 1 < elm.children.length);
+        nextNode = elm.children[_i27];
       }
       return elm;
     }
@@ -23497,7 +23543,7 @@
     var separatorRegex = /[;,\s]/;
     var validRedirectNumRegex = /^[0-9.]+$/;
     function metaRefreshEvaluate(node, options, virtualNode) {
-      var _ref96 = options || {}, minDelay = _ref96.minDelay, maxDelay = _ref96.maxDelay;
+      var _ref100 = options || {}, minDelay = _ref100.minDelay, maxDelay = _ref100.maxDelay;
       var content = (virtualNode.attr('content') || '').trim();
       var _content$split = content.split(separatorRegex), _content$split2 = _slicedToArray(_content$split, 1), redirectStr = _content$split2[0];
       if (!redirectStr.match(validRedirectNumRegex)) {
@@ -23848,8 +23894,8 @@
       if (a2.length !== b2.length) {
         return false;
       }
-      for (var _i22 = 0; _i22 < a2.length; ++_i22) {
-        if (a2[_i22] !== b2[_i22]) {
+      for (var _i28 = 0; _i28 < a2.length; ++_i28) {
+        if (a2[_i28] !== b2[_i28]) {
           return false;
         }
       }
@@ -23860,10 +23906,10 @@
     var OPAQUE_STROKE_OFFSET_MIN_PX = 1.5;
     var edges = [ 'top', 'right', 'bottom', 'left' ];
     function _getStrokeColorsFromShadows(parsedShadows) {
-      var _ref97 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref97$ignoreEdgeCoun = _ref97.ignoreEdgeCount, ignoreEdgeCount = _ref97$ignoreEdgeCoun === void 0 ? false : _ref97$ignoreEdgeCoun;
+      var _ref101 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref101$ignoreEdgeCou = _ref101.ignoreEdgeCount, ignoreEdgeCount = _ref101$ignoreEdgeCou === void 0 ? false : _ref101$ignoreEdgeCou;
       var shadowMap = getShadowColorsMap(parsedShadows);
-      var shadowsByColor = Object.entries(shadowMap).map(function(_ref98) {
-        var _ref99 = _slicedToArray(_ref98, 2), colorStr = _ref99[0], sides = _ref99[1];
+      var shadowsByColor = Object.entries(shadowMap).map(function(_ref102) {
+        var _ref103 = _slicedToArray(_ref102, 2), colorStr = _ref103[0], sides = _ref103[1];
         var edgeCount = edges.filter(function(side) {
           return sides[side].length !== 0;
         }).length;
@@ -23873,8 +23919,8 @@
           edgeCount: edgeCount
         };
       });
-      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref100) {
-        var edgeCount = _ref100.edgeCount;
+      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref104) {
+        var edgeCount = _ref104.edgeCount;
         return edgeCount > 1 && edgeCount < 4;
       })) {
         return null;
@@ -23885,11 +23931,11 @@
     }
     function getShadowColorsMap(parsedShadows) {
       var colorMap = {};
-      var _iterator18 = _createForOfIteratorHelper(parsedShadows), _step18;
+      var _iterator17 = _createForOfIteratorHelper(parsedShadows), _step17;
       try {
-        for (_iterator18.s(); !(_step18 = _iterator18.n()).done; ) {
+        for (_iterator17.s(); !(_step17 = _iterator17.n()).done; ) {
           var _colorMap$colorStr;
-          var _step18$value = _step18.value, colorStr = _step18$value.colorStr, pixels = _step18$value.pixels;
+          var _step17$value = _step17.value, colorStr = _step17$value.colorStr, pixels = _step17$value.pixels;
           (_colorMap$colorStr = colorMap[colorStr]) !== null && _colorMap$colorStr !== void 0 ? _colorMap$colorStr : colorMap[colorStr] = {
             top: [],
             right: [],
@@ -23910,14 +23956,14 @@
           }
         }
       } catch (err) {
-        _iterator18.e(err);
+        _iterator17.e(err);
       } finally {
-        _iterator18.f();
+        _iterator17.f();
       }
       return colorMap;
     }
-    function shadowGroupToColor(_ref101) {
-      var colorStr = _ref101.colorStr, sides = _ref101.sides, edgeCount = _ref101.edgeCount;
+    function shadowGroupToColor(_ref105) {
+      var colorStr = _ref105.colorStr, sides = _ref105.sides, edgeCount = _ref105.edgeCount;
       if (edgeCount !== 4) {
         return null;
       }
@@ -23968,8 +24014,8 @@
           throw new Error('Unable to process text-shadows: '.concat(str));
         }
       }
-      shadows.forEach(function(_ref102) {
-        var pixels = _ref102.pixels;
+      shadows.forEach(function(_ref106) {
+        var pixels = _ref106.pixels;
         if (pixels.length === 2) {
           pixels.push(0);
         }
@@ -23977,7 +24023,7 @@
       return shadows;
     }
     function _getTextShadowColors(node) {
-      var _ref103 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref103.minRatio, maxRatio = _ref103.maxRatio, ignoreEdgeCount = _ref103.ignoreEdgeCount;
+      var _ref107 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref107.minRatio, maxRatio = _ref107.maxRatio, ignoreEdgeCount = _ref107.ignoreEdgeCount;
       var shadowColors = [];
       var style = window.getComputedStyle(node);
       var textShadow = style.getPropertyValue('text-shadow');
@@ -23989,10 +24035,10 @@
       assert_default(isNaN(fontSize) === false, 'Unable to determine font-size value '.concat(fontSizeStr));
       var thinShadows = [];
       var shadows = _parseTextShadows(textShadow);
-      var _iterator19 = _createForOfIteratorHelper(shadows), _step19;
+      var _iterator18 = _createForOfIteratorHelper(shadows), _step18;
       try {
-        for (_iterator19.s(); !(_step19 = _iterator19.n()).done; ) {
-          var shadow = _step19.value;
+        for (_iterator18.s(); !(_step18 = _iterator18.n()).done; ) {
+          var shadow = _step18.value;
           var colorStr = shadow.colorStr || style.getPropertyValue('color');
           var _shadow$pixels = _slicedToArray(shadow.pixels, 3), offsetX = _shadow$pixels[0], offsetY = _shadow$pixels[1], _shadow$pixels$ = _shadow$pixels[2], blurRadius = _shadow$pixels$ === void 0 ? 0 : _shadow$pixels$;
           if (maxRatio && blurRadius >= fontSize * maxRatio) {
@@ -24025,9 +24071,9 @@
           shadowColors.push(_color3);
         }
       } catch (err) {
-        _iterator19.e(err);
+        _iterator18.e(err);
       } finally {
-        _iterator19.f();
+        _iterator18.f();
       }
       if (thinShadows.length > 0) {
         var strokeColors = _getStrokeColorsFromShadows(thinShadows, {
@@ -24040,8 +24086,8 @@
       }
       return shadowColors;
     }
-    function textShadowColor(_ref104) {
-      var colorStr = _ref104.colorStr, offsetX = _ref104.offsetX, offsetY = _ref104.offsetY, blurRadius = _ref104.blurRadius, fontSize = _ref104.fontSize;
+    function textShadowColor(_ref108) {
+      var colorStr = _ref108.colorStr, offsetX = _ref108.offsetX, offsetY = _ref108.offsetY, blurRadius = _ref108.blurRadius, fontSize = _ref108.fontSize;
       if (offsetX > blurRadius || offsetY > blurRadius) {
         return new color_default(0, 0, 0, 0);
       }
@@ -24069,13 +24115,13 @@
         var _stackingOrder2;
         var bgVNode = get_node_from_tree_default(bgElm);
         var bgColor = getOwnBackgroundColor2(bgVNode);
-        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref105) {
-          var vNode = _ref105.vNode;
+        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref109) {
+          var vNode = _ref109.vNode;
           return !!vNode;
         });
-        stackingOrder.forEach(function(_ref106, index) {
+        stackingOrder.forEach(function(_ref110, index) {
           var _stackingOrder;
-          var vNode = _ref106.vNode;
+          var vNode = _ref110.vNode;
           var ancestorVNode2 = (_stackingOrder = stackingOrder[index - 1]) === null || _stackingOrder === void 0 ? void 0 : _stackingOrder.vNode;
           var context2 = addToStackingContext(contextMap, vNode, ancestorVNode2);
           if (index === 0 && !contextMap.get(vNode)) {
@@ -24183,8 +24229,8 @@
           color: bgColors.reduce(_flattenShadowColors)
         } ];
       }
-      for (var _i23 = 0; _i23 < elmStack.length; _i23++) {
-        var bgElm = elmStack[_i23];
+      for (var _i29 = 0; _i29 < elmStack.length; _i29++) {
+        var bgElm = elmStack[_i29];
         var bgElmStyle = window.getComputedStyle(bgElm);
         if (element_has_image_default(bgElm, bgElmStyle)) {
           bgElms.push(bgElm);
@@ -24296,8 +24342,8 @@
       } ];
       var fgColors = [];
       try {
-        for (var _i24 = 0, _colorStack = colorStack; _i24 < _colorStack.length; _i24++) {
-          var colorFn = _colorStack[_i24];
+        for (var _i30 = 0, _colorStack = colorStack; _i30 < _colorStack.length; _i30++) {
+          var colorFn = _colorStack[_i30];
           var _color4 = colorFn();
           if (!_color4) {
             continue;
@@ -24329,8 +24375,8 @@
     function getTextColor(nodeStyle) {
       return new color_default().parseString(nodeStyle.getPropertyValue('-webkit-text-fill-color') || nodeStyle.getPropertyValue('color'));
     }
-    function getStrokeColor(nodeStyle, _ref107) {
-      var _ref107$textStrokeEmM = _ref107.textStrokeEmMin, textStrokeEmMin = _ref107$textStrokeEmM === void 0 ? 0 : _ref107$textStrokeEmM;
+    function getStrokeColor(nodeStyle, _ref111) {
+      var _ref111$textStrokeEmM = _ref111.textStrokeEmMin, textStrokeEmMin = _ref111$textStrokeEmM === void 0 ? 0 : _ref111$textStrokeEmM;
       var strokeWidth = parseFloat(nodeStyle.getPropertyValue('-webkit-text-stroke-width'));
       if (strokeWidth === 0) {
         return null;
@@ -24372,11 +24418,11 @@
       return fgColor;
     }
     function findNodeInContexts(contexts, node) {
-      var _iterator20 = _createForOfIteratorHelper(contexts), _step20;
+      var _iterator19 = _createForOfIteratorHelper(contexts), _step19;
       try {
-        for (_iterator20.s(); !(_step20 = _iterator20.n()).done; ) {
+        for (_iterator19.s(); !(_step19 = _iterator19.n()).done; ) {
           var _context$vNode;
-          var context = _step20.value;
+          var context = _step19.value;
           if (((_context$vNode = context.vNode) === null || _context$vNode === void 0 ? void 0 : _context$vNode.actualNode) === node) {
             return context;
           }
@@ -24386,9 +24432,9 @@
           }
         }
       } catch (err) {
-        _iterator20.e(err);
+        _iterator19.e(err);
       } finally {
-        _iterator20.f();
+        _iterator19.f();
       }
     }
     function hasValidContrastRatio(bg, fg, fontSize, isBold) {
@@ -24492,8 +24538,8 @@
       if (results.length < 2) {
         return results;
       }
-      var incompleteResults = results.filter(function(_ref108) {
-        var result = _ref108.result;
+      var incompleteResults = results.filter(function(_ref112) {
+        var result = _ref112.result;
         return result !== void 0;
       });
       var uniqueResults = [];
@@ -24505,12 +24551,12 @@
         if (nameMap[name]) {
           return 1;
         }
-        var sameNameResults = incompleteResults.filter(function(_ref109, resultNum) {
-          var data = _ref109.data;
+        var sameNameResults = incompleteResults.filter(function(_ref113, resultNum) {
+          var data = _ref113.data;
           return data.name === name && resultNum !== index;
         });
-        var isSameUrl = sameNameResults.every(function(_ref110) {
-          var data = _ref110.data;
+        var isSameUrl = sameNameResults.every(function(_ref114) {
+          var data = _ref114.data;
           return isIdenticalObject(data.urlProps, urlProps);
         });
         if (sameNameResults.length && !isSameUrl) {
@@ -24536,7 +24582,7 @@
       var headingRole = role && role.includes('heading');
       var ariaHeadingLevel = vNode.attr('aria-level');
       var ariaLevel = parseInt(ariaHeadingLevel, 10);
-      var _ref111 = vNode.props.nodeName.match(/h(\d)/) || [], _ref112 = _slicedToArray(_ref111, 2), headingLevel = _ref112[1];
+      var _ref115 = vNode.props.nodeName.match(/h(\d)/) || [], _ref116 = _slicedToArray(_ref115, 2), headingLevel = _ref116[1];
       if (!headingRole) {
         return -1;
       }
@@ -24596,14 +24642,14 @@
     }
     function getHeadingOrder(results) {
       results = _toConsumableArray(results);
-      results.sort(function(_ref113, _ref114) {
-        var nodeA = _ref113.node;
-        var nodeB = _ref114.node;
+      results.sort(function(_ref117, _ref118) {
+        var nodeA = _ref117.node;
+        var nodeB = _ref118.node;
         return nodeA.ancestry.length - nodeB.ancestry.length;
       });
       var headingOrder = results.reduce(mergeHeadingOrder, []);
-      return headingOrder.filter(function(_ref115) {
-        var level = _ref115.level;
+      return headingOrder.filter(function(_ref119) {
+        var level = _ref119.level;
         return level !== -1;
       });
     }
@@ -24692,7 +24738,7 @@
         }, toDecimalSize(nodeRect)));
         return true;
       }
-      var largestInnerRect = getLargestUnobscuredArea(vNode, obscuredWidgets);
+      var largestInnerRect = getLargestUnobscuredArea(vNode, obscuredWidgets, minSize);
       if (!largestInnerRect) {
         this.data({
           minSize: minSize,
@@ -24732,10 +24778,10 @@
     function filterByElmsOverlap(vNode, nearbyElms) {
       var fullyObscuringElms = [];
       var partialObscuringElms = [];
-      var _iterator21 = _createForOfIteratorHelper(nearbyElms), _step21;
+      var _iterator20 = _createForOfIteratorHelper(nearbyElms), _step20;
       try {
-        for (_iterator21.s(); !(_step21 = _iterator21.n()).done; ) {
-          var vNeighbor = _step21.value;
+        for (_iterator20.s(); !(_step20 = _iterator20.n()).done; ) {
+          var vNeighbor = _step20.value;
           if (!isDescendantNotInTabOrder2(vNode, vNeighbor) && _hasVisualOverlap(vNode, vNeighbor) && getCssPointerEvents(vNeighbor) !== 'none') {
             if (isEnclosedRect2(vNode, vNeighbor)) {
               fullyObscuringElms.push(vNeighbor);
@@ -24745,28 +24791,28 @@
           }
         }
       } catch (err) {
-        _iterator21.e(err);
+        _iterator20.e(err);
       } finally {
-        _iterator21.f();
+        _iterator20.f();
       }
       return {
         fullyObscuringElms: fullyObscuringElms,
         partialObscuringElms: partialObscuringElms
       };
     }
-    function getLargestUnobscuredArea(vNode, obscuredNodes) {
+    function getLargestUnobscuredArea(vNode, obscuredNodes, minSize) {
       var nodeRect = vNode.boundingClientRect;
-      var obscuringRects = obscuredNodes.map(function(_ref116) {
-        var rect = _ref116.boundingClientRect;
-        return rect;
-      });
+      var obscuringRects = obscuredNodes.map(function(obscuredNode) {
+        var display2 = obscuredNode.getComputedStylePropertyValue('display');
+        return display2 === 'inline' ? obscuredNode.clientRects : obscuredNode.boundingClientRect;
+      }).flat(Infinity);
       var unobscuredRects;
       try {
         unobscuredRects = _splitRects(nodeRect, obscuringRects);
       } catch (_unused9) {
         return null;
       }
-      return getLargestRect2(unobscuredRects);
+      return getLargestRect2(unobscuredRects, minSize);
     }
     function getLargestRect2(rects, minSize) {
       return rects.reduce(function(rectA, rectB) {
@@ -24803,8 +24849,8 @@
       return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
     }
     function mapActualNodes(vNodes) {
-      return vNodes.map(function(_ref117) {
-        var actualNode = _ref117.actualNode;
+      return vNodes.map(function(_ref120) {
+        var actualNode = _ref120.actualNode;
         return actualNode;
       });
     }
@@ -24820,10 +24866,10 @@
       }
       var closeNeighbors = [];
       var closestOffset = minOffset;
-      var _iterator22 = _createForOfIteratorHelper(_findNearbyElms(vNode, minOffset)), _step22;
+      var _iterator21 = _createForOfIteratorHelper(_findNearbyElms(vNode, minOffset)), _step21;
       try {
-        for (_iterator22.s(); !(_step22 = _iterator22.n()).done; ) {
-          var vNeighbor = _step22.value;
+        for (_iterator21.s(); !(_step21 = _iterator21.n()).done; ) {
+          var vNeighbor = _step21.value;
           if (get_role_type_default(vNeighbor) !== 'widget' || !_isFocusable(vNeighbor)) {
             continue;
           }
@@ -24852,9 +24898,9 @@
           closeNeighbors.push(vNeighbor);
         }
       } catch (err) {
-        _iterator22.e(err);
+        _iterator21.e(err);
       } finally {
-        _iterator22.f();
+        _iterator21.f();
       }
       if (closeNeighbors.length === 0) {
         this.data({
@@ -24863,8 +24909,8 @@
         });
         return true;
       }
-      this.relatedNodes(closeNeighbors.map(function(_ref118) {
-        var actualNode = _ref118.actualNode;
+      this.relatedNodes(closeNeighbors.map(function(_ref121) {
+        var actualNode = _ref121.actualNode;
         return actualNode;
       }));
       if (!closeNeighbors.some(_isInTabOrder)) {
@@ -24885,7 +24931,7 @@
       return Math.round(num * 10) / 10;
     }
     function metaViewportScaleEvaluate(node, options, virtualNode) {
-      var _ref119 = options || {}, _ref119$scaleMinimum = _ref119.scaleMinimum, scaleMinimum = _ref119$scaleMinimum === void 0 ? 2 : _ref119$scaleMinimum, _ref119$lowerBound = _ref119.lowerBound, lowerBound = _ref119$lowerBound === void 0 ? false : _ref119$lowerBound;
+      var _ref122 = options || {}, _ref122$scaleMinimum = _ref122.scaleMinimum, scaleMinimum = _ref122$scaleMinimum === void 0 ? 2 : _ref122$scaleMinimum, _ref122$lowerBound = _ref122.lowerBound, lowerBound = _ref122$lowerBound === void 0 ? false : _ref122$lowerBound;
       var content = virtualNode.attr('content') || '';
       if (!content) {
         return true;
@@ -24930,8 +24976,8 @@
     }
     var meta_viewport_scale_evaluate_default = metaViewportScaleEvaluate;
     function cssOrientationLockEvaluate(node, options, virtualNode, context) {
-      var _ref120 = context || {}, _ref120$cssom = _ref120.cssom, cssom = _ref120$cssom === void 0 ? void 0 : _ref120$cssom;
-      var _ref121 = options || {}, _ref121$degreeThresho = _ref121.degreeThreshold, degreeThreshold = _ref121$degreeThresho === void 0 ? 0 : _ref121$degreeThresho;
+      var _ref123 = context || {}, _ref123$cssom = _ref123.cssom, cssom = _ref123$cssom === void 0 ? void 0 : _ref123$cssom;
+      var _ref124 = options || {}, _ref124$degreeThresho = _ref124.degreeThreshold, degreeThreshold = _ref124$degreeThresho === void 0 ? 0 : _ref124$degreeThresho;
       if (!cssom || !cssom.length) {
         return void 0;
       }
@@ -24939,14 +24985,14 @@
       var relatedElements = [];
       var rulesGroupByDocumentFragment = groupCssomByDocument(cssom);
       var _loop9 = function _loop9() {
-        var key = _Object$keys3[_i25];
+        var key = _Object$keys3[_i31];
         var _rulesGroupByDocument = rulesGroupByDocumentFragment[key], root = _rulesGroupByDocument.root, rules = _rulesGroupByDocument.rules;
         var orientationRules = rules.filter(isMediaRuleWithOrientation);
         if (!orientationRules.length) {
           return 1;
         }
-        orientationRules.forEach(function(_ref122) {
-          var cssRules = _ref122.cssRules;
+        orientationRules.forEach(function(_ref125) {
+          var cssRules = _ref125.cssRules;
           Array.from(cssRules).forEach(function(cssRule) {
             var locked = getIsOrientationLocked(cssRule);
             if (locked && cssRule.selectorText.toUpperCase() !== 'HTML') {
@@ -24957,7 +25003,7 @@
           });
         });
       };
-      for (var _i25 = 0, _Object$keys3 = Object.keys(rulesGroupByDocumentFragment); _i25 < _Object$keys3.length; _i25++) {
+      for (var _i31 = 0, _Object$keys3 = Object.keys(rulesGroupByDocumentFragment); _i31 < _Object$keys3.length; _i31++) {
         if (_loop9()) {
           continue;
         }
@@ -24970,8 +25016,8 @@
       }
       return false;
       function groupCssomByDocument(cssObjectModel) {
-        return cssObjectModel.reduce(function(out, _ref123) {
-          var sheet = _ref123.sheet, root = _ref123.root, shadowId = _ref123.shadowId;
+        return cssObjectModel.reduce(function(out, _ref126) {
+          var sheet = _ref126.sheet, root = _ref126.root, shadowId = _ref126.shadowId;
           var key = shadowId ? shadowId : 'topDocument';
           if (!out[key]) {
             out[key] = {
@@ -24987,15 +25033,15 @@
           return out;
         }, {});
       }
-      function isMediaRuleWithOrientation(_ref124) {
-        var type2 = _ref124.type, cssText = _ref124.cssText;
+      function isMediaRuleWithOrientation(_ref127) {
+        var type2 = _ref127.type, cssText = _ref127.cssText;
         if (type2 !== 4) {
           return false;
         }
         return /orientation:\s*landscape/i.test(cssText) || /orientation:\s*portrait/i.test(cssText);
       }
-      function getIsOrientationLocked(_ref125) {
-        var selectorText = _ref125.selectorText, style = _ref125.style;
+      function getIsOrientationLocked(_ref128) {
+        var selectorText = _ref128.selectorText, style = _ref128.style;
         if (!selectorText || style.length <= 0) {
           return false;
         }
@@ -25050,7 +25096,7 @@
         }
       }
       function getAngleInDegrees(angleWithUnit) {
-        var _ref126 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref127 = _slicedToArray(_ref126, 1), unit = _ref127[0];
+        var _ref129 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref130 = _slicedToArray(_ref129, 1), unit = _ref130[0];
         if (!unit) {
           return 0;
         }
@@ -25191,8 +25237,8 @@
         return false;
       }
       var hasDt = false, hasDd = false, nodeName2;
-      for (var _i26 = 0; _i26 < children.length; _i26++) {
-        nodeName2 = children[_i26].props.nodeName.toUpperCase();
+      for (var _i32 = 0; _i32 < children.length; _i32++) {
+        nodeName2 = children[_i32].props.nodeName.toUpperCase();
         if (nodeName2 === 'DT') {
           hasDt = true;
         }
@@ -25345,8 +25391,8 @@
       this.relatedNodes(relatedNodes);
       return true;
     }
-    function getInvalidSelector(vChild, nested, _ref128) {
-      var _ref128$validRoles = _ref128.validRoles, validRoles = _ref128$validRoles === void 0 ? [] : _ref128$validRoles, _ref128$validNodeName = _ref128.validNodeNames, validNodeNames = _ref128$validNodeName === void 0 ? [] : _ref128$validNodeName;
+    function getInvalidSelector(vChild, nested, _ref131) {
+      var _ref131$validRoles = _ref131.validRoles, validRoles = _ref131$validRoles === void 0 ? [] : _ref131$validRoles, _ref131$validNodeName = _ref131.validNodeNames, validNodeNames = _ref131$validNodeName === void 0 ? [] : _ref131$validNodeName;
       var _vChild$props = vChild.props, nodeName2 = _vChild$props.nodeName, nodeType = _vChild$props.nodeType, nodeValue = _vChild$props.nodeValue;
       var selector = nested ? 'div > ' : '';
       if (nodeType === 3 && nodeValue.trim() !== '') {
@@ -25796,8 +25842,8 @@
     }
     var focusable_no_name_evaluate_default = focusableNoNameEvaluate;
     function focusableModalOpenEvaluate(node, options, virtualNode) {
-      var tabbableElements = virtualNode.tabbableElements.map(function(_ref129) {
-        var actualNode = _ref129.actualNode;
+      var tabbableElements = virtualNode.tabbableElements.map(function(_ref132) {
+        var actualNode = _ref132.actualNode;
         return actualNode;
       });
       if (!tabbableElements || !tabbableElements.length) {
@@ -26085,8 +26131,8 @@
       return blockLike2.indexOf(display2) !== -1 || display2.substr(0, 6) === 'table-';
     }
     function hasPseudoContent(node) {
-      for (var _i27 = 0, _arr3 = [ 'before', 'after' ]; _i27 < _arr3.length; _i27++) {
-        var pseudo = _arr3[_i27];
+      for (var _i33 = 0, _arr3 = [ 'before', 'after' ]; _i33 < _arr3.length; _i33++) {
+        var pseudo = _arr3[_i33];
         var style = window.getComputedStyle(node, ':'.concat(pseudo));
         var content = style.getPropertyValue('content');
         if (content !== 'none') {
@@ -26192,7 +26238,7 @@
       var bold = parseFloat(fontWeight) >= boldValue || fontWeight === 'bold';
       var ptSize = Math.ceil(fontSize * 72) / 96;
       var isSmallFont = bold && ptSize < boldTextPt || !bold && ptSize < largeTextPt;
-      var _ref130 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref130.expected, minThreshold = _ref130.minThreshold, maxThreshold = _ref130.maxThreshold;
+      var _ref133 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref133.expected, minThreshold = _ref133.minThreshold, maxThreshold = _ref133.maxThreshold;
       var pseudoElm = findPseudoElement(virtualNode, {
         ignorePseudo: ignorePseudo,
         pseudoSizeThreshold: pseudoSizeThreshold
@@ -26288,8 +26334,8 @@
       }
       return isValid;
     }
-    function findPseudoElement(vNode, _ref131) {
-      var _ref131$pseudoSizeThr = _ref131.pseudoSizeThreshold, pseudoSizeThreshold = _ref131$pseudoSizeThr === void 0 ? .25 : _ref131$pseudoSizeThr, _ref131$ignorePseudo = _ref131.ignorePseudo, ignorePseudo = _ref131$ignorePseudo === void 0 ? false : _ref131$ignorePseudo;
+    function findPseudoElement(vNode, _ref134) {
+      var _ref134$pseudoSizeThr = _ref134.pseudoSizeThreshold, pseudoSizeThreshold = _ref134$pseudoSizeThr === void 0 ? .25 : _ref134$pseudoSizeThr, _ref134$ignorePseudo = _ref134.ignorePseudo, ignorePseudo = _ref134$ignorePseudo === void 0 ? false : _ref134$ignorePseudo;
       if (ignorePseudo) {
         return;
       }
@@ -26331,7 +26377,7 @@
     }
     function parseUnit(str) {
       var unitRegex = /^([0-9.]+)([a-z]+)$/i;
-      var _ref132 = str.match(unitRegex) || [], _ref133 = _slicedToArray(_ref132, 3), _ref133$ = _ref133[1], value = _ref133$ === void 0 ? '' : _ref133$, _ref133$2 = _ref133[2], unit = _ref133$2 === void 0 ? '' : _ref133$2;
+      var _ref135 = str.match(unitRegex) || [], _ref136 = _slicedToArray(_ref135, 3), _ref136$ = _ref136[1], value = _ref136$ === void 0 ? '' : _ref136$, _ref136$2 = _ref136[2], unit = _ref136$2 === void 0 ? '' : _ref136$2;
       return {
         value: parseFloat(value),
         unit: unit.toLowerCase()
@@ -26689,8 +26735,8 @@
       }
       var owners = getAriaOwners(node);
       if (owners) {
-        for (var _i28 = 0, l = owners.length; _i28 < l; _i28++) {
-          missingParents = getMissingContext(get_node_from_tree_default(owners[_i28]), ownGroupRoles, missingParents, true);
+        for (var _i34 = 0, l = owners.length; _i34 < l; _i34++) {
+          missingParents = getMissingContext(get_node_from_tree_default(owners[_i34]), ownGroupRoles, missingParents, true);
           if (!missingParents) {
             return true;
           }
@@ -26710,19 +26756,20 @@
         return true;
       }
       var ownedRoles = getOwnedRoles(virtualNode, required);
-      var unallowed = ownedRoles.filter(function(_ref134) {
-        var role = _ref134.role, vNode = _ref134.vNode;
+      var unallowed = ownedRoles.filter(function(_ref137) {
+        var role = _ref137.role, vNode = _ref137.vNode;
         return vNode.props.nodeType === 1 && !required.includes(role);
       });
       if (unallowed.length) {
-        this.relatedNodes(unallowed.map(function(_ref135) {
-          var vNode = _ref135.vNode;
+        this.relatedNodes(unallowed.map(function(_ref138) {
+          var vNode = _ref138.vNode;
           return vNode;
         }));
+        var messageKey = virtualNode.attr('aria-busy') === 'true' ? 'aria-busy-fail' : 'unallowed';
         this.data({
-          messageKey: 'unallowed',
-          values: unallowed.map(function(_ref136) {
-            var vNode = _ref136.vNode, attr = _ref136.attr;
+          messageKey: messageKey,
+          values: unallowed.map(function(_ref139) {
+            var vNode = _ref139.vNode, attr = _ref139.attr;
             return getUnallowedSelector(vNode, attr);
           }).filter(function(selector, index, array) {
             return array.indexOf(selector) === index;
@@ -26785,8 +26832,8 @@
       return ownedRoles;
     }
     function hasRequiredChildren(required, ownedRoles) {
-      return ownedRoles.some(function(_ref137) {
-        var role = _ref137.role;
+      return ownedRoles.some(function(_ref140) {
+        var role = _ref140.role;
         return role && required.includes(role);
       });
     }
@@ -26811,8 +26858,8 @@
       }
       return nodeName2;
     }
-    function isContent(_ref138) {
-      var vNode = _ref138.vNode;
+    function isContent(_ref141) {
+      var vNode = _ref141.vNode;
       if (vNode.props.nodeType === 3) {
         return vNode.props.nodeValue.trim().length > 0;
       }
@@ -26941,13 +26988,21 @@
         if (attr.trim() === '') {
           return standards_default.ariaAttrs['aria-errormessage'].allowEmpty;
         }
+        var errormessageTokens = token_list_default(attr);
+        if (errormessageTokens.length > 1) {
+          this.data({
+            messageKey: 'unsupported',
+            values: errormessageTokens
+          });
+          return false;
+        }
         var idref;
         try {
           idref = attr && idrefs_default(virtualNode, 'aria-errormessage')[0];
         } catch (_unused18) {
           this.data({
             messageKey: 'idrefs',
-            values: token_list_default(attr)
+            values: errormessageTokens
           });
           return void 0;
         }
@@ -26955,11 +27010,14 @@
           if (!_isVisibleToScreenReaders(idref)) {
             this.data({
               messageKey: 'hidden',
-              values: token_list_default(attr)
+              values: errormessageTokens
             });
             return false;
           }
-          return get_explicit_role_default(idref) === 'alert' || idref.getAttribute('aria-live') === 'assertive' || idref.getAttribute('aria-live') === 'polite' || token_list_default(virtualNode.attr('aria-describedby')).indexOf(attr) > -1;
+          var describedbyTokens = token_list_default(virtualNode.attr('aria-describedby'));
+          return get_explicit_role_default(idref) === 'alert' || idref.getAttribute('aria-live') === 'assertive' || idref.getAttribute('aria-live') === 'polite' || errormessageTokens.some(function(token) {
+            return describedbyTokens.includes(token);
+          });
         }
         return;
       }
@@ -26971,7 +27029,7 @@
     }
     function ariaConditionalRowAttr(node) {
       var _invalidTableRowAttrs, _invalidTableRowAttrs2;
-      var _ref139 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref139.invalidTableRowAttrs;
+      var _ref142 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref142.invalidTableRowAttrs;
       var virtualNode = arguments.length > 2 ? arguments[2] : undefined;
       var invalidAttrs = (_invalidTableRowAttrs = invalidTableRowAttrs === null || invalidTableRowAttrs === void 0 || (_invalidTableRowAttrs2 = invalidTableRowAttrs.filter) === null || _invalidTableRowAttrs2 === void 0 ? void 0 : _invalidTableRowAttrs2.call(invalidTableRowAttrs, function(invalidAttr) {
         return virtualNode.hasAttr(invalidAttr);
@@ -27073,18 +27131,18 @@
       if (Array.isArray(options[role])) {
         allowed = unique_array_default(options[role].concat(allowed));
       }
-      var _iterator23 = _createForOfIteratorHelper(virtualNode.attrNames), _step23;
+      var _iterator22 = _createForOfIteratorHelper(virtualNode.attrNames), _step22;
       try {
-        for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
-          var attrName = _step23.value;
+        for (_iterator22.s(); !(_step22 = _iterator22.n()).done; ) {
+          var attrName = _step22.value;
           if (validate_attr_default(attrName) && !allowed.includes(attrName) && !ignoredAttrs(attrName, virtualNode.attr(attrName), virtualNode)) {
             invalid.push(attrName);
           }
         }
       } catch (err) {
-        _iterator23.e(err);
+        _iterator22.e(err);
       } finally {
-        _iterator23.f();
+        _iterator22.f();
       }
       if (!invalid.length) {
         return true;
@@ -27156,7 +27214,8 @@
       return _isInTabOrder(vNode) || !hasWidgetAncestorInTabOrder(vNode);
     }, function(node) {
       return !is_in_text_block_default(node, {
-        noLengthCompare: true
+        noLengthCompare: true,
+        includeInlineBlock: true
       });
     } ];
     function isWidgetType(vNode) {
@@ -27201,12 +27260,30 @@
     }
     var skip_link_matches_default = skipLinkMatches;
     function scrollableRegionFocusableMatches(node, virtualNode) {
-      return get_scroll_default(node, 13) !== void 0 && _isComboboxPopup(virtualNode) === false && isNoneEmptyElement(virtualNode);
+      return get_scroll_default(node, 13) !== void 0 && _isComboboxPopup(virtualNode) === false && isNonEmptyElementOutsideViewableRect(virtualNode);
     }
-    function isNoneEmptyElement(vNode) {
+    function isNonEmptyElementOutsideViewableRect(vNode) {
+      var boundingRect = vNode.boundingClientRect;
       return query_selector_all_default(vNode, '*').some(function(elm) {
-        return has_content_virtual_default(elm, true, true);
+        if (!has_content_virtual_default(elm, true, true)) {
+          return false;
+        }
+        var rects = [];
+        if (hasChildTextNodes(elm)) {
+          var _rects;
+          (_rects = rects).push.apply(_rects, _toConsumableArray(getContentRects2(elm)));
+        } else {
+          rects = [ elm.boundingClientRect ];
+        }
+        return rects.some(function(rect) {
+          return rect.left < boundingRect.left || rect.right > boundingRect.right || rect.top < boundingRect.top || rect.bottom > boundingRect.bottom;
+        });
       });
+    }
+    function getContentRects2(vNode) {
+      var range2 = document.createRange();
+      range2.selectNodeContents(vNode.actualNode);
+      return Array.from(range2.getClientRects());
     }
     function presentationRoleConflictMatches(node, virtualNode) {
       return implicit_role_default(virtualNode, {
@@ -27232,7 +27309,7 @@
       if (!role || [ 'none', 'presentation' ].includes(role)) {
         return true;
       }
-      var _ref140 = aria_roles_default[role] || {}, accessibleNameRequired = _ref140.accessibleNameRequired;
+      var _ref143 = aria_roles_default[role] || {}, accessibleNameRequired = _ref143.accessibleNameRequired;
       if (accessibleNameRequired || _isFocusable(virtualNode)) {
         return true;
       }
@@ -27657,8 +27734,8 @@
       var aria = /^aria-/;
       var attrs = virtualNode.attrNames;
       if (attrs.length) {
-        for (var _i29 = 0, l = attrs.length; _i29 < l; _i29++) {
-          if (aria.test(attrs[_i29])) {
+        for (var _i35 = 0, l = attrs.length; _i35 < l; _i35++) {
+          if (aria.test(attrs[_i35])) {
             return true;
           }
         }
@@ -28365,8 +28442,8 @@
             lang: this.lang
           };
           var checkIDs = Object.keys(this.data.checks);
-          for (var _i30 = 0; _i30 < checkIDs.length; _i30++) {
-            var _id8 = checkIDs[_i30];
+          for (var _i36 = 0; _i36 < checkIDs.length; _i36++) {
+            var _id8 = checkIDs[_i36];
             var check = this.data.checks[_id8];
             var _check$messages = check.messages, pass = _check$messages.pass, fail = _check$messages.fail, incomplete = _check$messages.incomplete;
             locale.checks[_id8] = {
@@ -28376,8 +28453,8 @@
             };
           }
           var ruleIDs = Object.keys(this.data.rules);
-          for (var _i31 = 0; _i31 < ruleIDs.length; _i31++) {
-            var _id9 = ruleIDs[_i31];
+          for (var _i37 = 0; _i37 < ruleIDs.length; _i37++) {
+            var _id9 = ruleIDs[_i37];
             var rule = this.data.rules[_id9];
             var description = rule.description, help = rule.help;
             locale.rules[_id9] = {
@@ -28386,8 +28463,8 @@
             };
           }
           var failureSummaries = Object.keys(this.data.failureSummaries);
-          for (var _i32 = 0; _i32 < failureSummaries.length; _i32++) {
-            var type2 = failureSummaries[_i32];
+          for (var _i38 = 0; _i38 < failureSummaries.length; _i38++) {
+            var type2 = failureSummaries[_i38];
             var failureSummary2 = this.data.failureSummaries[type2];
             var failureMessage = failureSummary2.failureMessage;
             locale.failureSummaries[type2] = {
@@ -28410,8 +28487,8 @@
         key: '_applyCheckLocale',
         value: function _applyCheckLocale(checks) {
           var keys = Object.keys(checks);
-          for (var _i33 = 0; _i33 < keys.length; _i33++) {
-            var _id0 = keys[_i33];
+          for (var _i39 = 0; _i39 < keys.length; _i39++) {
+            var _id0 = keys[_i39];
             if (!this.data.checks[_id0]) {
               throw new Error('Locale provided for unknown check: "'.concat(_id0, '"'));
             }
@@ -28422,8 +28499,8 @@
         key: '_applyRuleLocale',
         value: function _applyRuleLocale(rules) {
           var keys = Object.keys(rules);
-          for (var _i34 = 0; _i34 < keys.length; _i34++) {
-            var _id1 = keys[_i34];
+          for (var _i40 = 0; _i40 < keys.length; _i40++) {
+            var _id1 = keys[_i40];
             if (!this.data.rules[_id1]) {
               throw new Error('Locale provided for unknown rule: "'.concat(_id1, '"'));
             }
@@ -28434,8 +28511,8 @@
         key: '_applyFailureSummaries',
         value: function _applyFailureSummaries(messages) {
           var keys = Object.keys(messages);
-          for (var _i35 = 0; _i35 < keys.length; _i35++) {
-            var _key1 = keys[_i35];
+          for (var _i41 = 0; _i41 < keys.length; _i41++) {
+            var _key1 = keys[_i41];
             if (!this.data.failureSummaries[_key1]) {
               throw new Error('Locale provided for unknown failureMessage: "'.concat(_key1, '"'));
             }
@@ -28467,10 +28544,10 @@
         value: function setAllowedOrigins(allowedOrigins) {
           var defaultOrigin = getDefaultOrigin();
           this.allowedOrigins = [];
-          var _iterator24 = _createForOfIteratorHelper(allowedOrigins), _step24;
+          var _iterator23 = _createForOfIteratorHelper(allowedOrigins), _step23;
           try {
-            for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
-              var origin = _step24.value;
+            for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
+              var origin = _step23.value;
               if (origin === constants_default.allOrigins) {
                 this.allowedOrigins = [ '*' ];
                 return;
@@ -28481,9 +28558,9 @@
               }
             }
           } catch (err) {
-            _iterator24.e(err);
+            _iterator23.e(err);
           } finally {
-            _iterator24.f();
+            _iterator23.f();
           }
         }
       }, {
@@ -28888,8 +28965,8 @@
         } ]
       });
     }
-    function getHelpUrl(_ref141, ruleId, version) {
-      var brand = _ref141.brand, application = _ref141.application, lang = _ref141.lang;
+    function getHelpUrl(_ref144, ruleId, version) {
+      var brand = _ref144.brand, application = _ref144.application, lang = _ref144.lang;
       return constants_default.helpUrlBase + brand + '/' + (version || axe.version.substring(0, axe.version.lastIndexOf('.'))) + '/' + ruleId + '?application=' + encodeURIComponent(application) + (lang && lang !== 'en' ? '&lang=' + encodeURIComponent(lang) : '');
     }
     function setupGlobals(context) {
@@ -29111,9 +29188,9 @@
         toolOptions: options
       });
     }
-    function normalizeRunParams(_ref142) {
-      var _ref144, _options$reporter, _axe$_audit;
-      var _ref143 = _slicedToArray(_ref142, 3), context = _ref143[0], options = _ref143[1], callback = _ref143[2];
+    function normalizeRunParams(_ref145) {
+      var _ref147, _options$reporter, _axe$_audit;
+      var _ref146 = _slicedToArray(_ref145, 3), context = _ref146[0], options = _ref146[1], callback = _ref146[2];
       var typeErr = new TypeError('axe.run arguments are invalid');
       if (!_isContextSpec(context)) {
         if (callback !== void 0) {
@@ -29134,7 +29211,7 @@
         throw typeErr;
       }
       options = clone2(options);
-      options.reporter = (_ref144 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit = axe._audit) === null || _axe$_audit === void 0 ? void 0 : _axe$_audit.reporter) !== null && _ref144 !== void 0 ? _ref144 : 'v1';
+      options.reporter = (_ref147 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit = axe._audit) === null || _axe$_audit === void 0 ? void 0 : _axe$_audit.reporter) !== null && _ref147 !== void 0 ? _ref147 : 'v1';
       return {
         context: context,
         options: options,
@@ -29255,8 +29332,8 @@
         axe._audit.run(contextObj, options, res, rej);
       }).then(function(results) {
         results = node_serializer_default.mapRawResults(results);
-        var frames = contextObj.frames.map(function(_ref145) {
-          var node = _ref145.node;
+        var frames = contextObj.frames.map(function(_ref148) {
+          var node = _ref148.node;
           return node_serializer_default.toSpec(node);
         });
         var environmentData;
@@ -29277,14 +29354,14 @@
       });
     }
     function finishRun(partialResults) {
-      var _ref147, _options$reporter2, _axe$_audit2;
+      var _ref150, _options$reporter2, _axe$_audit2;
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       options = clone2(options);
-      var _ref146 = partialResults.find(function(r) {
+      var _ref149 = partialResults.find(function(r) {
         return r.environmentData;
-      }) || {}, environmentData = _ref146.environmentData;
+      }) || {}, environmentData = _ref149.environmentData;
       axe._audit.normalizeOptions(options);
-      options.reporter = (_ref147 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref147 !== void 0 ? _ref147 : 'v1';
+      options.reporter = (_ref150 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref150 !== void 0 ? _ref150 : 'v1';
       setFrameSpec(partialResults);
       var results = merge_results_default(partialResults);
       results = axe._audit.after(results, options);
@@ -29296,10 +29373,10 @@
     }
     function setFrameSpec(partialResults) {
       var frameStack = [];
-      var _iterator25 = _createForOfIteratorHelper(partialResults), _step25;
+      var _iterator24 = _createForOfIteratorHelper(partialResults), _step24;
       try {
-        for (_iterator25.s(); !(_step25 = _iterator25.n()).done; ) {
-          var partialResult = _step25.value;
+        for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
+          var partialResult = _step24.value;
           var frameSpec = frameStack.shift();
           if (!partialResult) {
             continue;
@@ -29309,13 +29386,13 @@
           frameStack.unshift.apply(frameStack, _toConsumableArray(frameSpecs));
         }
       } catch (err) {
-        _iterator25.e(err);
+        _iterator24.e(err);
       } finally {
-        _iterator25.f();
+        _iterator24.f();
       }
     }
-    function getMergedFrameSpecs(_ref148) {
-      var childFrameSpecs = _ref148.frames, parentFrameSpec = _ref148.frameSpec;
+    function getMergedFrameSpecs(_ref151) {
+      var childFrameSpecs = _ref151.frames, parentFrameSpec = _ref151.frameSpec;
       if (!parentFrameSpec) {
         return childFrameSpecs;
       }
@@ -29379,8 +29456,8 @@
       var transformedResults = results.map(function(result) {
         var transformedResult = _extends({}, result);
         var types = [ 'passes', 'violations', 'incomplete', 'inapplicable' ];
-        for (var _i36 = 0, _types = types; _i36 < _types.length; _i36++) {
-          var type2 = _types[_i36];
+        for (var _i42 = 0, _types = types; _i42 < _types.length; _i42++) {
+          var type2 = _types[_i42];
           transformedResult[type2] = node_serializer_default.mapRawNodeResults(transformedResult[type2]);
         }
         return transformedResult;
@@ -29872,7 +29949,7 @@
           help: 'scope attribute should be used correctly'
         },
         'scrollable-region-focusable': {
-          description: 'Ensure elements that have scrollable content are accessible by keyboard',
+          description: 'Ensure elements that have scrollable content are accessible by keyboard in Safari',
           help: 'Scrollable region must have keyboard access'
         },
         'select-name': {
@@ -29993,6 +30070,7 @@
             fail: {
               singular: 'aria-errormessage value `${data.values}` must use a technique to announce the message (e.g., aria-live, aria-describedby, role=alert, etc.)',
               plural: 'aria-errormessage values `${data.values}` must use a technique to announce the message (e.g., aria-live, aria-describedby, role=alert, etc.)',
+              unsupported: 'Multiple IDs in aria-errormessage is not widely supported in assistive technologies',
               hidden: 'aria-errormessage value `${data.values}` cannot reference a hidden element'
             },
             incomplete: {
@@ -30054,7 +30132,8 @@
             fail: {
               singular: 'Required ARIA child role not present: ${data.values}',
               plural: 'Required ARIA children role not present: ${data.values}',
-              unallowed: 'Element has children which are not allowed: ${data.values}'
+              unallowed: 'Element has children which are not allowed: ${data.values}',
+              'aria-busy-fail': 'Element has children which are not allowed: ${data.values}; Having aria-busy="true" does not allow children with roles that are not allowed'
             },
             incomplete: {
               singular: 'Expecting ARIA child role to be added: ${data.values}',
