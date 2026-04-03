@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
+"pytest_playwright_axe" = ["py.typed"]
 "pytest_playwright_axe.resources" = ["*.js"]
 
 [project]
