@@ -1,4 +1,4 @@
-/*! axe v4.11.2
+/*! axe v4.11.3
  * Copyright (c) 2015 - 2026 Deque Systems, Inc.
  *
  * Your use of this Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@
     }, _typeof(o);
   }
   var axe = axe || {};
-  axe.version = '4.11.2';
+  axe.version = '4.11.3';
   if (typeof define === 'function' && define.amd) {
     define('axe-core', [], function() {
       return axe;
@@ -8148,8 +8148,8 @@
         format.type || (format.type = 'function');
         format.name || (format.name = 'color');
         format.coordGrammar = parseCoordGrammar(format.coords);
-        var coordFormats = Object.entries(this.coords).map(function(_ref152, i) {
-          var _ref153 = _slicedToArray(_ref152, 2), id = _ref153[0], coordMeta = _ref153[1];
+        var coordFormats = Object.entries(this.coords).map(function(_ref153, i) {
+          var _ref154 = _slicedToArray(_ref153, 2), id = _ref154[0], coordMeta = _ref154[1];
           var outputType = format.coordGrammar[i][0];
           var fromRange = coordMeta.range || coordMeta.refRange;
           var toRange = outputType.range, suffix = '';
@@ -11837,14 +11837,14 @@
     var channels = {};
     function storeReplyHandler(channelId, replyHandler) {
       var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-      assert_default(!channels[channelId], 'A replyHandler already exists for this message channel.');
+      assert_default(!Object.prototype.hasOwnProperty.call(channels, channelId), 'A replyHandler already exists for this message channel.');
       channels[channelId] = {
         replyHandler: replyHandler,
         sendToParent: sendToParent
       };
     }
     function getReplyHandler(channelId) {
-      return channels[channelId];
+      return Object.prototype.hasOwnProperty.call(channels, channelId) ? channels[channelId] : void 0;
     }
     function deleteReplyHandler(channelId) {
       delete channels[channelId];
@@ -12007,7 +12007,7 @@
     }
     function messageListener(data, responder) {
       var topic = data.topic, message = data.message, keepalive = data.keepalive;
-      var topicHandler = topicHandlers[topic];
+      var topicHandler = Object.prototype.hasOwnProperty.call(topicHandlers, topic) ? topicHandlers[topic] : void 0;
       if (!topicHandler) {
         return;
       }
@@ -12036,7 +12036,7 @@
     };
     _respondable.subscribe = function subscribe(topic, topicHandler) {
       assert_default(typeof topicHandler === 'function', 'Subscriber callback must be a function');
-      assert_default(!topicHandlers[topic], 'Topic '.concat(topic, ' is already registered to.'));
+      assert_default(!Object.prototype.hasOwnProperty.call(topicHandlers, topic), 'Topic '.concat(topic, ' is already registered to.'));
       topicHandlers[topic] = topicHandler;
     };
     _respondable.isInFrame = function isInFrame() {
@@ -12445,6 +12445,9 @@
       isCurrentPageLink: function isCurrentPageLink() {
         return _isCurrentPageLink;
       },
+      isFixedPosition: function isFixedPosition() {
+        return _isFixedPosition;
+      },
       isFocusable: function isFocusable() {
         return _isFocusable;
       },
@@ -12811,6 +12814,29 @@
       };
     }
     var get_viewport_size_default = getViewportSize;
+    function _isFixedPosition(node) {
+      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref41.skipAncestors;
+      var _nodeLookup2 = _nodeLookup(node), vNode = _nodeLookup2.vNode;
+      if (!vNode) {
+        return false;
+      }
+      if (skipAncestors) {
+        return isFixedSelf(vNode);
+      }
+      return isFixedAncestors(vNode);
+    }
+    var isFixedSelf = memoize_default(function isFixedSelfMemoized(vNode) {
+      return vNode.getComputedStylePropertyValue('position') === 'fixed';
+    });
+    var isFixedAncestors = memoize_default(function isFixedAncestorsMemoized(vNode) {
+      if (isFixedSelf(vNode)) {
+        return true;
+      }
+      if (!vNode.parent) {
+        return false;
+      }
+      return isFixedAncestors(vNode.parent);
+    });
     function noParentScrolled(element, offset) {
       element = get_composed_parent_default(element);
       while (element && element.nodeName.toLowerCase() !== 'html') {
@@ -12825,34 +12851,38 @@
       return true;
     }
     function isOffscreen(element) {
-      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref41.isAncestor;
+      var _ref42 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref42.isAncestor;
       if (isAncestor) {
         return false;
       }
-      var _nodeLookup2 = _nodeLookup(element), domNode = _nodeLookup2.domNode;
+      var _nodeLookup3 = _nodeLookup(element), domNode = _nodeLookup3.domNode;
       if (!domNode) {
         return void 0;
       }
-      var leftBoundary;
       var docElement = document.documentElement;
       var styl = window.getComputedStyle(domNode);
       var dir = window.getComputedStyle(document.body || docElement).getPropertyValue('direction');
-      var coords = get_element_coordinates_default(domNode);
-      if (coords.bottom < 0 && (noParentScrolled(domNode, coords.bottom) || styl.position === 'absolute')) {
-        return true;
+      var isFixed = _isFixedPosition(domNode);
+      var coords = isFixed ? domNode.getBoundingClientRect() : get_element_coordinates_default(domNode);
+      if (coords.top === 0 && coords.bottom === 0) {
+        return false;
       }
       if (coords.left === 0 && coords.right === 0) {
         return false;
       }
-      if (dir === 'ltr') {
-        if (coords.right <= 0) {
-          return true;
-        }
-      } else {
-        leftBoundary = Math.max(docElement.scrollWidth, get_viewport_size_default(window).width);
-        if (coords.left >= leftBoundary) {
-          return true;
-        }
+      if (coords.bottom <= 0 && (noParentScrolled(domNode, coords.bottom) || styl.position === 'absolute')) {
+        return true;
+      }
+      var viewportSize = get_viewport_size_default(window);
+      if (isFixed && coords.top >= viewportSize.height) {
+        return true;
+      }
+      var rightEdge = Math.max(docElement.scrollWidth, viewportSize.width);
+      if ((isFixed || dir === 'rtl') && coords.left >= rightEdge) {
+        return true;
+      }
+      if ((isFixed || dir === 'ltr') && coords.right <= 0) {
+        return true;
       }
       return false;
     }
@@ -12891,9 +12921,9 @@
       var left = Math.min(rectA.left, rectB.left);
       return new window.DOMRect(left, top, right - left, bottom - top);
     }
-    function _isPointInRect(_ref42, _ref43) {
-      var x = _ref42.x, y = _ref42.y;
-      var top = _ref43.top, right = _ref43.right, bottom = _ref43.bottom, left = _ref43.left;
+    function _isPointInRect(_ref43, _ref44) {
+      var x = _ref43.x, y = _ref43.y;
+      var top = _ref44.top, right = _ref44.right, bottom = _ref44.bottom, left = _ref44.left;
       return y >= top && x <= right && y <= bottom && x >= left;
     }
     var math_exports = {};
@@ -12936,13 +12966,13 @@
       }
       return new window.DOMRect(leftX, topY, rightX - leftX, bottomY - topY);
     }
-    function _getRectCenter(_ref44) {
-      var left = _ref44.left, top = _ref44.top, width = _ref44.width, height = _ref44.height;
+    function _getRectCenter(_ref45) {
+      var left = _ref45.left, top = _ref45.top, width = _ref45.width, height = _ref45.height;
       return new window.DOMPoint(left + width / 2, top + height / 2);
     }
     var roundingMargin = .05;
-    function _rectHasMinimumSize(minSize, _ref45) {
-      var width = _ref45.width, height = _ref45.height;
+    function _rectHasMinimumSize(minSize, _ref46) {
+      var width = _ref46.width, height = _ref46.height;
       return width + roundingMargin >= minSize && height + roundingMargin >= minSize;
     }
     function _getOffset(vTarget, vNeighbor) {
@@ -13224,8 +13254,8 @@
     function createStackingOrder(vNode, parentVNode, treeOrder) {
       var stackingOrder = parentVNode._stackingOrder.slice();
       if (isStackingContext(vNode, parentVNode)) {
-        var index = stackingOrder.findIndex(function(_ref46) {
-          var stackLevel2 = _ref46.stackLevel;
+        var index = stackingOrder.findIndex(function(_ref47) {
+          var stackLevel2 = _ref47.stackLevel;
           return [ ROOT_LEVEL, FLOAT_LEVEL, POSITION_LEVEL ].includes(stackLevel2);
         });
         if (index !== -1) {
@@ -13321,9 +13351,9 @@
         }
       }, {
         key: 'getCellFromPoint',
-        value: function getCellFromPoint(_ref47) {
+        value: function getCellFromPoint(_ref48) {
           var _this$cells, _row;
-          var x = _ref47.x, y = _ref47.y;
+          var x = _ref48.x, y = _ref48.y;
           assert_default(this.boundaries, 'Grid does not have cells added');
           var rowIndex = this.toGridIndex(y);
           var colIndex = this.toGridIndex(x);
@@ -13353,8 +13383,8 @@
         }
       }, {
         key: 'getGridPositionOfRect',
-        value: function getGridPositionOfRect(_ref48) {
-          var top = _ref48.top, right = _ref48.right, bottom = _ref48.bottom, left = _ref48.left;
+        value: function getGridPositionOfRect(_ref49) {
+          var top = _ref49.top, right = _ref49.right, bottom = _ref49.bottom, left = _ref49.left;
           var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
           top = this.toGridIndex(top - margin);
           right = this.toGridIndex(right + margin - 1);
@@ -13383,7 +13413,7 @@
     }
     function _getNodeGrid(node) {
       _createGrid();
-      var _nodeLookup3 = _nodeLookup(node), vNode = _nodeLookup3.vNode;
+      var _nodeLookup4 = _nodeLookup(node), vNode = _nodeLookup4.vNode;
       return vNode._grid;
     }
     function _findNearbyElms(vNode) {
@@ -13394,7 +13424,7 @@
         return [];
       }
       var rect = vNode.boundingClientRect;
-      var selfIsFixed = hasFixedPosition(vNode);
+      var selfIsFixed = _isFixedPosition(vNode);
       var gridPosition = grid.getGridPositionOfRect(rect, margin);
       var neighbors = [];
       grid.loopGridPosition(gridPosition, function(vNeighbors) {
@@ -13402,7 +13432,7 @@
         try {
           for (_iterator0.s(); !(_step0 = _iterator0.n()).done; ) {
             var vNeighbor = _step0.value;
-            if (vNeighbor && vNeighbor !== vNode && !neighbors.includes(vNeighbor) && selfIsFixed === hasFixedPosition(vNeighbor)) {
+            if (vNeighbor && vNeighbor !== vNode && !neighbors.includes(vNeighbor) && selfIsFixed === _isFixedPosition(vNeighbor)) {
               neighbors.push(vNeighbor);
             }
           }
@@ -13414,15 +13444,6 @@
       });
       return neighbors;
     }
-    var hasFixedPosition = memoize_default(function(vNode) {
-      if (!vNode) {
-        return false;
-      }
-      if (vNode.getComputedStylePropertyValue('position') === 'fixed') {
-        return true;
-      }
-      return hasFixedPosition(vNode.parent);
-    });
     var getModalDialog = memoize_default(function getModalDialogMemoized() {
       var _dialogs$find;
       if (!axe._tree) {
@@ -13446,7 +13467,7 @@
       }
       return (_dialogs$find = dialogs.find(function(dialog) {
         var _getNodeFromGrid;
-        var _ref49 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref49.vNode, rect = _ref49.rect;
+        var _ref50 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref50.vNode, rect = _ref50.rect;
         if (!vNode) {
           return false;
         }
@@ -13487,7 +13508,7 @@
       }
     }
     function _isInert(vNode) {
-      var _ref50 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref50.skipAncestors, isAncestor = _ref50.isAncestor;
+      var _ref51 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref51.skipAncestors, isAncestor = _ref51.isAncestor;
       if (skipAncestors) {
         return isInertSelf(vNode, isAncestor);
       }
@@ -13519,7 +13540,7 @@
       return allowedDisabledNodeNames.includes(nodeName2);
     }
     function focusDisabled(el) {
-      var _nodeLookup4 = _nodeLookup(el), vNode = _nodeLookup4.vNode;
+      var _nodeLookup5 = _nodeLookup(el), vNode = _nodeLookup5.vNode;
       if (isDisabledAttrAllowed(vNode.props.nodeName) && vNode.hasAttr('disabled') || _isInert(vNode)) {
         return true;
       }
@@ -13736,7 +13757,7 @@
     }
     var get_tabbable_elements_default = getTabbableElements;
     function isNativelyFocusable(el) {
-      var _nodeLookup5 = _nodeLookup(el), vNode = _nodeLookup5.vNode;
+      var _nodeLookup6 = _nodeLookup(el), vNode = _nodeLookup6.vNode;
       if (!vNode || focus_disabled_default(vNode)) {
         return false;
       }
@@ -13764,7 +13785,7 @@
     }
     var is_natively_focusable_default = isNativelyFocusable;
     function _isFocusable(el) {
-      var _nodeLookup6 = _nodeLookup(el), vNode = _nodeLookup6.vNode;
+      var _nodeLookup7 = _nodeLookup(el), vNode = _nodeLookup7.vNode;
       if (vNode.props.nodeType !== 1) {
         return false;
       }
@@ -13777,7 +13798,7 @@
       return tabindex !== null;
     }
     function _isInTabOrder(el) {
-      var _nodeLookup7 = _nodeLookup(el), vNode = _nodeLookup7.vNode;
+      var _nodeLookup8 = _nodeLookup(el), vNode = _nodeLookup8.vNode;
       if (vNode.props.nodeType !== 1) {
         return false;
       }
@@ -13920,7 +13941,7 @@
     var accessible_text_default = accessibleText;
     function arialabelledbyText(element) {
       var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var _nodeLookup8 = _nodeLookup(element), vNode = _nodeLookup8.vNode;
+      var _nodeLookup9 = _nodeLookup(element), vNode = _nodeLookup9.vNode;
       if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
         return '';
       }
@@ -13944,7 +13965,7 @@
     }
     var arialabelledby_text_default = arialabelledbyText;
     function _arialabelText(element) {
-      var _nodeLookup9 = _nodeLookup(element), vNode = _nodeLookup9.vNode;
+      var _nodeLookup0 = _nodeLookup(element), vNode = _nodeLookup0.vNode;
       if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
         return '';
       }
@@ -15067,7 +15088,8 @@
       br: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: [ 'presentation', 'none' ],
-        namingMethods: [ 'titleText', 'singleSpace' ]
+        namingMethods: [ 'titleText', 'singleSpace' ],
+        allowedAriaAttrs: [ 'aria-hidden' ]
       },
       button: {
         contentTypes: [ 'interactive', 'phrasing', 'flow' ],
@@ -15690,7 +15712,8 @@
       },
       wbr: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: [ 'presentation', 'none' ]
+        allowedRoles: [ 'presentation', 'none' ],
+        allowedAriaAttrs: [ 'aria-hidden' ]
       }
     };
     var html_elms_default = htmlElms;
@@ -15871,7 +15894,7 @@
     }
     var is_unsupported_role_default = isUnsupportedRole;
     function isValidRole(role) {
-      var _ref51 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref51.allowAbstract, _ref51$flagUnsupporte = _ref51.flagUnsupported, flagUnsupported = _ref51$flagUnsupporte === void 0 ? false : _ref51$flagUnsupporte;
+      var _ref52 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref52.allowAbstract, _ref52$flagUnsupporte = _ref52.flagUnsupported, flagUnsupported = _ref52$flagUnsupporte === void 0 ? false : _ref52$flagUnsupporte;
       var roleDefinition = standards_default.ariaRoles[role];
       var isRoleUnsupported = is_unsupported_role_default(role);
       if (!roleDefinition || flagUnsupported && isRoleUnsupported) {
@@ -15881,7 +15904,7 @@
     }
     var is_valid_role_default = isValidRole;
     function getExplicitRole(vNode) {
-      var _ref52 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref52.fallback, abstracts = _ref52.abstracts, dpub = _ref52.dpub;
+      var _ref53 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref53.fallback, abstracts = _ref53.abstracts, dpub = _ref53.dpub;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -15967,7 +15990,7 @@
     }
     var get_cell_position_default = memoize_default(getCellPosition);
     function _getScope(el) {
-      var _nodeLookup0 = _nodeLookup(el), vNode = _nodeLookup0.vNode, cell = _nodeLookup0.domNode;
+      var _nodeLookup1 = _nodeLookup(el), vNode = _nodeLookup1.vNode, cell = _nodeLookup1.domNode;
       var scope = vNode.attr('scope');
       var role = get_explicit_role_default(vNode);
       if (![ 'td', 'th' ].includes(vNode.props.nodeName)) {
@@ -16030,7 +16053,7 @@
       });
     };
     function hasAccessibleName(vNode) {
-      var _ref53 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref53$checkTitle = _ref53.checkTitle, checkTitle = _ref53$checkTitle === void 0 ? false : _ref53$checkTitle;
+      var _ref54 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref54$checkTitle = _ref54.checkTitle, checkTitle = _ref54$checkTitle === void 0 ? false : _ref54$checkTitle;
       return !!(sanitize_default(arialabelledby_text_default(vNode)) || sanitize_default(_arialabelText(vNode)) || checkTitle && (vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) === 1 && sanitize_default(vNode.attr('title')));
     }
     var implicitHtmlRoles = {
@@ -16281,7 +16304,7 @@
     matches_default.semanticRole = semantic_role_default;
     var matches_default2 = matches_default;
     function getElementSpec(vNode) {
-      var _ref54 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref54$noMatchAccessi = _ref54.noMatchAccessibleName, noMatchAccessibleName = _ref54$noMatchAccessi === void 0 ? false : _ref54$noMatchAccessi;
+      var _ref55 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref55$noMatchAccessi = _ref55.noMatchAccessibleName, noMatchAccessibleName = _ref55$noMatchAccessi === void 0 ? false : _ref55$noMatchAccessi;
       var standard = standards_default.htmlElms[vNode.props.nodeName];
       if (!standard) {
         return {};
@@ -16318,7 +16341,7 @@
     }
     var get_element_spec_default = getElementSpec;
     function implicitRole2(node) {
-      var _ref55 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref55.chromium;
+      var _ref56 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref56.chromium;
       var vNode = node instanceof abstract_virtual_node_default ? node : get_node_from_tree_default(node);
       node = vNode.actualNode;
       if (!vNode) {
@@ -16371,8 +16394,8 @@
       }
       return getInheritedRole(vNode.parent, explicitRoleOptions);
     }
-    function resolveImplicitRole(vNode, _ref56) {
-      var chromium = _ref56.chromium, explicitRoleOptions = _objectWithoutProperties(_ref56, _excluded1);
+    function resolveImplicitRole(vNode, _ref57) {
+      var chromium = _ref57.chromium, explicitRoleOptions = _objectWithoutProperties(_ref57, _excluded1);
       var implicitRole3 = implicit_role_default(vNode, {
         chromium: chromium
       });
@@ -16392,9 +16415,9 @@
       return hasGlobalAria || _isFocusable(vNode);
     }
     function resolveRole(node) {
-      var _ref57 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noImplicit = _ref57.noImplicit, roleOptions = _objectWithoutProperties(_ref57, _excluded10);
-      var _nodeLookup1 = _nodeLookup(node), vNode = _nodeLookup1.vNode;
+      var _ref58 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noImplicit = _ref58.noImplicit, roleOptions = _objectWithoutProperties(_ref58, _excluded10);
+      var _nodeLookup10 = _nodeLookup(node), vNode = _nodeLookup10.vNode;
       if (vNode.props.nodeType !== 1) {
         return null;
       }
@@ -16411,8 +16434,8 @@
       return explicitRole2;
     }
     function getRole(node) {
-      var _ref58 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noPresentational = _ref58.noPresentational, options = _objectWithoutProperties(_ref58, _excluded11);
+      var _ref59 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noPresentational = _ref59.noPresentational, options = _objectWithoutProperties(_ref59, _excluded11);
       var role = resolveRole(node, options);
       if (noPresentational && [ 'presentation', 'none' ].includes(role)) {
         return null;
@@ -16422,7 +16445,7 @@
     var get_role_default = getRole;
     var alwaysTitleElements = [ 'iframe' ];
     function titleText(node) {
-      var _nodeLookup10 = _nodeLookup(node), vNode = _nodeLookup10.vNode;
+      var _nodeLookup11 = _nodeLookup(node), vNode = _nodeLookup11.vNode;
       if (vNode.props.nodeType !== 1 || !node.hasAttr('title')) {
         return '';
       }
@@ -16433,7 +16456,7 @@
     }
     var title_text_default = titleText;
     function namedFromContents(vNode) {
-      var _ref59 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref59.strict;
+      var _ref60 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref60.strict;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return false;
@@ -16500,7 +16523,7 @@
       return isVisibleToScreenReadersVirtual(vNode.parent, true);
     });
     function visibleVirtual(element, screenReader, noRecursing) {
-      var _nodeLookup11 = _nodeLookup(element), vNode = _nodeLookup11.vNode;
+      var _nodeLookup12 = _nodeLookup(element), vNode = _nodeLookup12.vNode;
       var visibleMethod = screenReader ? _isVisibleToScreenReaders : _isVisibleOnScreen;
       var visible2 = !element.actualNode || element.actualNode && visibleMethod(element);
       var result = vNode.children.map(function(child) {
@@ -16579,14 +16602,14 @@
       return valueString;
     }
     function nativeTextboxValue(node) {
-      var _nodeLookup12 = _nodeLookup(node), vNode = _nodeLookup12.vNode;
+      var _nodeLookup13 = _nodeLookup(node), vNode = _nodeLookup13.vNode;
       if (is_native_textbox_default(vNode)) {
         return vNode.props.value || '';
       }
       return '';
     }
     function nativeSelectValue(node) {
-      var _nodeLookup13 = _nodeLookup(node), vNode = _nodeLookup13.vNode;
+      var _nodeLookup14 = _nodeLookup(node), vNode = _nodeLookup14.vNode;
       if (!is_native_select_default(vNode)) {
         return '';
       }
@@ -16602,7 +16625,7 @@
       }).join(' ') || '';
     }
     function ariaTextboxValue(node) {
-      var _nodeLookup14 = _nodeLookup(node), vNode = _nodeLookup14.vNode, domNode = _nodeLookup14.domNode;
+      var _nodeLookup15 = _nodeLookup(node), vNode = _nodeLookup15.vNode, domNode = _nodeLookup15.domNode;
       if (!is_aria_textbox_default(vNode)) {
         return '';
       }
@@ -16613,7 +16636,7 @@
       }
     }
     function ariaListboxValue(node, context) {
-      var _nodeLookup15 = _nodeLookup(node), vNode = _nodeLookup15.vNode;
+      var _nodeLookup16 = _nodeLookup(node), vNode = _nodeLookup16.vNode;
       if (!is_aria_listbox_default(vNode)) {
         return '';
       }
@@ -16626,7 +16649,7 @@
       return _accessibleTextVirtual(selected[0], context);
     }
     function ariaComboboxValue(node, context) {
-      var _nodeLookup16 = _nodeLookup(node), vNode = _nodeLookup16.vNode;
+      var _nodeLookup17 = _nodeLookup(node), vNode = _nodeLookup17.vNode;
       if (!is_aria_combobox_default(vNode)) {
         return '';
       }
@@ -16636,7 +16659,7 @@
       return listbox ? ariaListboxValue(listbox, context) : '';
     }
     function ariaRangeValue(node) {
-      var _nodeLookup17 = _nodeLookup(node), vNode = _nodeLookup17.vNode;
+      var _nodeLookup18 = _nodeLookup(node), vNode = _nodeLookup18.vNode;
       if (!is_aria_range_default(vNode) || !vNode.hasAttr('aria-valuenow')) {
         return '';
       }
@@ -16761,8 +16784,8 @@
     function attrText(attr, vNode) {
       return vNode.attr(attr) || '';
     }
-    function descendantText(nodeName2, _ref60, context) {
-      var actualNode = _ref60.actualNode;
+    function descendantText(nodeName2, _ref61, context) {
+      var actualNode = _ref61.actualNode;
       nodeName2 = nodeName2.toLowerCase();
       var nodeNames2 = [ nodeName2, actualNode.nodeName.toLowerCase() ].join(',');
       var candidate = actualNode.querySelector(nodeNames2);
@@ -17027,7 +17050,7 @@
       locations: [ 'billing', 'shipping' ]
     };
     function isValidAutocomplete(autocompleteValue) {
-      var _ref61 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref61$looseTyped = _ref61.looseTyped, looseTyped = _ref61$looseTyped === void 0 ? false : _ref61$looseTyped, _ref61$stateTerms = _ref61.stateTerms, stateTerms = _ref61$stateTerms === void 0 ? [] : _ref61$stateTerms, _ref61$locations = _ref61.locations, locations = _ref61$locations === void 0 ? [] : _ref61$locations, _ref61$qualifiers = _ref61.qualifiers, qualifiers = _ref61$qualifiers === void 0 ? [] : _ref61$qualifiers, _ref61$standaloneTerm = _ref61.standaloneTerms, standaloneTerms = _ref61$standaloneTerm === void 0 ? [] : _ref61$standaloneTerm, _ref61$qualifiedTerms = _ref61.qualifiedTerms, qualifiedTerms = _ref61$qualifiedTerms === void 0 ? [] : _ref61$qualifiedTerms, _ref61$ignoredValues = _ref61.ignoredValues, ignoredValues = _ref61$ignoredValues === void 0 ? [] : _ref61$ignoredValues;
+      var _ref62 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref62$looseTyped = _ref62.looseTyped, looseTyped = _ref62$looseTyped === void 0 ? false : _ref62$looseTyped, _ref62$stateTerms = _ref62.stateTerms, stateTerms = _ref62$stateTerms === void 0 ? [] : _ref62$stateTerms, _ref62$locations = _ref62.locations, locations = _ref62$locations === void 0 ? [] : _ref62$locations, _ref62$qualifiers = _ref62.qualifiers, qualifiers = _ref62$qualifiers === void 0 ? [] : _ref62$qualifiers, _ref62$standaloneTerm = _ref62.standaloneTerms, standaloneTerms = _ref62$standaloneTerm === void 0 ? [] : _ref62$standaloneTerm, _ref62$qualifiedTerms = _ref62.qualifiedTerms, qualifiedTerms = _ref62$qualifiedTerms === void 0 ? [] : _ref62$qualifiedTerms, _ref62$ignoredValues = _ref62.ignoredValues, ignoredValues = _ref62$ignoredValues === void 0 ? [] : _ref62$ignoredValues;
       autocompleteValue = autocompleteValue.toLowerCase().trim();
       stateTerms = stateTerms.concat(_autocomplete.stateTerms);
       if (stateTerms.includes(autocompleteValue) || autocompleteValue === '') {
@@ -17258,7 +17281,7 @@
     var get_text_element_stack_default = getTextElementStack;
     var visualRoles = [ 'checkbox', 'img', 'meter', 'progressbar', 'scrollbar', 'radio', 'slider', 'spinbutton', 'textbox' ];
     function isVisualContent(el) {
-      var _nodeLookup18 = _nodeLookup(el), vNode = _nodeLookup18.vNode;
+      var _nodeLookup19 = _nodeLookup(el), vNode = _nodeLookup19.vNode;
       var role = axe.commons.aria.getExplicitRole(vNode);
       if (role) {
         return visualRoles.indexOf(role) !== -1;
@@ -17293,8 +17316,8 @@
       if (hiddenTextElms.includes(elm.props.nodeName)) {
         return false;
       }
-      return elm.children.some(function(_ref62) {
-        var props = _ref62.props;
+      return elm.children.some(function(_ref63) {
+        var props = _ref63.props;
         return props.nodeType === 3 && props.nodeValue.trim();
       });
     }
@@ -17326,7 +17349,7 @@
     }
     var inserted_into_focus_order_default = insertedIntoFocusOrder;
     function isHiddenWithCSS(el, descendentVisibilityValue) {
-      var _nodeLookup19 = _nodeLookup(el), vNode = _nodeLookup19.vNode, domNode = _nodeLookup19.domNode;
+      var _nodeLookup20 = _nodeLookup(el), vNode = _nodeLookup20.vNode, domNode = _nodeLookup20.domNode;
       if (!vNode) {
         return _isHiddenWithCSS(domNode, descendentVisibilityValue);
       }
@@ -17388,8 +17411,8 @@
     var blockLike = [ 'block', 'list-item', 'table', 'flex', 'grid' ];
     var inlineBlockLike = [ 'inline-block', 'inline-flex', 'inline-grid' ];
     function isInTextBlock(node) {
-      var _ref63 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref63.noLengthCompare, _ref63$includeInlineB = _ref63.includeInlineBlock, includeInlineBlock = _ref63$includeInlineB === void 0 ? false : _ref63$includeInlineB;
-      var _nodeLookup20 = _nodeLookup(node), vNode = _nodeLookup20.vNode, domNode = _nodeLookup20.domNode;
+      var _ref64 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref64.noLengthCompare, _ref64$includeInlineB = _ref64.includeInlineBlock, includeInlineBlock = _ref64$includeInlineB === void 0 ? false : _ref64$includeInlineB;
+      var _nodeLookup21 = _nodeLookup(node), vNode = _nodeLookup21.vNode, domNode = _nodeLookup21.domNode;
       if (isBlock(domNode) || !includeInlineBlock && isInlineBlockLike(vNode)) {
         return false;
       }
@@ -17439,7 +17462,7 @@
     }
     var is_in_text_block_default = isInTextBlock;
     function isBlock(node) {
-      var _nodeLookup21 = _nodeLookup(node), vNode = _nodeLookup21.vNode;
+      var _nodeLookup22 = _nodeLookup(node), vNode = _nodeLookup22.vNode;
       var display2 = vNode.getComputedStylePropertyValue('display');
       return blockLike.includes(display2) || display2.substr(0, 6) === 'table-';
     }
@@ -17921,8 +17944,8 @@
       if (!refs || !refs.length) {
         return false;
       }
-      return refs.some(function(_ref64) {
-        var actualNode = _ref64.actualNode;
+      return refs.some(function(_ref65) {
+        var actualNode = _ref65.actualNode;
         return isVisible(actualNode, screenReader, recursed);
       });
     }
@@ -17934,7 +17957,7 @@
       var vNode = el instanceof abstract_virtual_node_default ? el : get_node_from_tree_default(el);
       el = vNode ? vNode.actualNode : el;
       var cacheName = '_isVisible' + (screenReader ? 'ScreenReader' : '');
-      var _ref65 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref65.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref65.DOCUMENT_FRAGMENT_NODE;
+      var _ref66 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref66.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref66.DOCUMENT_FRAGMENT_NODE;
       var nodeType = vNode ? vNode.props.nodeType : el.nodeType;
       var nodeName2 = vNode ? vNode.props.nodeName : el.nodeName.toLowerCase();
       if (vNode && typeof vNode[cacheName] !== 'undefined') {
@@ -18733,7 +18756,7 @@
         return {};
       }
       var navigator = win.navigator, innerHeight = win.innerHeight, innerWidth = win.innerWidth;
-      var _ref66 = getOrientation(win) || {}, angle = _ref66.angle, type2 = _ref66.type;
+      var _ref67 = getOrientation(win) || {}, angle = _ref67.angle, type2 = _ref67.type;
       return {
         userAgent: navigator.userAgent,
         windowWidth: innerWidth,
@@ -18742,12 +18765,12 @@
         orientationType: type2
       };
     }
-    function getOrientation(_ref67) {
-      var screen = _ref67.screen;
+    function getOrientation(_ref68) {
+      var screen = _ref68.screen;
       return screen.orientation || screen.msOrientation || screen.mozOrientation;
     }
-    function createFrameContext(frame, _ref68) {
-      var focusable = _ref68.focusable, page = _ref68.page;
+    function createFrameContext(frame, _ref69) {
+      var focusable = _ref69.focusable, page = _ref69.page;
       return {
         node: frame,
         include: [],
@@ -18961,8 +18984,8 @@
       }
       context.frames.push(createFrameContext(frame, context));
     }
-    function isPageContext(_ref69) {
-      var include = _ref69.include;
+    function isPageContext(_ref70) {
+      var include = _ref70.include;
       return include.length === 1 && include[0].actualNode === document.documentElement;
     }
     function validateContext(context) {
@@ -18971,8 +18994,8 @@
         throw new Error('No elements found for include in ' + env + ' Context');
       }
     }
-    function getRootNode2(_ref70) {
-      var include = _ref70.include, exclude = _ref70.exclude;
+    function getRootNode2(_ref71) {
+      var include = _ref71.include, exclude = _ref71.exclude;
       var selectors = Array.from(include).concat(Array.from(exclude));
       for (var _i18 = 0; _i18 < selectors.length; _i18++) {
         var item = selectors[_i18];
@@ -18991,8 +19014,8 @@
         return [];
       }
       var _Context = new Context(context), frames = _Context.frames;
-      return frames.map(function(_ref71) {
-        var node = _ref71.node, frameContext = _objectWithoutProperties(_ref71, _excluded12);
+      return frames.map(function(_ref72) {
+        var node = _ref72.node, frameContext = _objectWithoutProperties(_ref72, _excluded12);
         frameContext.initiator = false;
         var frameSelector = _getAncestry(node);
         return {
@@ -19002,8 +19025,8 @@
       });
     }
     function _getRule(ruleId) {
-      var rule = axe._audit.rules.find(function(_ref72) {
-        var id = _ref72.id;
+      var rule = axe._audit.rules.find(function(_ref73) {
+        var id = _ref73.id;
         return id === ruleId;
       });
       if (!rule) {
@@ -19168,8 +19191,8 @@
       return !!standards_default.htmlElms[nodeName2];
     }
     var is_html_element_default = isHtmlElement;
-    function _isNodeInContext(node, _ref73) {
-      var _ref73$include = _ref73.include, include = _ref73$include === void 0 ? [] : _ref73$include, _ref73$exclude = _ref73.exclude, exclude = _ref73$exclude === void 0 ? [] : _ref73$exclude;
+    function _isNodeInContext(node, _ref74) {
+      var _ref74$include = _ref74.include, include = _ref74$include === void 0 ? [] : _ref74$include, _ref74$exclude = _ref74.exclude, exclude = _ref74$exclude === void 0 ? [] : _ref74$exclude;
       var filterInclude = include.filter(function(candidate) {
         return _contains(candidate, node);
       });
@@ -19579,8 +19602,8 @@
       return matchExpressions(domTree, expressions, filter);
     }
     var query_selector_all_filter_default = querySelectorAllFilter;
-    function preloadCssom(_ref74) {
-      var _ref74$treeRoot = _ref74.treeRoot, treeRoot = _ref74$treeRoot === void 0 ? axe._tree[0] : _ref74$treeRoot;
+    function preloadCssom(_ref75) {
+      var _ref75$treeRoot = _ref75.treeRoot, treeRoot = _ref75$treeRoot === void 0 ? axe._tree[0] : _ref75$treeRoot;
       var rootNodes = getAllRootNodesInTree(treeRoot);
       if (!rootNodes.length) {
         return Promise.resolve();
@@ -19610,8 +19633,8 @@
     }
     function getCssomForAllRootNodes(rootNodes, convertDataToStylesheet) {
       var promises = [];
-      rootNodes.forEach(function(_ref75, index) {
-        var rootNode = _ref75.rootNode, shadowId = _ref75.shadowId;
+      rootNodes.forEach(function(_ref76, index) {
+        var rootNode = _ref76.rootNode, shadowId = _ref76.shadowId;
         var sheets = getStylesheetsOfRootNode(rootNode, shadowId, convertDataToStylesheet);
         if (!sheets) {
           return Promise.all(promises);
@@ -19697,10 +19720,10 @@
         return true;
       });
     }
-    function preloadMedia(_ref76) {
-      var _ref76$treeRoot = _ref76.treeRoot, treeRoot = _ref76$treeRoot === void 0 ? axe._tree[0] : _ref76$treeRoot;
-      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref77) {
-        var actualNode = _ref77.actualNode;
+    function preloadMedia(_ref77) {
+      var _ref77$treeRoot = _ref77.treeRoot, treeRoot = _ref77$treeRoot === void 0 ? axe._tree[0] : _ref77$treeRoot;
+      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref78) {
+        var actualNode = _ref78.actualNode;
         if (actualNode.preload === 'none' && actualNode.readyState === 0 && actualNode.networkState !== actualNode.NETWORK_LOADING) {
           return false;
         }
@@ -19718,8 +19741,8 @@
         }
         return true;
       });
-      return Promise.all(mediaVirtualNodes.map(function(_ref78) {
-        var actualNode = _ref78.actualNode;
+      return Promise.all(mediaVirtualNodes.map(function(_ref79) {
+        var actualNode = _ref79.actualNode;
         return isMediaElementReady(actualNode);
       }));
     }
@@ -20040,10 +20063,10 @@
       return serial;
     }
     var RuleError = function(_Error) {
-      function RuleError(_ref80) {
+      function RuleError(_ref81) {
         var _error$name;
         var _this7;
-        var error = _ref80.error, ruleId = _ref80.ruleId, method = _ref80.method, errorNode = _ref80.errorNode;
+        var error = _ref81.error, ruleId = _ref81.ruleId, method = _ref81.method, errorNode = _ref81.errorNode;
         _classCallCheck(this, RuleError);
         _this7 = _callSuper(this, RuleError);
         _this7.name = (_error$name = error.name) !== null && _error$name !== void 0 ? _error$name : 'RuleError';
@@ -20077,8 +20100,8 @@
       }
     }
     function setScrollState(scrollState) {
-      scrollState.forEach(function(_ref81) {
-        var elm = _ref81.elm, top = _ref81.top, left = _ref81.left;
+      scrollState.forEach(function(_ref82) {
+        var elm = _ref82.elm, top = _ref82.top, left = _ref82.left;
         return setScroll(elm, top, left);
       });
     }
@@ -20106,8 +20129,8 @@
       }
       return selectAllRecursive(selectorArr, doc);
     }
-    function selectAllRecursive(_ref82, doc) {
-      var _ref83 = _toArray(_ref82), selectorStr = _ref83[0], restSelector = _arrayLikeToArray(_ref83).slice(1);
+    function selectAllRecursive(_ref83, doc) {
+      var _ref84 = _toArray(_ref83), selectorStr = _ref84[0], restSelector = _arrayLikeToArray(_ref84).slice(1);
       var elms = doc.querySelectorAll(selectorStr);
       if (restSelector.length === 0) {
         return Array.from(elms);
@@ -20209,9 +20232,9 @@
       nodeTypeToName[nodeNamesToTypes[nodeName2]] = nodeName2;
     });
     function normaliseProps(serialNode) {
-      var _serialNode$nodeName, _ref84, _serialNode$nodeType;
+      var _serialNode$nodeName, _ref85, _serialNode$nodeType;
       var nodeName2 = (_serialNode$nodeName = serialNode.nodeName) !== null && _serialNode$nodeName !== void 0 ? _serialNode$nodeName : nodeTypeToName[serialNode.nodeType];
-      var nodeType = (_ref84 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref84 !== void 0 ? _ref84 : 1;
+      var nodeType = (_ref85 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref85 !== void 0 ? _ref85 : 1;
       assert_default(typeof nodeType === 'number', 'nodeType has to be a number, got \''.concat(nodeType, '\''));
       assert_default(typeof nodeName2 === 'string', 'nodeName has to be a string, got \''.concat(nodeName2, '\''));
       nodeName2 = nodeName2.toLowerCase();
@@ -20232,8 +20255,8 @@
       delete props.attributes;
       return Object.freeze(props);
     }
-    function normaliseAttrs(_ref85) {
-      var _ref85$attributes = _ref85.attributes, attributes2 = _ref85$attributes === void 0 ? {} : _ref85$attributes;
+    function normaliseAttrs(_ref86) {
+      var _ref86$attributes = _ref86.attributes, attributes2 = _ref86$attributes === void 0 ? {} : _ref86$attributes;
       var attrMap = {
         htmlFor: 'for',
         className: 'class'
@@ -20914,7 +20937,7 @@
     }
     function getElementUnallowedRoles(node) {
       var allowImplicit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var _nodeLookup22 = _nodeLookup(node), vNode = _nodeLookup22.vNode;
+      var _nodeLookup23 = _nodeLookup(node), vNode = _nodeLookup23.vNode;
       if (!is_html_element_default(vNode)) {
         return [];
       }
@@ -22704,8 +22727,8 @@
       nodeName: [ 'abbr', 'address', 'canvas', 'div', 'p', 'pre', 'blockquote', 'ins', 'del', 'output', 'span', 'table', 'tbody', 'thead', 'tfoot', 'td', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'br', 'wbr', 'th', 'tr' ]
     } ];
     lookupTable.evaluateRoleForElement = {
-      A: function A(_ref86) {
-        var node = _ref86.node, out = _ref86.out;
+      A: function A(_ref87) {
+        var node = _ref87.node, out = _ref87.out;
         if (node.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -22714,19 +22737,19 @@
         }
         return true;
       },
-      AREA: function AREA(_ref87) {
-        var node = _ref87.node;
+      AREA: function AREA(_ref88) {
+        var node = _ref88.node;
         return !node.href;
       },
-      BUTTON: function BUTTON(_ref88) {
-        var node = _ref88.node, role = _ref88.role, out = _ref88.out;
+      BUTTON: function BUTTON(_ref89) {
+        var node = _ref89.node, role = _ref89.role, out = _ref89.out;
         if (node.getAttribute('type') === 'menu') {
           return role === 'menuitem';
         }
         return out;
       },
-      IMG: function IMG(_ref89) {
-        var node = _ref89.node, role = _ref89.role, out = _ref89.out;
+      IMG: function IMG(_ref90) {
+        var node = _ref90.node, role = _ref90.role, out = _ref90.out;
         switch (node.alt) {
          case null:
           return out;
@@ -22738,8 +22761,8 @@
           return role !== 'presentation' && role !== 'none';
         }
       },
-      INPUT: function INPUT(_ref90) {
-        var node = _ref90.node, role = _ref90.role, out = _ref90.out;
+      INPUT: function INPUT(_ref91) {
+        var node = _ref91.node, role = _ref91.role, out = _ref91.out;
         switch (node.type) {
          case 'button':
          case 'image':
@@ -22769,32 +22792,32 @@
           return false;
         }
       },
-      LI: function LI(_ref91) {
-        var node = _ref91.node, out = _ref91.out;
+      LI: function LI(_ref92) {
+        var node = _ref92.node, out = _ref92.out;
         var hasImplicitListitemRole = axe.utils.matchesSelector(node, 'ol li, ul li');
         if (hasImplicitListitemRole) {
           return out;
         }
         return true;
       },
-      MENU: function MENU(_ref92) {
-        var node = _ref92.node;
+      MENU: function MENU(_ref93) {
+        var node = _ref93.node;
         if (node.getAttribute('type') === 'context') {
           return false;
         }
         return true;
       },
-      OPTION: function OPTION(_ref93) {
-        var node = _ref93.node;
+      OPTION: function OPTION(_ref94) {
+        var node = _ref94.node;
         var withinOptionList = axe.utils.matchesSelector(node, 'select > option, datalist > option, optgroup > option');
         return !withinOptionList;
       },
-      SELECT: function SELECT(_ref94) {
-        var node = _ref94.node, role = _ref94.role;
+      SELECT: function SELECT(_ref95) {
+        var node = _ref95.node, role = _ref95.role;
         return !node.multiple && node.size <= 1 && role === 'menu';
       },
-      SVG: function SVG(_ref95) {
-        var node = _ref95.node, out = _ref95.out;
+      SVG: function SVG(_ref96) {
+        var node = _ref96.node, out = _ref96.out;
         if (node.parentNode && node.parentNode.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -22819,7 +22842,7 @@
     }
     var is_accessible_ref_default = isAccessibleRef;
     function _isComboboxPopup(virtualNode) {
-      var _ref96 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref96.popupRoles;
+      var _ref97 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref97.popupRoles;
       var role = get_role_default(virtualNode);
       popupRoles !== null && popupRoles !== void 0 ? popupRoles : popupRoles = aria_attrs_default['aria-haspopup'].values;
       if (!popupRoles.includes(role)) {
@@ -23108,8 +23131,8 @@
       if (!virtualNode.children) {
         return void 0;
       }
-      var titleNode = virtualNode.children.find(function(_ref97) {
-        var props = _ref97.props;
+      var titleNode = virtualNode.children.find(function(_ref98) {
+        var props = _ref98.props;
         return props.nodeName === 'title';
       });
       if (!titleNode) {
@@ -23246,8 +23269,8 @@
       }
       return false;
     }
-    function getNumberValue(domNode, _ref98) {
-      var cssProperty = _ref98.cssProperty, absoluteValues = _ref98.absoluteValues, normalValue = _ref98.normalValue;
+    function getNumberValue(domNode, _ref99) {
+      var cssProperty = _ref99.cssProperty, absoluteValues = _ref99.absoluteValues, normalValue = _ref99.normalValue;
       var computedStyle = window.getComputedStyle(domNode);
       var cssPropValue = computedStyle.getPropertyValue(cssProperty);
       if (cssPropValue === 'normal') {
@@ -23394,8 +23417,8 @@
       } else if (node !== document.body && has_content_default(node, true) && !isShallowlyHidden(virtualNode)) {
         return [ virtualNode ];
       } else {
-        return virtualNode.children.filter(function(_ref99) {
-          var actualNode = _ref99.actualNode;
+        return virtualNode.children.filter(function(_ref100) {
+          var actualNode = _ref100.actualNode;
           return actualNode.nodeType === 1;
         }).map(function(vNode) {
           return findRegionlessElms(vNode, options);
@@ -23543,7 +23566,7 @@
     var separatorRegex = /[;,\s]/;
     var validRedirectNumRegex = /^[0-9.]+$/;
     function metaRefreshEvaluate(node, options, virtualNode) {
-      var _ref100 = options || {}, minDelay = _ref100.minDelay, maxDelay = _ref100.maxDelay;
+      var _ref101 = options || {}, minDelay = _ref101.minDelay, maxDelay = _ref101.maxDelay;
       var content = (virtualNode.attr('content') || '').trim();
       var _content$split = content.split(separatorRegex), _content$split2 = _slicedToArray(_content$split, 1), redirectStr = _content$split2[0];
       if (!redirectStr.match(validRedirectNumRegex)) {
@@ -23906,10 +23929,10 @@
     var OPAQUE_STROKE_OFFSET_MIN_PX = 1.5;
     var edges = [ 'top', 'right', 'bottom', 'left' ];
     function _getStrokeColorsFromShadows(parsedShadows) {
-      var _ref101 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref101$ignoreEdgeCou = _ref101.ignoreEdgeCount, ignoreEdgeCount = _ref101$ignoreEdgeCou === void 0 ? false : _ref101$ignoreEdgeCou;
+      var _ref102 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref102$ignoreEdgeCou = _ref102.ignoreEdgeCount, ignoreEdgeCount = _ref102$ignoreEdgeCou === void 0 ? false : _ref102$ignoreEdgeCou;
       var shadowMap = getShadowColorsMap(parsedShadows);
-      var shadowsByColor = Object.entries(shadowMap).map(function(_ref102) {
-        var _ref103 = _slicedToArray(_ref102, 2), colorStr = _ref103[0], sides = _ref103[1];
+      var shadowsByColor = Object.entries(shadowMap).map(function(_ref103) {
+        var _ref104 = _slicedToArray(_ref103, 2), colorStr = _ref104[0], sides = _ref104[1];
         var edgeCount = edges.filter(function(side) {
           return sides[side].length !== 0;
         }).length;
@@ -23919,8 +23942,8 @@
           edgeCount: edgeCount
         };
       });
-      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref104) {
-        var edgeCount = _ref104.edgeCount;
+      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref105) {
+        var edgeCount = _ref105.edgeCount;
         return edgeCount > 1 && edgeCount < 4;
       })) {
         return null;
@@ -23962,8 +23985,8 @@
       }
       return colorMap;
     }
-    function shadowGroupToColor(_ref105) {
-      var colorStr = _ref105.colorStr, sides = _ref105.sides, edgeCount = _ref105.edgeCount;
+    function shadowGroupToColor(_ref106) {
+      var colorStr = _ref106.colorStr, sides = _ref106.sides, edgeCount = _ref106.edgeCount;
       if (edgeCount !== 4) {
         return null;
       }
@@ -24014,8 +24037,8 @@
           throw new Error('Unable to process text-shadows: '.concat(str));
         }
       }
-      shadows.forEach(function(_ref106) {
-        var pixels = _ref106.pixels;
+      shadows.forEach(function(_ref107) {
+        var pixels = _ref107.pixels;
         if (pixels.length === 2) {
           pixels.push(0);
         }
@@ -24023,7 +24046,7 @@
       return shadows;
     }
     function _getTextShadowColors(node) {
-      var _ref107 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref107.minRatio, maxRatio = _ref107.maxRatio, ignoreEdgeCount = _ref107.ignoreEdgeCount;
+      var _ref108 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref108.minRatio, maxRatio = _ref108.maxRatio, ignoreEdgeCount = _ref108.ignoreEdgeCount;
       var shadowColors = [];
       var style = window.getComputedStyle(node);
       var textShadow = style.getPropertyValue('text-shadow');
@@ -24086,8 +24109,8 @@
       }
       return shadowColors;
     }
-    function textShadowColor(_ref108) {
-      var colorStr = _ref108.colorStr, offsetX = _ref108.offsetX, offsetY = _ref108.offsetY, blurRadius = _ref108.blurRadius, fontSize = _ref108.fontSize;
+    function textShadowColor(_ref109) {
+      var colorStr = _ref109.colorStr, offsetX = _ref109.offsetX, offsetY = _ref109.offsetY, blurRadius = _ref109.blurRadius, fontSize = _ref109.fontSize;
       if (offsetX > blurRadius || offsetY > blurRadius) {
         return new color_default(0, 0, 0, 0);
       }
@@ -24115,13 +24138,13 @@
         var _stackingOrder2;
         var bgVNode = get_node_from_tree_default(bgElm);
         var bgColor = getOwnBackgroundColor2(bgVNode);
-        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref109) {
-          var vNode = _ref109.vNode;
+        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref110) {
+          var vNode = _ref110.vNode;
           return !!vNode;
         });
-        stackingOrder.forEach(function(_ref110, index) {
+        stackingOrder.forEach(function(_ref111, index) {
           var _stackingOrder;
-          var vNode = _ref110.vNode;
+          var vNode = _ref111.vNode;
           var ancestorVNode2 = (_stackingOrder = stackingOrder[index - 1]) === null || _stackingOrder === void 0 ? void 0 : _stackingOrder.vNode;
           var context2 = addToStackingContext(contextMap, vNode, ancestorVNode2);
           if (index === 0 && !contextMap.get(vNode)) {
@@ -24375,8 +24398,8 @@
     function getTextColor(nodeStyle) {
       return new color_default().parseString(nodeStyle.getPropertyValue('-webkit-text-fill-color') || nodeStyle.getPropertyValue('color'));
     }
-    function getStrokeColor(nodeStyle, _ref111) {
-      var _ref111$textStrokeEmM = _ref111.textStrokeEmMin, textStrokeEmMin = _ref111$textStrokeEmM === void 0 ? 0 : _ref111$textStrokeEmM;
+    function getStrokeColor(nodeStyle, _ref112) {
+      var _ref112$textStrokeEmM = _ref112.textStrokeEmMin, textStrokeEmMin = _ref112$textStrokeEmM === void 0 ? 0 : _ref112$textStrokeEmM;
       var strokeWidth = parseFloat(nodeStyle.getPropertyValue('-webkit-text-stroke-width'));
       if (strokeWidth === 0) {
         return null;
@@ -24538,8 +24561,8 @@
       if (results.length < 2) {
         return results;
       }
-      var incompleteResults = results.filter(function(_ref112) {
-        var result = _ref112.result;
+      var incompleteResults = results.filter(function(_ref113) {
+        var result = _ref113.result;
         return result !== void 0;
       });
       var uniqueResults = [];
@@ -24551,12 +24574,12 @@
         if (nameMap[name]) {
           return 1;
         }
-        var sameNameResults = incompleteResults.filter(function(_ref113, resultNum) {
-          var data = _ref113.data;
+        var sameNameResults = incompleteResults.filter(function(_ref114, resultNum) {
+          var data = _ref114.data;
           return data.name === name && resultNum !== index;
         });
-        var isSameUrl = sameNameResults.every(function(_ref114) {
-          var data = _ref114.data;
+        var isSameUrl = sameNameResults.every(function(_ref115) {
+          var data = _ref115.data;
           return isIdenticalObject(data.urlProps, urlProps);
         });
         if (sameNameResults.length && !isSameUrl) {
@@ -24582,7 +24605,7 @@
       var headingRole = role && role.includes('heading');
       var ariaHeadingLevel = vNode.attr('aria-level');
       var ariaLevel = parseInt(ariaHeadingLevel, 10);
-      var _ref115 = vNode.props.nodeName.match(/h(\d)/) || [], _ref116 = _slicedToArray(_ref115, 2), headingLevel = _ref116[1];
+      var _ref116 = vNode.props.nodeName.match(/h(\d)/) || [], _ref117 = _slicedToArray(_ref116, 2), headingLevel = _ref117[1];
       if (!headingRole) {
         return -1;
       }
@@ -24642,14 +24665,14 @@
     }
     function getHeadingOrder(results) {
       results = _toConsumableArray(results);
-      results.sort(function(_ref117, _ref118) {
-        var nodeA = _ref117.node;
-        var nodeB = _ref118.node;
+      results.sort(function(_ref118, _ref119) {
+        var nodeA = _ref118.node;
+        var nodeB = _ref119.node;
         return nodeA.ancestry.length - nodeB.ancestry.length;
       });
       var headingOrder = results.reduce(mergeHeadingOrder, []);
-      return headingOrder.filter(function(_ref119) {
-        var level = _ref119.level;
+      return headingOrder.filter(function(_ref120) {
+        var level = _ref120.level;
         return level !== -1;
       });
     }
@@ -24849,8 +24872,8 @@
       return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
     }
     function mapActualNodes(vNodes) {
-      return vNodes.map(function(_ref120) {
-        var actualNode = _ref120.actualNode;
+      return vNodes.map(function(_ref121) {
+        var actualNode = _ref121.actualNode;
         return actualNode;
       });
     }
@@ -24909,8 +24932,8 @@
         });
         return true;
       }
-      this.relatedNodes(closeNeighbors.map(function(_ref121) {
-        var actualNode = _ref121.actualNode;
+      this.relatedNodes(closeNeighbors.map(function(_ref122) {
+        var actualNode = _ref122.actualNode;
         return actualNode;
       }));
       if (!closeNeighbors.some(_isInTabOrder)) {
@@ -24931,7 +24954,7 @@
       return Math.round(num * 10) / 10;
     }
     function metaViewportScaleEvaluate(node, options, virtualNode) {
-      var _ref122 = options || {}, _ref122$scaleMinimum = _ref122.scaleMinimum, scaleMinimum = _ref122$scaleMinimum === void 0 ? 2 : _ref122$scaleMinimum, _ref122$lowerBound = _ref122.lowerBound, lowerBound = _ref122$lowerBound === void 0 ? false : _ref122$lowerBound;
+      var _ref123 = options || {}, _ref123$scaleMinimum = _ref123.scaleMinimum, scaleMinimum = _ref123$scaleMinimum === void 0 ? 2 : _ref123$scaleMinimum, _ref123$lowerBound = _ref123.lowerBound, lowerBound = _ref123$lowerBound === void 0 ? false : _ref123$lowerBound;
       var content = virtualNode.attr('content') || '';
       if (!content) {
         return true;
@@ -24976,8 +24999,8 @@
     }
     var meta_viewport_scale_evaluate_default = metaViewportScaleEvaluate;
     function cssOrientationLockEvaluate(node, options, virtualNode, context) {
-      var _ref123 = context || {}, _ref123$cssom = _ref123.cssom, cssom = _ref123$cssom === void 0 ? void 0 : _ref123$cssom;
-      var _ref124 = options || {}, _ref124$degreeThresho = _ref124.degreeThreshold, degreeThreshold = _ref124$degreeThresho === void 0 ? 0 : _ref124$degreeThresho;
+      var _ref124 = context || {}, _ref124$cssom = _ref124.cssom, cssom = _ref124$cssom === void 0 ? void 0 : _ref124$cssom;
+      var _ref125 = options || {}, _ref125$degreeThresho = _ref125.degreeThreshold, degreeThreshold = _ref125$degreeThresho === void 0 ? 0 : _ref125$degreeThresho;
       if (!cssom || !cssom.length) {
         return void 0;
       }
@@ -24991,8 +25014,8 @@
         if (!orientationRules.length) {
           return 1;
         }
-        orientationRules.forEach(function(_ref125) {
-          var cssRules = _ref125.cssRules;
+        orientationRules.forEach(function(_ref126) {
+          var cssRules = _ref126.cssRules;
           Array.from(cssRules).forEach(function(cssRule) {
             var locked = getIsOrientationLocked(cssRule);
             if (locked && cssRule.selectorText.toUpperCase() !== 'HTML') {
@@ -25016,8 +25039,8 @@
       }
       return false;
       function groupCssomByDocument(cssObjectModel) {
-        return cssObjectModel.reduce(function(out, _ref126) {
-          var sheet = _ref126.sheet, root = _ref126.root, shadowId = _ref126.shadowId;
+        return cssObjectModel.reduce(function(out, _ref127) {
+          var sheet = _ref127.sheet, root = _ref127.root, shadowId = _ref127.shadowId;
           var key = shadowId ? shadowId : 'topDocument';
           if (!out[key]) {
             out[key] = {
@@ -25033,15 +25056,15 @@
           return out;
         }, {});
       }
-      function isMediaRuleWithOrientation(_ref127) {
-        var type2 = _ref127.type, cssText = _ref127.cssText;
+      function isMediaRuleWithOrientation(_ref128) {
+        var type2 = _ref128.type, cssText = _ref128.cssText;
         if (type2 !== 4) {
           return false;
         }
         return /orientation:\s*landscape/i.test(cssText) || /orientation:\s*portrait/i.test(cssText);
       }
-      function getIsOrientationLocked(_ref128) {
-        var selectorText = _ref128.selectorText, style = _ref128.style;
+      function getIsOrientationLocked(_ref129) {
+        var selectorText = _ref129.selectorText, style = _ref129.style;
         if (!selectorText || style.length <= 0) {
           return false;
         }
@@ -25096,7 +25119,7 @@
         }
       }
       function getAngleInDegrees(angleWithUnit) {
-        var _ref129 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref130 = _slicedToArray(_ref129, 1), unit = _ref130[0];
+        var _ref130 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref131 = _slicedToArray(_ref130, 1), unit = _ref131[0];
         if (!unit) {
           return 0;
         }
@@ -25391,8 +25414,8 @@
       this.relatedNodes(relatedNodes);
       return true;
     }
-    function getInvalidSelector(vChild, nested, _ref131) {
-      var _ref131$validRoles = _ref131.validRoles, validRoles = _ref131$validRoles === void 0 ? [] : _ref131$validRoles, _ref131$validNodeName = _ref131.validNodeNames, validNodeNames = _ref131$validNodeName === void 0 ? [] : _ref131$validNodeName;
+    function getInvalidSelector(vChild, nested, _ref132) {
+      var _ref132$validRoles = _ref132.validRoles, validRoles = _ref132$validRoles === void 0 ? [] : _ref132$validRoles, _ref132$validNodeName = _ref132.validNodeNames, validNodeNames = _ref132$validNodeName === void 0 ? [] : _ref132$validNodeName;
       var _vChild$props = vChild.props, nodeName2 = _vChild$props.nodeName, nodeType = _vChild$props.nodeType, nodeValue = _vChild$props.nodeValue;
       var selector = nested ? 'div > ' : '';
       if (nodeType === 3 && nodeValue.trim() !== '') {
@@ -25842,8 +25865,8 @@
     }
     var focusable_no_name_evaluate_default = focusableNoNameEvaluate;
     function focusableModalOpenEvaluate(node, options, virtualNode) {
-      var tabbableElements = virtualNode.tabbableElements.map(function(_ref132) {
-        var actualNode = _ref132.actualNode;
+      var tabbableElements = virtualNode.tabbableElements.map(function(_ref133) {
+        var actualNode = _ref133.actualNode;
         return actualNode;
       });
       if (!tabbableElements || !tabbableElements.length) {
@@ -26238,7 +26261,7 @@
       var bold = parseFloat(fontWeight) >= boldValue || fontWeight === 'bold';
       var ptSize = Math.ceil(fontSize * 72) / 96;
       var isSmallFont = bold && ptSize < boldTextPt || !bold && ptSize < largeTextPt;
-      var _ref133 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref133.expected, minThreshold = _ref133.minThreshold, maxThreshold = _ref133.maxThreshold;
+      var _ref134 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref134.expected, minThreshold = _ref134.minThreshold, maxThreshold = _ref134.maxThreshold;
       var pseudoElm = findPseudoElement(virtualNode, {
         ignorePseudo: ignorePseudo,
         pseudoSizeThreshold: pseudoSizeThreshold
@@ -26334,8 +26357,8 @@
       }
       return isValid;
     }
-    function findPseudoElement(vNode, _ref134) {
-      var _ref134$pseudoSizeThr = _ref134.pseudoSizeThreshold, pseudoSizeThreshold = _ref134$pseudoSizeThr === void 0 ? .25 : _ref134$pseudoSizeThr, _ref134$ignorePseudo = _ref134.ignorePseudo, ignorePseudo = _ref134$ignorePseudo === void 0 ? false : _ref134$ignorePseudo;
+    function findPseudoElement(vNode, _ref135) {
+      var _ref135$pseudoSizeThr = _ref135.pseudoSizeThreshold, pseudoSizeThreshold = _ref135$pseudoSizeThr === void 0 ? .25 : _ref135$pseudoSizeThr, _ref135$ignorePseudo = _ref135.ignorePseudo, ignorePseudo = _ref135$ignorePseudo === void 0 ? false : _ref135$ignorePseudo;
       if (ignorePseudo) {
         return;
       }
@@ -26377,7 +26400,7 @@
     }
     function parseUnit(str) {
       var unitRegex = /^([0-9.]+)([a-z]+)$/i;
-      var _ref135 = str.match(unitRegex) || [], _ref136 = _slicedToArray(_ref135, 3), _ref136$ = _ref136[1], value = _ref136$ === void 0 ? '' : _ref136$, _ref136$2 = _ref136[2], unit = _ref136$2 === void 0 ? '' : _ref136$2;
+      var _ref136 = str.match(unitRegex) || [], _ref137 = _slicedToArray(_ref136, 3), _ref137$ = _ref137[1], value = _ref137$ === void 0 ? '' : _ref137$, _ref137$2 = _ref137[2], unit = _ref137$2 === void 0 ? '' : _ref137$2;
       return {
         value: parseFloat(value),
         unit: unit.toLowerCase()
@@ -26756,20 +26779,20 @@
         return true;
       }
       var ownedRoles = getOwnedRoles(virtualNode, required);
-      var unallowed = ownedRoles.filter(function(_ref137) {
-        var role = _ref137.role, vNode = _ref137.vNode;
+      var unallowed = ownedRoles.filter(function(_ref138) {
+        var role = _ref138.role, vNode = _ref138.vNode;
         return vNode.props.nodeType === 1 && !required.includes(role);
       });
       if (unallowed.length) {
-        this.relatedNodes(unallowed.map(function(_ref138) {
-          var vNode = _ref138.vNode;
+        this.relatedNodes(unallowed.map(function(_ref139) {
+          var vNode = _ref139.vNode;
           return vNode;
         }));
         var messageKey = virtualNode.attr('aria-busy') === 'true' ? 'aria-busy-fail' : 'unallowed';
         this.data({
           messageKey: messageKey,
-          values: unallowed.map(function(_ref139) {
-            var vNode = _ref139.vNode, attr = _ref139.attr;
+          values: unallowed.map(function(_ref140) {
+            var vNode = _ref140.vNode, attr = _ref140.attr;
             return getUnallowedSelector(vNode, attr);
           }).filter(function(selector, index, array) {
             return array.indexOf(selector) === index;
@@ -26832,8 +26855,8 @@
       return ownedRoles;
     }
     function hasRequiredChildren(required, ownedRoles) {
-      return ownedRoles.some(function(_ref140) {
-        var role = _ref140.role;
+      return ownedRoles.some(function(_ref141) {
+        var role = _ref141.role;
         return role && required.includes(role);
       });
     }
@@ -26858,8 +26881,8 @@
       }
       return nodeName2;
     }
-    function isContent(_ref141) {
-      var vNode = _ref141.vNode;
+    function isContent(_ref142) {
+      var vNode = _ref142.vNode;
       if (vNode.props.nodeType === 3) {
         return vNode.props.nodeValue.trim().length > 0;
       }
@@ -27029,7 +27052,7 @@
     }
     function ariaConditionalRowAttr(node) {
       var _invalidTableRowAttrs, _invalidTableRowAttrs2;
-      var _ref142 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref142.invalidTableRowAttrs;
+      var _ref143 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref143.invalidTableRowAttrs;
       var virtualNode = arguments.length > 2 ? arguments[2] : undefined;
       var invalidAttrs = (_invalidTableRowAttrs = invalidTableRowAttrs === null || invalidTableRowAttrs === void 0 || (_invalidTableRowAttrs2 = invalidTableRowAttrs.filter) === null || _invalidTableRowAttrs2 === void 0 ? void 0 : _invalidTableRowAttrs2.call(invalidTableRowAttrs, function(invalidAttr) {
         return virtualNode.hasAttr(invalidAttr);
@@ -27162,6 +27185,44 @@
       if (attrName === 'aria-multiline' && attrValue === 'false' && vNode.hasAttr('contenteditable')) {
         return true;
       }
+      return false;
+    }
+    function ariaAllowedAttrElmEvaluate(node, options, virtualNode) {
+      var elmSpec = get_element_spec_default(virtualNode);
+      if (!elmSpec.allowedAriaAttrs) {
+        return true;
+      }
+      var explicitRole2 = get_explicit_role_default(virtualNode);
+      if (explicitRole2) {
+        return true;
+      }
+      var allowedAriaAttrs = elmSpec.allowedAriaAttrs;
+      var globalAriaAttrs = get_global_aria_attrs_default();
+      var invalid = [];
+      var _iterator23 = _createForOfIteratorHelper(virtualNode.attrNames), _step23;
+      try {
+        for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
+          var attrName = _step23.value;
+          if (globalAriaAttrs.includes(attrName) && !allowedAriaAttrs.includes(attrName)) {
+            invalid.push(attrName);
+          }
+        }
+      } catch (err) {
+        _iterator23.e(err);
+      } finally {
+        _iterator23.f();
+      }
+      if (!invalid.length) {
+        return true;
+      }
+      var messageKey = invalid.length > 1 ? 'plural' : 'singular';
+      this.data({
+        messageKey: messageKey,
+        nodeName: virtualNode.props.nodeName,
+        values: invalid.map(function(attrName) {
+          return attrName + '="' + virtualNode.attr(attrName) + '"';
+        }).join(', ')
+      });
       return false;
     }
     function abstractroleEvaluate(node, options, virtualNode) {
@@ -27309,7 +27370,7 @@
       if (!role || [ 'none', 'presentation' ].includes(role)) {
         return true;
       }
-      var _ref143 = aria_roles_default[role] || {}, accessibleNameRequired = _ref143.accessibleNameRequired;
+      var _ref144 = aria_roles_default[role] || {}, accessibleNameRequired = _ref144.accessibleNameRequired;
       if (accessibleNameRequired || _isFocusable(virtualNode)) {
         return true;
       }
@@ -27748,6 +27809,7 @@
       'accesskeys-after': accesskeys_after_default,
       'accesskeys-evaluate': accesskeys_evaluate_default,
       'alt-space-value-evaluate': alt_space_value_evaluate_default,
+      'aria-allowed-attr-elm-evaluate': ariaAllowedAttrElmEvaluate,
       'aria-allowed-attr-evaluate': ariaAllowedAttrEvaluate,
       'aria-allowed-attr-matches': aria_allowed_attr_matches_default,
       'aria-allowed-role-evaluate': aria_allowed_role_evaluate_default,
@@ -28544,10 +28606,10 @@
         value: function setAllowedOrigins(allowedOrigins) {
           var defaultOrigin = getDefaultOrigin();
           this.allowedOrigins = [];
-          var _iterator23 = _createForOfIteratorHelper(allowedOrigins), _step23;
+          var _iterator24 = _createForOfIteratorHelper(allowedOrigins), _step24;
           try {
-            for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
-              var origin = _step23.value;
+            for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
+              var origin = _step24.value;
               if (origin === constants_default.allOrigins) {
                 this.allowedOrigins = [ '*' ];
                 return;
@@ -28558,9 +28620,9 @@
               }
             }
           } catch (err) {
-            _iterator23.e(err);
+            _iterator24.e(err);
           } finally {
-            _iterator23.f();
+            _iterator24.f();
           }
         }
       }, {
@@ -28965,8 +29027,8 @@
         } ]
       });
     }
-    function getHelpUrl(_ref144, ruleId, version) {
-      var brand = _ref144.brand, application = _ref144.application, lang = _ref144.lang;
+    function getHelpUrl(_ref145, ruleId, version) {
+      var brand = _ref145.brand, application = _ref145.application, lang = _ref145.lang;
       return constants_default.helpUrlBase + brand + '/' + (version || axe.version.substring(0, axe.version.lastIndexOf('.'))) + '/' + ruleId + '?application=' + encodeURIComponent(application) + (lang && lang !== 'en' ? '&lang=' + encodeURIComponent(lang) : '');
     }
     function setupGlobals(context) {
@@ -29188,9 +29250,9 @@
         toolOptions: options
       });
     }
-    function normalizeRunParams(_ref145) {
-      var _ref147, _options$reporter, _axe$_audit;
-      var _ref146 = _slicedToArray(_ref145, 3), context = _ref146[0], options = _ref146[1], callback = _ref146[2];
+    function normalizeRunParams(_ref146) {
+      var _ref148, _options$reporter, _axe$_audit;
+      var _ref147 = _slicedToArray(_ref146, 3), context = _ref147[0], options = _ref147[1], callback = _ref147[2];
       var typeErr = new TypeError('axe.run arguments are invalid');
       if (!_isContextSpec(context)) {
         if (callback !== void 0) {
@@ -29211,7 +29273,7 @@
         throw typeErr;
       }
       options = clone2(options);
-      options.reporter = (_ref147 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit = axe._audit) === null || _axe$_audit === void 0 ? void 0 : _axe$_audit.reporter) !== null && _ref147 !== void 0 ? _ref147 : 'v1';
+      options.reporter = (_ref148 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit = axe._audit) === null || _axe$_audit === void 0 ? void 0 : _axe$_audit.reporter) !== null && _ref148 !== void 0 ? _ref148 : 'v1';
       return {
         context: context,
         options: options,
@@ -29332,8 +29394,8 @@
         axe._audit.run(contextObj, options, res, rej);
       }).then(function(results) {
         results = node_serializer_default.mapRawResults(results);
-        var frames = contextObj.frames.map(function(_ref148) {
-          var node = _ref148.node;
+        var frames = contextObj.frames.map(function(_ref149) {
+          var node = _ref149.node;
           return node_serializer_default.toSpec(node);
         });
         var environmentData;
@@ -29354,14 +29416,14 @@
       });
     }
     function finishRun(partialResults) {
-      var _ref150, _options$reporter2, _axe$_audit2;
+      var _ref151, _options$reporter2, _axe$_audit2;
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       options = clone2(options);
-      var _ref149 = partialResults.find(function(r) {
+      var _ref150 = partialResults.find(function(r) {
         return r.environmentData;
-      }) || {}, environmentData = _ref149.environmentData;
+      }) || {}, environmentData = _ref150.environmentData;
       axe._audit.normalizeOptions(options);
-      options.reporter = (_ref150 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref150 !== void 0 ? _ref150 : 'v1';
+      options.reporter = (_ref151 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref151 !== void 0 ? _ref151 : 'v1';
       setFrameSpec(partialResults);
       var results = merge_results_default(partialResults);
       results = axe._audit.after(results, options);
@@ -29373,10 +29435,10 @@
     }
     function setFrameSpec(partialResults) {
       var frameStack = [];
-      var _iterator24 = _createForOfIteratorHelper(partialResults), _step24;
+      var _iterator25 = _createForOfIteratorHelper(partialResults), _step25;
       try {
-        for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
-          var partialResult = _step24.value;
+        for (_iterator25.s(); !(_step25 = _iterator25.n()).done; ) {
+          var partialResult = _step25.value;
           var frameSpec = frameStack.shift();
           if (!partialResult) {
             continue;
@@ -29386,13 +29448,13 @@
           frameStack.unshift.apply(frameStack, _toConsumableArray(frameSpecs));
         }
       } catch (err) {
-        _iterator24.e(err);
+        _iterator25.e(err);
       } finally {
-        _iterator24.f();
+        _iterator25.f();
       }
     }
-    function getMergedFrameSpecs(_ref151) {
-      var childFrameSpecs = _ref151.frames, parentFrameSpec = _ref151.frameSpec;
+    function getMergedFrameSpecs(_ref152) {
+      var childFrameSpecs = _ref152.frames, parentFrameSpec = _ref152.frameSpec;
       if (!parentFrameSpec) {
         return childFrameSpecs;
       }
@@ -30017,6 +30079,15 @@
             fail: {
               singular: 'Abstract role cannot be directly used: ${data.values}',
               plural: 'Abstract roles cannot be directly used: ${data.values}'
+            }
+          }
+        },
+        'aria-allowed-attr-elm': {
+          messages: {
+            pass: 'ARIA attributes are allowed for this element',
+            fail: {
+              singular: 'ARIA attribute is not allowed on ${data.nodeName} elements: ${data.values}',
+              plural: 'ARIA attributes are not allowed on ${data.nodeName} elements: ${data.values}'
             }
           }
         },
@@ -31142,7 +31213,7 @@
           validTreeRowAttrs: [ 'aria-posinset', 'aria-setsize', 'aria-expanded', 'aria-level' ]
         },
         id: 'aria-allowed-attr'
-      } ],
+      }, 'aria-allowed-attr-elm' ],
       any: [],
       none: [ 'aria-unsupported-attr' ]
     }, {
@@ -32502,6 +32573,9 @@
     checks: [ {
       id: 'abstractrole',
       evaluate: 'abstractrole-evaluate'
+    }, {
+      id: 'aria-allowed-attr-elm',
+      evaluate: 'aria-allowed-attr-elm-evaluate'
     }, {
       id: 'aria-allowed-attr',
       evaluate: 'aria-allowed-attr-evaluate',
