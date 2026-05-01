@@ -1,4 +1,4 @@
-/*! axe v4.11.3
+/*! axe v4.11.4
  * Copyright (c) 2015 - 2026 Deque Systems, Inc.
  *
  * Your use of this Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@
     }, _typeof(o);
   }
   var axe = axe || {};
-  axe.version = '4.11.3';
+  axe.version = '4.11.4';
   if (typeof define === 'function' && define.amd) {
     define('axe-core', [], function() {
       return axe;
@@ -10991,7 +10991,7 @@
       return Array.from(doc.querySelectorAll(selector));
     });
     function generateAncestry(node) {
-      var nodeName2 = node.nodeName.toLowerCase();
+      var nodeName2 = escape_selector_default(node.nodeName.toLowerCase());
       var parentElement = node.parentElement;
       var parentNode = node.parentNode;
       var nthChild = '';
@@ -16968,7 +16968,10 @@
       if (!virtualNode) {
         return false;
       }
-      if (virtualNode.props.nodeType !== 1 || context.includeHidden) {
+      if (context.includeHidden && !nativelyHidden(virtualNode)) {
+        return false;
+      }
+      if (virtualNode.props.nodeType !== 1) {
         return false;
       }
       return !_isVisibleToScreenReaders(virtualNode);
