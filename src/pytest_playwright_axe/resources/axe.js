@@ -1,4 +1,4 @@
-/*! axe v4.12.1
+/*! axe v4.13.0
  * Copyright (c) 2015 - 2026 Deque Systems, Inc.
  *
  * Your use of this Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@
     }, _typeof(o);
   }
   var axe = axe || {};
-  axe.version = '4.12.1';
+  axe.version = '4.13.0';
   if (typeof define === 'function' && define.amd) {
     define('axe-core', [], function() {
       return axe;
@@ -2070,10 +2070,10 @@
       var SHARED = '__core-js_shared__';
       var store = module.exports = globalThis2[SHARED] || defineGlobalProperty(SHARED, {});
       (store.versions || (store.versions = [])).push({
-        version: '3.48.0',
+        version: '3.49.0',
         mode: IS_PURE ? 'pure' : 'global',
         copyright: '\xa9 2013\u20132025 Denis Pushkarev (zloirock.ru), 2025\u20132026 CoreJS Company (core-js.io). All rights reserved.',
-        license: 'https://github.com/zloirock/core-js/blob/v3.48.0/LICENSE',
+        license: 'https://github.com/zloirock/core-js/blob/v3.49.0/LICENSE',
         source: 'https://github.com/zloirock/core-js'
       });
     });
@@ -3454,9 +3454,9 @@
       var setArrayLength = require_array_set_length();
       var getIterator = require_get_iterator();
       var getIteratorMethod = require_get_iterator_method();
+      var iteratorClose = require_iterator_close();
       var $Array = Array;
       module.exports = function from(arrayLike) {
-        var O = toObject(arrayLike);
         var IS_CONSTRUCTOR = isConstructor(this);
         var argumentsLength = arguments.length;
         var mapfn = argumentsLength > 1 ? arguments[1] : void 0;
@@ -3464,6 +3464,7 @@
         if (mapping) {
           mapfn = bind(mapfn, argumentsLength > 2 ? arguments[2] : void 0);
         }
+        var O = toObject(arrayLike);
         var iteratorMethod = getIteratorMethod(O);
         var index = 0;
         var length, result, step, iterator, next, value;
@@ -3473,7 +3474,11 @@
           next = iterator.next;
           for (;!(step = call(next, iterator)).done; index++) {
             value = mapping ? callWithSafeIterationClosing(iterator, mapfn, [ step.value, index ], true) : step.value;
-            createProperty(result, index, value);
+            try {
+              createProperty(result, index, value);
+            } catch (error) {
+              iteratorClose(iterator, 'throw', error);
+            }
           }
         } else {
           length = lengthOfArrayLike(O);
@@ -8298,8 +8303,8 @@
         format.type || (format.type = 'function');
         format.name || (format.name = 'color');
         format.coordGrammar = parseCoordGrammar(format.coords);
-        var coordFormats = Object.entries(this.coords).map(function(_ref154, i) {
-          var _ref155 = _slicedToArray(_ref154, 2), id = _ref155[0], coordMeta = _ref155[1];
+        var coordFormats = Object.entries(this.coords).map(function(_ref155, i) {
+          var _ref156 = _slicedToArray(_ref155, 2), id = _ref156[0], coordMeta = _ref156[1];
           var outputType = format.coordGrammar[i][0];
           var fromRange = coordMeta.range || coordMeta.refRange;
           var toRange = outputType.range, suffix = '';
@@ -10922,9 +10927,11 @@
     var ignoredAttributes = [ 'class', 'style', 'id', 'selected', 'checked', 'disabled', 'tabindex', 'aria-checked', 'aria-selected', 'aria-invalid', 'aria-activedescendant', 'aria-busy', 'aria-disabled', 'aria-expanded', 'aria-grabbed', 'aria-pressed', 'aria-valuenow', 'xmlns' ];
     var MAXATTRIBUTELENGTH = 31;
     var attrCharsRegex = /([\\"])/g;
-    var newlineChars = /(\r\n|\r|\n)/g;
+    var controlCharsRegex = /[\u0000-\u001f\u007f]/g;
     function escapeAttribute(str) {
-      return str.replace(attrCharsRegex, '\\$1').replace(newlineChars, '\\a ');
+      return str.replace(attrCharsRegex, '\\$1').replace(controlCharsRegex, function(_char2) {
+        return '\\' + _char2.charCodeAt(0).toString(16) + ' ';
+      });
     }
     function getAttributeNameValue(node, at) {
       var name = at.name;
@@ -11330,7 +11337,7 @@
       return str.length <= attrLimit ? str : str.substring(0, attrLimit) + '...';
     }
     var CACHE_KEY = 'DqElm.RunOptions';
-    var DqElement = memoize_default(function DqElement2(elm, options, spec) {
+    var DqElement = memoize_default(function DqElementMemoized(elm, options, spec) {
       var _this$spec$selector, _this$_virtualNode;
       options !== null && options !== void 0 ? options : options = null;
       spec !== null && spec !== void 0 ? spec : spec = {};
@@ -12470,10 +12477,10 @@
     }
     function deepMerge() {
       var target = {};
-      for (var _len6 = arguments.length, sources = new Array(_len6), _key7 = 0; _key7 < _len6; _key7++) {
-        sources[_key7] = arguments[_key7];
+      for (var _len6 = arguments.length, sources2 = new Array(_len6), _key7 = 0; _key7 < _len6; _key7++) {
+        sources2[_key7] = arguments[_key7];
       }
-      sources.forEach(function(source) {
+      sources2.forEach(function(source) {
         if (!source || _typeof(source) !== 'object' || Array.isArray(source)) {
           return;
         }
@@ -12543,7 +12550,7 @@
         return get_composed_parent_default;
       },
       getElementByReference: function getElementByReference() {
-        return get_element_by_reference_default;
+        return _getElementByReference;
       },
       getElementCoordinates: function getElementCoordinates() {
         return get_element_coordinates_default;
@@ -12560,6 +12567,9 @@
       getOverflowHiddenAncestors: function getOverflowHiddenAncestors() {
         return get_overflow_hidden_ancestors_default;
       },
+      getResolvedRefs: function getResolvedRefs() {
+        return _getResolvedRefs;
+      },
       getRootNode: function getRootNode() {
         return get_root_node_default2;
       },
@@ -12567,7 +12577,7 @@
         return get_scroll_offset_default;
       },
       getTabbableElements: function getTabbableElements() {
-        return get_tabbable_elements_default;
+        return _getTabbableElements;
       },
       getTargetRects: function getTargetRects() {
         return get_target_rects_default;
@@ -12597,7 +12607,7 @@
         return idrefs_default;
       },
       insertedIntoFocusOrder: function insertedIntoFocusOrder() {
-        return inserted_into_focus_order_default;
+        return _insertedIntoFocusOrder;
       },
       isCurrentPageLink: function isCurrentPageLink() {
         return _isCurrentPageLink;
@@ -12743,1613 +12753,320 @@
       return ancestors.concat(getOverflowHiddenAncestors(vNode.parent));
     });
     var get_overflow_hidden_ancestors_default = getOverflowHiddenAncestors;
-    var clipRegex = /rect\s*\(([0-9]+)px,?\s*([0-9]+)px,?\s*([0-9]+)px,?\s*([0-9]+)px\s*\)/;
-    var clipPathRegex = /(\w+)\((\d+)/;
-    function nativelyHidden(vNode) {
-      return [ 'style', 'script', 'noscript', 'template' ].includes(vNode.props.nodeName);
-    }
-    function displayHidden(vNode) {
-      if (vNode.props.nodeName === 'area') {
-        return false;
-      }
-      return vNode.getComputedStylePropertyValue('display') === 'none';
-    }
-    function visibilityHidden(vNode) {
-      var _ref37 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref37.isAncestor;
-      return !isAncestor && [ 'hidden', 'collapse' ].includes(vNode.getComputedStylePropertyValue('visibility'));
-    }
-    function contentVisibiltyHidden(vNode) {
-      var _ref38 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref38.isAncestor;
-      return !!isAncestor && vNode.getComputedStylePropertyValue('content-visibility') === 'hidden';
-    }
-    function ariaHidden(vNode) {
-      return vNode.attr('aria-hidden') === 'true';
-    }
-    function opacityHidden(vNode) {
-      return vNode.getComputedStylePropertyValue('opacity') === '0';
-    }
-    function scrollHidden(vNode) {
-      var scroll = get_scroll_default(vNode.actualNode);
-      var elHeight = parseInt(vNode.getComputedStylePropertyValue('height'));
-      var elWidth = parseInt(vNode.getComputedStylePropertyValue('width'));
-      return !!scroll && (elHeight === 0 || elWidth === 0);
-    }
-    function overflowHidden(vNode) {
-      var _ref39 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref39.isAncestor;
-      if (isAncestor) {
-        return false;
-      }
-      var position = vNode.getComputedStylePropertyValue('position');
-      if (position === 'fixed') {
-        return false;
-      }
-      var nodes = get_overflow_hidden_ancestors_default(vNode);
-      if (!nodes.length) {
-        return false;
-      }
-      var rect = vNode.boundingClientRect;
-      return nodes.some(function(node) {
-        if (position === 'absolute' && !hasPositionedAncestorBetween(vNode, node) && node.getComputedStylePropertyValue('position') === 'static') {
-          return false;
-        }
-        var nodeRect = node.boundingClientRect;
-        if (nodeRect.width < 2 || nodeRect.height < 2) {
-          return true;
-        }
-        return !_rectsOverlap(rect, nodeRect);
-      });
-    }
-    function clipHidden(vNode) {
-      var matchesClip = vNode.getComputedStylePropertyValue('clip').match(clipRegex);
-      var matchesClipPath = vNode.getComputedStylePropertyValue('clip-path').match(clipPathRegex);
-      if (matchesClip && matchesClip.length === 5) {
-        var position = vNode.getComputedStylePropertyValue('position');
-        if ([ 'fixed', 'absolute' ].includes(position)) {
-          return matchesClip[3] - matchesClip[1] <= 0 && matchesClip[2] - matchesClip[4] <= 0;
-        }
-      }
-      if (matchesClipPath) {
-        var type2 = matchesClipPath[1];
-        var value = parseInt(matchesClipPath[2], 10);
-        switch (type2) {
-         case 'inset':
-          return value >= 50;
-
-         case 'circle':
-          return value === 0;
-
-         default:
-        }
-      }
-      return false;
-    }
-    function areaHidden(vNode, visibleFunction) {
-      var mapEl = closest_default(vNode, 'map');
-      if (!mapEl) {
-        return true;
-      }
-      var mapElName = mapEl.attr('name');
-      if (!mapElName) {
-        return true;
-      }
-      var mapElRootNode = get_root_node_default(vNode.actualNode);
-      if (!mapElRootNode || mapElRootNode.nodeType !== 9) {
-        return true;
-      }
-      var refs = query_selector_all_default(axe._tree, 'img[usemap="#'.concat(escape_selector_default(mapElName), '"]'));
-      if (!refs || !refs.length) {
-        return true;
-      }
-      return refs.some(function(ref) {
-        return !visibleFunction(ref);
-      });
-    }
-    function detailsHidden(vNode) {
-      var _vNode$parent;
-      if (((_vNode$parent = vNode.parent) === null || _vNode$parent === void 0 ? void 0 : _vNode$parent.props.nodeName) !== 'details') {
-        return false;
-      }
-      if (vNode.props.nodeName === 'summary') {
-        var firstSummary = vNode.parent.children.find(function(node) {
-          return node.props.nodeName === 'summary';
-        });
-        if (firstSummary === vNode) {
-          return false;
-        }
-      }
-      return !vNode.parent.hasAttr('open');
-    }
-    function hasPositionedAncestorBetween(child, ancestor) {
-      var node = child.parent;
-      while (node && node !== ancestor) {
-        if ([ 'relative', 'sticky' ].includes(node.getComputedStylePropertyValue('position'))) {
-          return true;
-        }
-        node = node.parent;
-      }
-      return false;
-    }
-    var hiddenMethods = [ displayHidden, visibilityHidden, contentVisibiltyHidden, detailsHidden ];
-    function _isHiddenForEveryone(vNode) {
-      var _ref40 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref40.skipAncestors, _ref40$isAncestor = _ref40.isAncestor, isAncestor = _ref40$isAncestor === void 0 ? false : _ref40$isAncestor;
-      vNode = _nodeLookup(vNode).vNode;
-      if (skipAncestors) {
-        return isHiddenSelf(vNode, isAncestor);
-      }
-      return isHiddenAncestors(vNode, isAncestor);
-    }
-    var isHiddenSelf = memoize_default(function isHiddenSelfMemoized(vNode, isAncestor) {
-      if (nativelyHidden(vNode)) {
-        return true;
-      }
-      if (!vNode.actualNode) {
-        return false;
-      }
-      if (hiddenMethods.some(function(method) {
-        return method(vNode, {
-          isAncestor: isAncestor
-        });
-      })) {
-        return true;
-      }
-      if (!vNode.actualNode.isConnected) {
-        return true;
-      }
-      return false;
-    });
-    var isHiddenAncestors = memoize_default(function isHiddenAncestorsMemoized(vNode, isAncestor) {
-      if (isHiddenSelf(vNode, isAncestor)) {
-        return true;
-      }
-      if (!vNode.parent) {
-        return false;
-      }
-      return isHiddenAncestors(vNode.parent, true);
-    });
-    function getComposedParent(element) {
-      if (element.assignedSlot) {
-        return getComposedParent(element.assignedSlot);
-      } else if (element.parentNode) {
-        var parentNode = element.parentNode;
-        if (parentNode.nodeType === 1) {
-          return parentNode;
-        } else if (parentNode.host) {
-          return parentNode.host;
-        }
-      }
-      return null;
-    }
-    var get_composed_parent_default = getComposedParent;
-    function getScrollOffset(element) {
-      if (!element.nodeType && element.document) {
-        element = element.document;
-      }
-      if (element.nodeType === 9) {
-        var docElement = element.documentElement, body = element.body;
-        return {
-          left: docElement && docElement.scrollLeft || body && body.scrollLeft || 0,
-          top: docElement && docElement.scrollTop || body && body.scrollTop || 0
-        };
-      }
-      return {
-        left: element.scrollLeft,
-        top: element.scrollTop
-      };
-    }
-    var get_scroll_offset_default = getScrollOffset;
-    function getElementCoordinates(element) {
-      var scrollOffset = get_scroll_offset_default(document), xOffset = scrollOffset.left, yOffset = scrollOffset.top, coords = element.getBoundingClientRect();
-      return {
-        top: coords.top + yOffset,
-        right: coords.right + xOffset,
-        bottom: coords.bottom + yOffset,
-        left: coords.left + xOffset,
-        width: coords.right - coords.left,
-        height: coords.bottom - coords.top
-      };
-    }
-    var get_element_coordinates_default = getElementCoordinates;
-    function getViewportSize(win) {
-      var doc = win.document;
-      var docElement = doc.documentElement;
-      if (win.innerWidth) {
-        return {
-          width: win.innerWidth,
-          height: win.innerHeight
-        };
-      }
-      if (docElement) {
-        return {
-          width: docElement.clientWidth,
-          height: docElement.clientHeight
-        };
-      }
-      var body = doc.body;
-      return {
-        width: body.clientWidth,
-        height: body.clientHeight
-      };
-    }
-    var get_viewport_size_default = getViewportSize;
-    function _isFixedPosition(node) {
-      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref41.skipAncestors;
-      var _nodeLookup2 = _nodeLookup(node), vNode = _nodeLookup2.vNode;
-      if (!vNode) {
-        return false;
-      }
-      if (skipAncestors) {
-        return isFixedSelf(vNode);
-      }
-      return isFixedAncestors(vNode);
-    }
-    var isFixedSelf = memoize_default(function isFixedSelfMemoized(vNode) {
-      return vNode.getComputedStylePropertyValue('position') === 'fixed';
-    });
-    var isFixedAncestors = memoize_default(function isFixedAncestorsMemoized(vNode) {
-      if (isFixedSelf(vNode)) {
-        return true;
-      }
-      if (!vNode.parent) {
-        return false;
-      }
-      return isFixedAncestors(vNode.parent);
-    });
-    function noParentScrolled(element, offset) {
-      element = get_composed_parent_default(element);
-      while (element && element.nodeName.toLowerCase() !== 'html') {
-        if (element.scrollTop) {
-          offset += element.scrollTop;
-          if (offset >= 0) {
-            return false;
-          }
-        }
-        element = get_composed_parent_default(element);
-      }
-      return true;
-    }
-    function isOffscreen(element) {
-      var _ref42 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref42.isAncestor;
-      if (isAncestor) {
-        return false;
-      }
-      var _nodeLookup3 = _nodeLookup(element), domNode = _nodeLookup3.domNode;
-      if (!domNode) {
-        return void 0;
-      }
-      var docElement = document.documentElement;
-      var styl = window.getComputedStyle(domNode);
-      var dir = window.getComputedStyle(document.body || docElement).getPropertyValue('direction');
-      var isFixed = _isFixedPosition(domNode);
-      var coords = isFixed ? domNode.getBoundingClientRect() : get_element_coordinates_default(domNode);
-      if (coords.top === 0 && coords.bottom === 0) {
-        return false;
-      }
-      if (coords.left === 0 && coords.right === 0) {
-        return false;
-      }
-      if (coords.bottom <= 0 && (noParentScrolled(domNode, coords.bottom) || styl.position === 'absolute')) {
-        return true;
-      }
-      var viewportSize = get_viewport_size_default(window);
-      if (isFixed && coords.top >= viewportSize.height) {
-        return true;
-      }
-      var rightEdge = Math.max(docElement.scrollWidth, viewportSize.width);
-      if ((isFixed || dir === 'rtl') && coords.left >= rightEdge) {
-        return true;
-      }
-      if ((isFixed || dir === 'ltr') && coords.right <= 0) {
-        return true;
-      }
-      return false;
-    }
-    var is_offscreen_default = isOffscreen;
-    var hiddenMethods2 = [ opacityHidden, scrollHidden, overflowHidden, clipHidden, is_offscreen_default ];
-    function _isVisibleOnScreen(vNode) {
-      vNode = _nodeLookup(vNode).vNode;
-      return isVisibleOnScreenVirtual(vNode);
-    }
-    var isVisibleOnScreenVirtual = memoize_default(function isVisibleOnScreenMemoized(vNode, isAncestor) {
-      if (vNode.actualNode && vNode.props.nodeName === 'area') {
-        return !areaHidden(vNode, isVisibleOnScreenVirtual);
-      }
-      if (_isHiddenForEveryone(vNode, {
-        skipAncestors: true,
-        isAncestor: isAncestor
-      })) {
-        return false;
-      }
-      if (vNode.actualNode && hiddenMethods2.some(function(method) {
-        return method(vNode, {
-          isAncestor: isAncestor
-        });
-      })) {
-        return false;
-      }
-      if (!vNode.parent) {
-        return true;
-      }
-      return isVisibleOnScreenVirtual(vNode.parent, true);
-    });
-    function _getBoundingRect(rectA, rectB) {
-      var top = Math.min(rectA.top, rectB.top);
-      var right = Math.max(rectA.right, rectB.right);
-      var bottom = Math.max(rectA.bottom, rectB.bottom);
-      var left = Math.min(rectA.left, rectB.left);
-      return new window.DOMRect(left, top, right - left, bottom - top);
-    }
-    function _isPointInRect(_ref43, _ref44) {
-      var x = _ref43.x, y = _ref43.y;
-      var top = _ref44.top, right = _ref44.right, bottom = _ref44.bottom, left = _ref44.left;
-      return y >= top && x <= right && y <= bottom && x >= left;
-    }
-    var math_exports = {};
-    __export(math_exports, {
-      getBoundingRect: function getBoundingRect() {
-        return _getBoundingRect;
-      },
-      getIntersectionRect: function getIntersectionRect() {
-        return _getIntersectionRect;
-      },
-      getOffset: function getOffset() {
-        return _getOffset;
-      },
-      getRectCenter: function getRectCenter() {
-        return _getRectCenter;
-      },
-      hasVisualOverlap: function hasVisualOverlap() {
-        return _hasVisualOverlap;
-      },
-      isPointInRect: function isPointInRect() {
-        return _isPointInRect;
-      },
-      rectHasMinimumSize: function rectHasMinimumSize() {
-        return _rectHasMinimumSize;
-      },
-      rectsOverlap: function rectsOverlap() {
-        return _rectsOverlap;
-      },
-      splitRects: function splitRects() {
-        return _splitRects;
-      }
-    });
-    function _getIntersectionRect(rect1, rect2) {
-      var leftX = Math.max(rect1.left, rect2.left);
-      var rightX = Math.min(rect1.right, rect2.right);
-      var topY = Math.max(rect1.top, rect2.top);
-      var bottomY = Math.min(rect1.bottom, rect2.bottom);
-      if (leftX >= rightX || topY >= bottomY) {
-        return null;
-      }
-      return new window.DOMRect(leftX, topY, rightX - leftX, bottomY - topY);
-    }
-    function _getRectCenter(_ref45) {
-      var left = _ref45.left, top = _ref45.top, width = _ref45.width, height = _ref45.height;
-      return new window.DOMPoint(left + width / 2, top + height / 2);
-    }
-    var roundingMargin = .05;
-    function _rectHasMinimumSize(minSize, _ref46) {
-      var width = _ref46.width, height = _ref46.height;
-      return width + roundingMargin >= minSize && height + roundingMargin >= minSize;
-    }
-    function _getOffset(vTarget, vNeighbor) {
-      var minRadiusNeighbour = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 12;
-      var targetRects = get_target_rects_default(vTarget);
-      var neighborRects = get_target_rects_default(vNeighbor);
-      if (!targetRects.length || !neighborRects.length) {
-        return null;
-      }
-      return targetRects.reduce(function(minDistance, targetRect) {
-        var targetCenter = _getRectCenter(targetRect);
-        var _iterator8 = _createForOfIteratorHelper(neighborRects), _step8;
-        try {
-          for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
-            var rect = _step8.value;
-            if (_isPointInRect(targetCenter, rect)) {
-              return 0;
-            }
-            var closestPoint = getClosestPoint(targetCenter, rect);
-            var distance2 = pointDistance(targetCenter, closestPoint);
-            minDistance = Math.min(minDistance, distance2);
-          }
-        } catch (err) {
-          _iterator8.e(err);
-        } finally {
-          _iterator8.f();
-        }
-        var neighborTargetSize = get_target_size_default(vNeighbor);
-        if (_rectHasMinimumSize(minRadiusNeighbour * 2, neighborTargetSize)) {
-          return minDistance;
-        }
-        var neighborBoundingBox = neighborRects.reduce(_getBoundingRect);
-        var neighborCenter = _getRectCenter(neighborBoundingBox);
-        var centerDistance = pointDistance(targetCenter, neighborCenter) - minRadiusNeighbour;
-        return Math.max(0, Math.min(minDistance, centerDistance));
-      }, Infinity);
-    }
-    function getClosestPoint(point, rect) {
-      var x;
-      var y;
-      if (point.x < rect.left) {
-        x = rect.left;
-      } else if (point.x > rect.right) {
-        x = rect.right;
-      } else {
-        x = point.x;
-      }
-      if (point.y < rect.top) {
-        y = rect.top;
-      } else if (point.y > rect.bottom) {
-        y = rect.bottom;
-      } else {
-        y = point.y;
-      }
-      return {
-        x: x,
-        y: y
-      };
-    }
-    function pointDistance(pointA, pointB) {
-      return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
-    }
-    function _hasVisualOverlap(vNodeA, vNodeB) {
-      var rectA = vNodeA.boundingClientRect;
-      var rectB = vNodeB.boundingClientRect;
-      if (rectA.left >= rectB.right || rectA.right <= rectB.left || rectA.top >= rectB.bottom || rectA.bottom <= rectB.top) {
-        return false;
-      }
-      return _visuallySort(vNodeA, vNodeB) > 0;
-    }
-    function _splitRects(outerRect, overlapRects) {
-      var uniqueRects = Array.isArray(outerRect) ? outerRect : [ outerRect ];
-      var _iterator9 = _createForOfIteratorHelper(overlapRects), _step9;
-      try {
-        var _loop6 = function _loop6() {
-          var overlapRect = _step9.value;
-          uniqueRects = uniqueRects.reduce(function(rects, inputRect) {
-            return rects.concat(splitRect(inputRect, overlapRect));
-          }, []);
-          if (uniqueRects.length > 4e3) {
-            throw new Error('splitRects: Too many rects');
-          }
-        };
-        for (_iterator9.s(); !(_step9 = _iterator9.n()).done; ) {
-          _loop6();
-        }
-      } catch (err) {
-        _iterator9.e(err);
-      } finally {
-        _iterator9.f();
-      }
-      return uniqueRects;
-    }
-    function splitRect(inputRect, clipRect) {
-      var top = inputRect.top, left = inputRect.left, bottom = inputRect.bottom, right = inputRect.right;
-      var yAligned = top < clipRect.bottom && bottom > clipRect.top;
-      var xAligned = left < clipRect.right && right > clipRect.left;
-      var rects = [];
-      if (between(clipRect.top, top, bottom) && xAligned) {
-        rects.push({
-          top: top,
-          left: left,
-          bottom: clipRect.top,
-          right: right
-        });
-      }
-      if (between(clipRect.right, left, right) && yAligned) {
-        rects.push({
-          top: top,
-          left: clipRect.right,
-          bottom: bottom,
-          right: right
-        });
-      }
-      if (between(clipRect.bottom, top, bottom) && xAligned) {
-        rects.push({
-          top: clipRect.bottom,
-          right: right,
-          bottom: bottom,
-          left: left
-        });
-      }
-      if (between(clipRect.left, left, right) && yAligned) {
-        rects.push({
-          top: top,
-          left: left,
-          bottom: bottom,
-          right: clipRect.left
-        });
-      }
-      if (rects.length === 0) {
-        if (isEnclosedRect(inputRect, clipRect)) {
-          return [];
-        }
-        rects.push(inputRect);
-      }
-      return rects.map(computeRect);
-    }
-    var between = function between(num, min, max2) {
-      return num > min && num < max2;
-    };
-    function computeRect(baseRect) {
-      return new window.DOMRect(baseRect.left, baseRect.top, baseRect.right - baseRect.left, baseRect.bottom - baseRect.top);
-    }
-    function isEnclosedRect(rectA, rectB) {
-      return rectA.top >= rectB.top && rectA.left >= rectB.left && rectA.bottom <= rectB.bottom && rectA.right <= rectB.right;
-    }
-    var ROOT_LEVEL = 0;
-    var DEFAULT_LEVEL = .1;
-    var FLOAT_LEVEL = .2;
-    var POSITION_LEVEL = .3;
-    var nodeIndex = 0;
-    function _createGrid() {
-      var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document.body;
-      var rootGrid = arguments.length > 1 ? arguments[1] : undefined;
-      var parentVNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      if (cache_default.get('gridCreated') && !parentVNode) {
-        return constants_default.gridSize;
-      }
-      cache_default.set('gridCreated', true);
-      if (!parentVNode) {
-        var vNode = get_node_from_tree_default(document.documentElement);
-        if (!vNode) {
-          vNode = new virtual_node_default(document.documentElement);
-        }
-        nodeIndex = 0;
-        vNode._stackingOrder = [ createStackingContext(ROOT_LEVEL, nodeIndex++, null) ];
-        rootGrid !== null && rootGrid !== void 0 ? rootGrid : rootGrid = new Grid();
-        addNodeToGrid(rootGrid, vNode);
-        if (get_scroll_default(vNode.actualNode)) {
-          var subGrid = new Grid(vNode);
-          vNode._subGrid = subGrid;
-        }
-      }
-      var treeWalker = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT, null, false);
-      var node = parentVNode ? treeWalker.nextNode() : treeWalker.currentNode;
-      while (node) {
-        var _vNode = get_node_from_tree_default(node);
-        if (_vNode && _vNode.parent) {
-          parentVNode = _vNode.parent;
-        } else if (node.assignedSlot) {
-          parentVNode = get_node_from_tree_default(node.assignedSlot);
-        } else if (node.parentElement) {
-          parentVNode = get_node_from_tree_default(node.parentElement);
-        } else if (node.parentNode && get_node_from_tree_default(node.parentNode)) {
-          parentVNode = get_node_from_tree_default(node.parentNode);
-        }
-        if (!_vNode) {
-          _vNode = new axe.VirtualNode(node, parentVNode);
-        }
-        _vNode._stackingOrder = createStackingOrder(_vNode, parentVNode, nodeIndex++);
-        var scrollRegionParent = findScrollRegionParent(_vNode, parentVNode);
-        var grid = scrollRegionParent ? scrollRegionParent._subGrid : rootGrid;
-        if (get_scroll_default(_vNode.actualNode)) {
-          var _subGrid = new Grid(_vNode);
-          _vNode._subGrid = _subGrid;
-        }
-        var rect = _vNode.boundingClientRect;
-        if (rect.width !== 0 && rect.height !== 0 && _isVisibleOnScreen(node)) {
-          addNodeToGrid(grid, _vNode);
-        }
-        if (is_shadow_root_default(node)) {
-          _createGrid(node.shadowRoot, grid, _vNode);
-        }
-        node = treeWalker.nextNode();
-      }
-      return constants_default.gridSize;
-    }
-    function isStackingContext(vNode, parentVNode) {
-      var position = vNode.getComputedStylePropertyValue('position');
-      var zIndex = vNode.getComputedStylePropertyValue('z-index');
-      if (position === 'fixed' || position === 'sticky') {
-        return true;
-      }
-      if (zIndex !== 'auto' && position !== 'static') {
-        return true;
-      }
-      if (vNode.getComputedStylePropertyValue('opacity') !== '1') {
-        return true;
-      }
-      var transform = vNode.getComputedStylePropertyValue('-webkit-transform') || vNode.getComputedStylePropertyValue('-ms-transform') || vNode.getComputedStylePropertyValue('transform') || 'none';
-      if (transform !== 'none') {
-        return true;
-      }
-      var mixBlendMode = vNode.getComputedStylePropertyValue('mix-blend-mode');
-      if (mixBlendMode && mixBlendMode !== 'normal') {
-        return true;
-      }
-      var filter = vNode.getComputedStylePropertyValue('filter');
-      if (filter && filter !== 'none') {
-        return true;
-      }
-      var perspective = vNode.getComputedStylePropertyValue('perspective');
-      if (perspective && perspective !== 'none') {
-        return true;
-      }
-      var clipPath = vNode.getComputedStylePropertyValue('clip-path');
-      if (clipPath && clipPath !== 'none') {
-        return true;
-      }
-      var mask = vNode.getComputedStylePropertyValue('-webkit-mask') || vNode.getComputedStylePropertyValue('mask') || 'none';
-      if (mask !== 'none') {
-        return true;
-      }
-      var maskImage = vNode.getComputedStylePropertyValue('-webkit-mask-image') || vNode.getComputedStylePropertyValue('mask-image') || 'none';
-      if (maskImage !== 'none') {
-        return true;
-      }
-      var maskBorder = vNode.getComputedStylePropertyValue('-webkit-mask-border') || vNode.getComputedStylePropertyValue('mask-border') || 'none';
-      if (maskBorder !== 'none') {
-        return true;
-      }
-      if (vNode.getComputedStylePropertyValue('isolation') === 'isolate') {
-        return true;
-      }
-      var willChange = vNode.getComputedStylePropertyValue('will-change');
-      if (willChange === 'transform' || willChange === 'opacity') {
-        return true;
-      }
-      if (vNode.getComputedStylePropertyValue('-webkit-overflow-scrolling') === 'touch') {
-        return true;
-      }
-      var contain = vNode.getComputedStylePropertyValue('contain');
-      if ([ 'layout', 'paint', 'strict', 'content' ].includes(contain)) {
-        return true;
-      }
-      if (zIndex !== 'auto' && isFlexOrGridContainer(parentVNode)) {
-        return true;
-      }
-      return false;
-    }
-    function isFlexOrGridContainer(vNode) {
-      if (!vNode) {
-        return false;
-      }
-      var display2 = vNode.getComputedStylePropertyValue('display');
-      return [ 'flex', 'inline-flex', 'grid', 'inline-grid' ].includes(display2);
-    }
-    function createStackingOrder(vNode, parentVNode, treeOrder) {
-      var stackingOrder = parentVNode._stackingOrder.slice();
-      if (isStackingContext(vNode, parentVNode)) {
-        var index = stackingOrder.findIndex(function(_ref47) {
-          var stackLevel2 = _ref47.stackLevel;
-          return [ ROOT_LEVEL, FLOAT_LEVEL, POSITION_LEVEL ].includes(stackLevel2);
-        });
-        if (index !== -1) {
-          stackingOrder.splice(index, stackingOrder.length - index);
-        }
-      }
-      var stackLevel = getStackLevel(vNode, parentVNode);
-      if (stackLevel !== null) {
-        stackingOrder.push(createStackingContext(stackLevel, treeOrder, vNode));
-      }
-      return stackingOrder;
-    }
-    function createStackingContext(stackLevel, treeOrder, vNode) {
-      return {
-        stackLevel: stackLevel,
-        treeOrder: treeOrder,
-        vNode: vNode
-      };
-    }
-    function getStackLevel(vNode, parentVNode) {
-      var zIndex = getRealZIndex(vNode, parentVNode);
-      if (![ 'auto', '0' ].includes(zIndex)) {
-        return parseInt(zIndex);
-      }
-      if (vNode.getComputedStylePropertyValue('position') !== 'static') {
-        return POSITION_LEVEL;
-      }
-      if (vNode.getComputedStylePropertyValue('float') !== 'none') {
-        return FLOAT_LEVEL;
-      }
-      if (isStackingContext(vNode, parentVNode)) {
-        return DEFAULT_LEVEL;
-      }
-      return null;
-    }
-    function getRealZIndex(vNode, parentVNode) {
-      var position = vNode.getComputedStylePropertyValue('position');
-      if (position === 'static' && !isFlexOrGridContainer(parentVNode)) {
-        return 'auto';
-      }
-      return vNode.getComputedStylePropertyValue('z-index');
-    }
-    function findScrollRegionParent(vNode, parentVNode) {
-      var scrollRegionParent = null;
-      var checkedNodes = [ vNode ];
-      while (parentVNode) {
-        if (get_scroll_default(parentVNode.actualNode)) {
-          scrollRegionParent = parentVNode;
-          break;
-        }
-        if (parentVNode._scrollRegionParent) {
-          scrollRegionParent = parentVNode._scrollRegionParent;
-          break;
-        }
-        checkedNodes.push(parentVNode);
-        parentVNode = get_node_from_tree_default(parentVNode.actualNode.parentElement || parentVNode.actualNode.parentNode);
-      }
-      checkedNodes.forEach(function(virtualNode) {
-        return virtualNode._scrollRegionParent = scrollRegionParent;
-      });
-      return scrollRegionParent;
-    }
-    function addNodeToGrid(grid, vNode) {
-      var overflowHiddenNodes = get_overflow_hidden_ancestors_default(vNode);
-      vNode.clientRects.forEach(function(clientRect) {
-        var _vNode$_grid;
-        var visibleRect = overflowHiddenNodes.reduce(function(rect, overflowNode) {
-          return rect && _getIntersectionRect(rect, overflowNode.boundingClientRect);
-        }, clientRect);
-        if (!visibleRect) {
-          return;
-        }
-        (_vNode$_grid = vNode._grid) !== null && _vNode$_grid !== void 0 ? _vNode$_grid : vNode._grid = grid;
-        var gridRect = grid.getGridPositionOfRect(visibleRect);
-        grid.loopGridPosition(gridRect, function(gridCell) {
-          if (!gridCell.includes(vNode)) {
-            gridCell.push(vNode);
-          }
-        });
-      });
-    }
-    var Grid = function() {
-      function Grid() {
-        var container = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-        _classCallCheck(this, Grid);
-        this.container = container;
-        this.cells = [];
-      }
-      return _createClass(Grid, [ {
-        key: 'toGridIndex',
-        value: function toGridIndex(num) {
-          return Math.floor(num / constants_default.gridSize);
-        }
-      }, {
-        key: 'getCellFromPoint',
-        value: function getCellFromPoint(_ref48) {
-          var _this$cells, _row;
-          var x = _ref48.x, y = _ref48.y;
-          assert_default(this.boundaries, 'Grid does not have cells added');
-          var rowIndex = this.toGridIndex(y);
-          var colIndex = this.toGridIndex(x);
-          assert_default(_isPointInRect({
-            y: rowIndex,
-            x: colIndex
-          }, this.boundaries), 'Element midpoint exceeds the grid bounds');
-          var row = (_this$cells = this.cells[rowIndex - this.cells._negativeIndex]) !== null && _this$cells !== void 0 ? _this$cells : [];
-          return (_row = row[colIndex - row._negativeIndex]) !== null && _row !== void 0 ? _row : [];
-        }
-      }, {
-        key: 'loopGridPosition',
-        value: function loopGridPosition(gridPosition, callback) {
-          var _gridPosition = gridPosition, left = _gridPosition.left, right = _gridPosition.right, top = _gridPosition.top, bottom = _gridPosition.bottom;
-          if (this.boundaries) {
-            gridPosition = _getBoundingRect(this.boundaries, gridPosition);
-          }
-          this.boundaries = gridPosition;
-          loopNegativeIndexMatrix(this.cells, top, bottom, function(gridRow, row) {
-            loopNegativeIndexMatrix(gridRow, left, right, function(gridCell, col) {
-              callback(gridCell, {
-                row: row,
-                col: col
-              });
-            });
-          });
-        }
-      }, {
-        key: 'getGridPositionOfRect',
-        value: function getGridPositionOfRect(_ref49) {
-          var top = _ref49.top, right = _ref49.right, bottom = _ref49.bottom, left = _ref49.left;
-          var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-          top = this.toGridIndex(top - margin);
-          right = this.toGridIndex(right + margin - 1);
-          bottom = this.toGridIndex(bottom + margin - 1);
-          left = this.toGridIndex(left - margin);
-          return new window.DOMRect(left, top, right - left, bottom - top);
-        }
-      } ]);
-    }();
-    function loopNegativeIndexMatrix(matrix, start, end, callback) {
-      var _matrix$_negativeInde;
-      (_matrix$_negativeInde = matrix._negativeIndex) !== null && _matrix$_negativeInde !== void 0 ? _matrix$_negativeInde : matrix._negativeIndex = 0;
-      if (start < matrix._negativeIndex) {
-        for (var _i0 = 0; _i0 < matrix._negativeIndex - start; _i0++) {
-          matrix.splice(0, 0, []);
-        }
-        matrix._negativeIndex = start;
-      }
-      var startOffset = start - matrix._negativeIndex;
-      var endOffset = end - matrix._negativeIndex;
-      for (var index = startOffset; index <= endOffset; index++) {
-        var _index, _matrix$_index;
-        (_matrix$_index = matrix[_index = index]) !== null && _matrix$_index !== void 0 ? _matrix$_index : matrix[_index] = [];
-        callback(matrix[index], index + matrix._negativeIndex);
-      }
-    }
-    function _getNodeGrid(node) {
-      _createGrid();
-      var _nodeLookup4 = _nodeLookup(node), vNode = _nodeLookup4.vNode;
-      return vNode._grid;
-    }
-    function _findNearbyElms(vNode) {
-      var _grid$cells;
-      var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-      var grid = _getNodeGrid(vNode);
-      if (!(grid !== null && grid !== void 0 && (_grid$cells = grid.cells) !== null && _grid$cells !== void 0 && _grid$cells.length)) {
-        return [];
-      }
-      var rect = vNode.boundingClientRect;
-      var selfIsFixed = _isFixedPosition(vNode);
-      var gridPosition = grid.getGridPositionOfRect(rect, margin);
-      var neighbors = [];
-      grid.loopGridPosition(gridPosition, function(vNeighbors) {
-        var _iterator0 = _createForOfIteratorHelper(vNeighbors), _step0;
-        try {
-          for (_iterator0.s(); !(_step0 = _iterator0.n()).done; ) {
-            var vNeighbor = _step0.value;
-            if (vNeighbor && vNeighbor !== vNode && !neighbors.includes(vNeighbor) && selfIsFixed === _isFixedPosition(vNeighbor)) {
-              neighbors.push(vNeighbor);
-            }
-          }
-        } catch (err) {
-          _iterator0.e(err);
-        } finally {
-          _iterator0.f();
-        }
-      });
-      return neighbors;
-    }
-    var getModalDialog = memoize_default(function getModalDialogMemoized() {
-      var _dialogs$find;
-      if (!axe._tree) {
-        return null;
-      }
-      var dialogs = query_selector_all_filter_default(axe._tree[0], 'dialog[open]', function(vNode) {
-        var rect = vNode.boundingClientRect;
-        var stack = document.elementsFromPoint(rect.left + 1, rect.top + 1);
-        return stack.includes(vNode.actualNode) && _isVisibleOnScreen(vNode);
-      });
-      if (!dialogs.length) {
-        return null;
-      }
-      var modalDialog = dialogs.find(function(dialog) {
-        var rect = dialog.boundingClientRect;
-        var stack = document.elementsFromPoint(rect.left - 10, rect.top - 10);
-        return stack.includes(dialog.actualNode);
-      });
-      if (modalDialog) {
-        return modalDialog;
-      }
-      return (_dialogs$find = dialogs.find(function(dialog) {
-        var _getNodeFromGrid;
-        var _ref50 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref50.vNode, rect = _ref50.rect;
-        if (!vNode) {
-          return false;
-        }
-        var stack = document.elementsFromPoint(rect.left + 1, rect.top + 1);
-        return !stack.includes(vNode.actualNode);
-      })) !== null && _dialogs$find !== void 0 ? _dialogs$find : null;
-    });
-    var get_modal_dialog_default = getModalDialog;
-    function getNodeFromGrid(dialog) {
-      _createGrid();
-      var grid = axe._tree[0]._grid;
-      var viewRect = new window.DOMRect(0, 0, window.innerWidth, window.innerHeight);
-      if (!grid) {
-        return;
-      }
-      for (var row = 0; row < grid.cells.length; row++) {
-        var cols = grid.cells[row];
-        if (!cols) {
-          continue;
-        }
-        for (var col = 0; col < cols.length; col++) {
-          var cells = cols[col];
-          if (!cells) {
-            continue;
-          }
-          for (var _i1 = 0; _i1 < cells.length; _i1++) {
-            var vNode = cells[_i1];
-            var rect = vNode.boundingClientRect;
-            var intersection = _getIntersectionRect(rect, viewRect);
-            if (vNode.props.nodeName !== 'html' && vNode !== dialog && vNode.getComputedStylePropertyValue('pointer-events') !== 'none' && intersection) {
-              return {
-                vNode: vNode,
-                rect: intersection
-              };
-            }
-          }
-        }
-      }
-    }
-    function _isInert(vNode) {
-      var _ref51 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref51.skipAncestors, isAncestor = _ref51.isAncestor;
-      if (skipAncestors) {
-        return isInertSelf(vNode, isAncestor);
-      }
-      return isInertAncestors(vNode, isAncestor);
-    }
-    var isInertSelf = memoize_default(function isInertSelfMemoized(vNode, isAncestor) {
-      if (vNode.hasAttr('inert')) {
-        return true;
-      }
-      if (!isAncestor && vNode.actualNode) {
-        var modalDialog = get_modal_dialog_default();
-        if (modalDialog && !_contains(modalDialog, vNode)) {
-          return true;
-        }
-      }
-      return false;
-    });
-    var isInertAncestors = memoize_default(function isInertAncestorsMemoized(vNode, isAncestor) {
-      if (isInertSelf(vNode, isAncestor)) {
-        return true;
-      }
-      if (!vNode.parent) {
-        return false;
-      }
-      return isInertAncestors(vNode.parent, true);
-    });
-    var allowedDisabledNodeNames = [ 'button', 'command', 'fieldset', 'keygen', 'optgroup', 'option', 'select', 'textarea', 'input' ];
-    function isDisabledAttrAllowed(nodeName2) {
-      return allowedDisabledNodeNames.includes(nodeName2);
-    }
-    function focusDisabled(el) {
-      var _nodeLookup5 = _nodeLookup(el), vNode = _nodeLookup5.vNode;
-      if (isDisabledAttrAllowed(vNode.props.nodeName) && vNode.hasAttr('disabled') || _isInert(vNode)) {
-        return true;
-      }
-      var parentNode = vNode.parent;
-      var ancestors = [];
-      var fieldsetDisabled = false;
-      while (parentNode && parentNode.shadowId === vNode.shadowId && !fieldsetDisabled) {
-        ancestors.push(parentNode);
-        if (parentNode.props.nodeName === 'legend') {
-          break;
-        }
-        if (parentNode._inDisabledFieldset !== void 0) {
-          fieldsetDisabled = parentNode._inDisabledFieldset;
-          break;
-        }
-        if (parentNode.props.nodeName === 'fieldset' && parentNode.hasAttr('disabled')) {
-          fieldsetDisabled = true;
-        }
-        parentNode = parentNode.parent;
-      }
-      ancestors.forEach(function(ancestor) {
-        return ancestor._inDisabledFieldset = fieldsetDisabled;
-      });
-      if (fieldsetDisabled) {
-        return true;
-      }
-      if (vNode.props.nodeName !== 'area') {
-        if (!vNode.actualNode) {
-          return false;
-        }
-        return _isHiddenForEveryone(vNode);
-      }
-      return false;
-    }
-    var focus_disabled_default = focusDisabled;
-    var angularSkipLinkRegex = /^\/\#/;
-    var angularRouterLinkRegex = /^#[!/]/;
-    function _isCurrentPageLink(anchor) {
-      var _window$location;
-      var href = anchor.getAttribute('href');
-      if (!href || href === '#') {
-        return false;
-      }
-      if (angularSkipLinkRegex.test(href)) {
-        return true;
-      }
-      var hash = anchor.hash, protocol = anchor.protocol, hostname = anchor.hostname, port = anchor.port, pathname = anchor.pathname;
-      if (angularRouterLinkRegex.test(hash)) {
-        return false;
-      }
-      if (href.charAt(0) === '#') {
-        return true;
-      }
-      if (typeof ((_window$location = window.location) === null || _window$location === void 0 ? void 0 : _window$location.origin) !== 'string' || window.location.origin.indexOf('://') === -1) {
-        return null;
-      }
-      var currentPageUrl = window.location.origin + window.location.pathname;
-      var url;
-      if (!hostname) {
-        url = window.location.origin;
-      } else {
-        url = ''.concat(protocol, '//').concat(hostname).concat(port ? ':'.concat(port) : '');
-      }
-      if (!pathname) {
-        url += window.location.pathname;
-      } else {
-        url += (pathname[0] !== '/' ? '/' : '') + pathname;
-      }
-      return url === currentPageUrl;
-    }
-    function getElementByReference(node, attr) {
-      var fragment = node.getAttribute(attr);
-      if (!fragment) {
-        return null;
-      }
-      if (attr === 'href' && !_isCurrentPageLink(node)) {
-        return null;
-      }
-      if (fragment.indexOf('#') !== -1) {
-        fragment = decodeURIComponent(fragment.substr(fragment.indexOf('#') + 1));
-      }
-      var candidate = document.getElementById(fragment);
-      if (candidate) {
-        return candidate;
-      }
-      candidate = document.getElementsByName(fragment);
-      if (candidate.length) {
-        return candidate[0];
-      }
-      return null;
-    }
-    var get_element_by_reference_default = getElementByReference;
-    function _visuallySort(a2, b2) {
-      _createGrid();
-      var length = Math.max(a2._stackingOrder.length, b2._stackingOrder.length);
-      for (var _i10 = 0; _i10 < length; _i10++) {
-        if (typeof b2._stackingOrder[_i10] === 'undefined') {
-          return -1;
-        } else if (typeof a2._stackingOrder[_i10] === 'undefined') {
-          return 1;
-        }
-        if (b2._stackingOrder[_i10].stackLevel > a2._stackingOrder[_i10].stackLevel) {
-          return 1;
-        }
-        if (b2._stackingOrder[_i10].stackLevel < a2._stackingOrder[_i10].stackLevel) {
-          return -1;
-        }
-        if (b2._stackingOrder[_i10].treeOrder !== a2._stackingOrder[_i10].treeOrder) {
-          return b2._stackingOrder[_i10].treeOrder - a2._stackingOrder[_i10].treeOrder;
-        }
-      }
-      var aNode = a2.actualNode;
-      var bNode = b2.actualNode;
-      if (aNode.getRootNode && aNode.getRootNode() !== bNode.getRootNode()) {
-        var boundaries = [];
-        while (aNode) {
-          boundaries.push({
-            root: aNode.getRootNode(),
-            node: aNode
-          });
-          aNode = aNode.getRootNode().host;
-        }
-        while (bNode && !boundaries.find(function(boundary) {
-          return boundary.root === bNode.getRootNode();
-        })) {
-          bNode = bNode.getRootNode().host;
-        }
-        aNode = boundaries.find(function(boundary) {
-          return boundary.root === bNode.getRootNode();
-        }).node;
-        if (aNode === bNode) {
-          return a2.actualNode.getRootNode() !== aNode.getRootNode() ? -1 : 1;
-        }
-      }
-      var _window$Node = window.Node, DOCUMENT_POSITION_FOLLOWING = _window$Node.DOCUMENT_POSITION_FOLLOWING, DOCUMENT_POSITION_CONTAINS = _window$Node.DOCUMENT_POSITION_CONTAINS, DOCUMENT_POSITION_CONTAINED_BY = _window$Node.DOCUMENT_POSITION_CONTAINED_BY;
-      var docPosition = aNode.compareDocumentPosition(bNode);
-      var DOMOrder = docPosition & DOCUMENT_POSITION_FOLLOWING ? 1 : -1;
-      var isDescendant = docPosition & DOCUMENT_POSITION_CONTAINS || docPosition & DOCUMENT_POSITION_CONTAINED_BY;
-      var aPosition = getPositionOrder(a2);
-      var bPosition = getPositionOrder(b2);
-      if (aPosition === bPosition || isDescendant) {
-        return DOMOrder;
-      }
-      return bPosition - aPosition;
-    }
-    function getPositionOrder(vNode) {
-      if (vNode.getComputedStylePropertyValue('display').indexOf('inline') !== -1) {
-        return 2;
-      }
-      if (isFloated(vNode)) {
-        return 1;
-      }
-      return 0;
-    }
-    function isFloated(vNode) {
-      if (!vNode) {
-        return false;
-      }
-      if (vNode._isFloated !== void 0) {
-        return vNode._isFloated;
-      }
-      var floatStyle = vNode.getComputedStylePropertyValue('float');
-      if (floatStyle !== 'none') {
-        vNode._isFloated = true;
-        return true;
-      }
-      var floated = isFloated(vNode.parent);
-      vNode._isFloated = floated;
-      return floated;
-    }
-    function getRectStack(grid, rect) {
-      var recursed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      var center = _getRectCenter(rect);
-      var gridCell = grid.getCellFromPoint(center) || [];
-      var floorX = Math.floor(center.x);
-      var floorY = Math.floor(center.y);
-      var stack = gridCell.filter(function(gridCellNode) {
-        return gridCellNode.clientRects.some(function(clientRect) {
-          var rectX = clientRect.left;
-          var rectY = clientRect.top;
-          return floorX < Math.floor(rectX + clientRect.width) && floorX >= Math.floor(rectX) && floorY < Math.floor(rectY + clientRect.height) && floorY >= Math.floor(rectY);
-        });
-      });
-      var gridContainer = grid.container;
-      if (gridContainer) {
-        stack = getRectStack(gridContainer._grid, gridContainer.boundingClientRect, true).concat(stack);
-      }
-      if (!recursed) {
-        stack = stack.sort(_visuallySort).map(function(vNode) {
-          return vNode.actualNode;
-        }).concat(document.documentElement).filter(function(node, index, array) {
-          return array.indexOf(node) === index;
-        });
-      }
-      return stack;
-    }
-    function getElementStack(node) {
-      var grid = _getNodeGrid(node);
-      if (!grid) {
-        return [];
-      }
-      var rect = get_node_from_tree_default(node).boundingClientRect;
-      return getRectStack(grid, rect);
-    }
-    var get_element_stack_default = getElementStack;
-    function getTabbableElements(virtualNode) {
-      var nodeAndDescendents = query_selector_all_default(virtualNode, '*');
-      var tabbableElements = nodeAndDescendents.filter(function(vNode) {
-        var isFocusable2 = vNode.isFocusable;
-        var tabIndex = parse_tabindex_default(vNode.actualNode.getAttribute('tabindex'));
-        return tabIndex !== null ? isFocusable2 && tabIndex >= 0 : isFocusable2;
-      });
-      return tabbableElements;
-    }
-    var get_tabbable_elements_default = getTabbableElements;
-    function isNativelyFocusable(el) {
-      var _nodeLookup6 = _nodeLookup(el), vNode = _nodeLookup6.vNode;
-      if (!vNode || focus_disabled_default(vNode)) {
-        return false;
-      }
-      switch (vNode.props.nodeName) {
-       case 'a':
-       case 'area':
-        if (vNode.hasAttr('href')) {
-          return true;
-        }
-        break;
-
-       case 'input':
-        return vNode.props.type !== 'hidden';
-
-       case 'textarea':
-       case 'select':
-       case 'summary':
-       case 'button':
-        return true;
-
-       case 'details':
-        return !query_selector_all_default(vNode, 'summary').length;
-      }
-      return false;
-    }
-    var is_natively_focusable_default = isNativelyFocusable;
-    function _isFocusable(el) {
-      var _nodeLookup7 = _nodeLookup(el), vNode = _nodeLookup7.vNode;
-      if (vNode.props.nodeType !== 1) {
-        return false;
-      }
-      if (focus_disabled_default(vNode)) {
-        return false;
-      } else if (is_natively_focusable_default(vNode)) {
-        return true;
-      }
-      var tabindex = parse_tabindex_default(vNode.attr('tabindex'));
-      return tabindex !== null;
-    }
-    function _isInTabOrder(el) {
-      var _nodeLookup8 = _nodeLookup(el), vNode = _nodeLookup8.vNode;
-      if (vNode.props.nodeType !== 1) {
-        return false;
-      }
-      var tabindex = parse_tabindex_default(vNode.attr('tabindex'));
-      if (tabindex <= -1) {
-        return false;
-      }
-      return _isFocusable(vNode);
-    }
-    var get_target_rects_default = memoize_default(getTargetRects);
-    function getTargetRects(vNode) {
-      var display2 = vNode.getComputedStylePropertyValue('display');
-      var nodeRects = display2 === 'inline' ? vNode.clientRects : [ vNode.boundingClientRect ];
-      var overlappingVNodes = _findNearbyElms(vNode).filter(function(vNeighbor) {
-        return _hasVisualOverlap(vNode, vNeighbor) && vNeighbor.getComputedStylePropertyValue('pointer-events') !== 'none' && !isDescendantNotInTabOrder(vNode, vNeighbor);
-      });
-      if (!overlappingVNodes.length) {
-        return nodeRects;
-      }
-      var obscuringRects = overlappingVNodes.map(function(overlappingVNode) {
-        var overlappingDisplay = overlappingVNode.getComputedStylePropertyValue('display');
-        return overlappingDisplay === 'inline' ? overlappingVNode.clientRects : overlappingVNode.boundingClientRect;
-      }).flat(Infinity);
-      return _splitRects(nodeRects, obscuringRects);
-    }
-    function isDescendantNotInTabOrder(vAncestor, vNode) {
-      return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
-    }
-    var get_target_size_default = memoize_default(getTargetSize);
-    function getTargetSize(vNode, minSize) {
-      var rects = get_target_rects_default(vNode);
-      return getLargestRect(rects, minSize);
-    }
-    function getLargestRect(rects, minSize) {
-      return rects.reduce(function(rectA, rectB) {
-        var rectAisMinimum = _rectHasMinimumSize(minSize, rectA);
-        var rectBisMinimum = _rectHasMinimumSize(minSize, rectB);
-        if (rectAisMinimum !== rectBisMinimum) {
-          return rectAisMinimum ? rectA : rectB;
-        }
-        var areaA = rectA.width * rectA.height;
-        var areaB = rectB.width * rectB.height;
-        return areaA > areaB ? rectA : rectB;
-      });
-    }
-    var text_exports = {};
-    __export(text_exports, {
-      accessibleText: function accessibleText() {
-        return accessible_text_default;
-      },
-      accessibleTextVirtual: function accessibleTextVirtual() {
-        return _accessibleTextVirtual;
-      },
-      autocomplete: function autocomplete() {
-        return _autocomplete;
-      },
-      formControlValue: function formControlValue() {
-        return form_control_value_default;
-      },
-      formControlValueMethods: function formControlValueMethods() {
-        return _formControlValueMethods;
-      },
-      hasUnicode: function hasUnicode() {
-        return has_unicode_default;
-      },
-      isHumanInterpretable: function isHumanInterpretable() {
-        return is_human_interpretable_default;
-      },
-      isIconLigature: function isIconLigature() {
-        return _isIconLigature;
-      },
-      isValidAutocomplete: function isValidAutocomplete() {
-        return is_valid_autocomplete_default;
-      },
-      label: function label() {
-        return label_default;
-      },
-      labelText: function labelText() {
-        return label_text_default;
-      },
-      labelVirtual: function labelVirtual() {
-        return label_virtual_default2;
-      },
-      nativeElementType: function nativeElementType() {
-        return native_element_type_default;
-      },
-      nativeTextAlternative: function nativeTextAlternative() {
-        return _nativeTextAlternative;
-      },
-      nativeTextMethods: function nativeTextMethods() {
-        return native_text_methods_default;
-      },
-      removeUnicode: function removeUnicode() {
-        return remove_unicode_default;
-      },
-      sanitize: function sanitize() {
-        return sanitize_default;
-      },
-      subtreeText: function subtreeText() {
-        return subtree_text_default;
-      },
-      titleText: function titleText() {
-        return title_text_default;
-      },
-      unsupported: function unsupported() {
-        return unsupported_default;
-      },
-      visible: function visible() {
-        return visible_default;
-      },
-      visibleTextNodes: function visibleTextNodes() {
-        return visible_text_nodes_default;
-      },
-      visibleVirtual: function visibleVirtual() {
-        return visible_virtual_default;
-      }
-    });
-    function idrefs(node, attr) {
-      node = node.actualNode || node;
-      try {
-        var doc = get_root_node_default2(node);
-        var result = [];
-        var attrValue = node.getAttribute(attr);
-        if (attrValue) {
-          attrValue = token_list_default(attrValue);
-          for (var index = 0; index < attrValue.length; index++) {
-            result.push(doc.getElementById(attrValue[index]));
-          }
-        }
-        return result;
-      } catch (_unused3) {
-        throw new TypeError('Cannot resolve id references for non-DOM nodes');
-      }
-    }
-    var idrefs_default = idrefs;
-    function accessibleText(element, context) {
-      var virtualNode = get_node_from_tree_default(element);
-      return _accessibleTextVirtual(virtualNode, context);
-    }
-    var accessible_text_default = accessibleText;
-    function arialabelledbyText(element) {
-      var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var _nodeLookup9 = _nodeLookup(element), vNode = _nodeLookup9.vNode;
-      if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
-        return '';
-      }
-      if (vNode.props.nodeType !== 1 || context.inLabelledByContext || context.inControlContext || !vNode.attr('aria-labelledby')) {
-        return '';
-      }
-      var refs = idrefs_default(vNode, 'aria-labelledby').filter(function(elm) {
-        return elm;
-      });
-      return refs.reduce(function(accessibleName, elm) {
-        var accessibleNameAdd = accessible_text_default(elm, _extends({
-          inLabelledByContext: true,
-          startNode: context.startNode || vNode
-        }, context));
-        if (!accessibleName) {
-          return accessibleNameAdd;
-        } else {
-          return ''.concat(accessibleName, ' ').concat(accessibleNameAdd);
-        }
-      }, '');
-    }
-    var arialabelledby_text_default = arialabelledbyText;
-    function _arialabelText(element) {
-      var _nodeLookup0 = _nodeLookup(element), vNode = _nodeLookup0.vNode;
-      if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
-        return '';
-      }
-      return vNode.attr('aria-label') || '';
-    }
     var ariaAttrs = {
+      'aria-actions': {
+        type: 'idrefs',
+        prop: 'ariaActionsElements',
+        allowEmpty: true,
+        global: true
+      },
       'aria-activedescendant': {
         type: 'idref',
+        prop: 'ariaActiveDescendantElement',
         allowEmpty: true
       },
       'aria-atomic': {
         type: 'boolean',
-        global: true
+        prop: 'ariaAtomic',
+        global: true,
+        caseInsensitive: true
       },
       'aria-autocomplete': {
         type: 'nmtoken',
-        values: [ 'inline', 'list', 'both', 'none' ]
+        prop: 'ariaAutoComplete',
+        values: [ 'inline', 'list', 'both', 'none' ],
+        caseInsensitive: true
       },
       'aria-braillelabel': {
         type: 'string',
+        prop: 'ariaBrailleLabel',
         allowEmpty: true,
         global: true
       },
       'aria-brailleroledescription': {
         type: 'string',
+        prop: 'ariaBrailleRoleDescription',
         allowEmpty: true,
         global: true
       },
       'aria-busy': {
         type: 'boolean',
-        global: true
+        prop: 'ariaBusy',
+        global: true,
+        caseInsensitive: false
       },
       'aria-checked': {
         type: 'nmtoken',
-        values: [ 'false', 'mixed', 'true', 'undefined' ]
+        prop: 'ariaChecked',
+        values: [ 'false', 'mixed', 'true', 'undefined' ],
+        caseInsensitive: false
       },
       'aria-colcount': {
         type: 'int',
+        prop: 'ariaColCount',
         minValue: -1
       },
       'aria-colindex': {
         type: 'int',
+        prop: 'ariaColIndex',
         minValue: 1
       },
       'aria-colspan': {
         type: 'int',
+        prop: 'ariaColSpan',
         minValue: 1
       },
       'aria-controls': {
         type: 'idrefs',
+        prop: 'ariaControlsElements',
         allowEmpty: true,
         global: true
       },
       'aria-current': {
         type: 'nmtoken',
+        prop: 'ariaCurrent',
         allowEmpty: true,
         values: [ 'page', 'step', 'location', 'date', 'time', 'true', 'false' ],
-        global: true
+        global: true,
+        caseInsensitive: false
       },
       'aria-describedby': {
         type: 'idrefs',
+        prop: 'ariaDescribedByElements',
         allowEmpty: true,
         global: true
       },
       'aria-description': {
         type: 'string',
+        prop: 'ariaDescription',
         allowEmpty: true,
         global: true
       },
       'aria-details': {
-        type: 'idref',
+        type: 'idrefs',
+        prop: 'ariaDetailsElements',
         allowEmpty: true,
         global: true
       },
       'aria-disabled': {
         type: 'boolean',
-        global: true
+        prop: 'ariaDisabled',
+        global: true,
+        caseInsensitive: true
       },
       'aria-dropeffect': {
         type: 'nmtokens',
         values: [ 'copy', 'execute', 'link', 'move', 'none', 'popup' ],
-        global: true
+        global: true,
+        caseInsensitive: true,
+        deprecated: true
       },
       'aria-errormessage': {
-        type: 'idref',
+        type: 'idrefs',
+        prop: 'ariaErrorMessageElements',
         allowEmpty: true,
         global: true
       },
       'aria-expanded': {
         type: 'nmtoken',
-        values: [ 'true', 'false', 'undefined' ]
+        prop: 'ariaExpanded',
+        values: [ 'true', 'false', 'undefined' ],
+        caseInsensitive: true
       },
       'aria-flowto': {
         type: 'idrefs',
+        prop: 'ariaFlowToElements',
         allowEmpty: true,
         global: true
       },
       'aria-grabbed': {
         type: 'nmtoken',
         values: [ 'true', 'false', 'undefined' ],
-        global: true
+        global: true,
+        caseInsensitive: true,
+        deprecated: true
       },
       'aria-haspopup': {
         type: 'nmtoken',
+        prop: 'ariaHasPopup',
         allowEmpty: true,
         values: [ 'true', 'false', 'menu', 'listbox', 'tree', 'grid', 'dialog' ],
-        global: true
+        global: true,
+        caseInsensitive: true
       },
       'aria-hidden': {
         type: 'nmtoken',
+        prop: 'ariaHidden',
         values: [ 'true', 'false', 'undefined' ],
-        global: true
+        global: true,
+        caseInsensitive: true
       },
       'aria-invalid': {
         type: 'nmtoken',
+        prop: 'ariaInvalid',
         values: [ 'grammar', 'false', 'spelling', 'true' ],
-        global: true
+        global: true,
+        caseInsensitive: true
       },
       'aria-keyshortcuts': {
         type: 'string',
+        prop: 'ariaKeyShortcuts',
         allowEmpty: true,
         global: true
       },
       'aria-label': {
         type: 'string',
+        prop: 'ariaLabel',
         allowEmpty: true,
         global: true
       },
       'aria-labelledby': {
         type: 'idrefs',
+        prop: 'ariaLabelledByElements',
         allowEmpty: true,
         global: true
       },
       'aria-level': {
         type: 'int',
+        prop: 'ariaLevel',
         minValue: 1
       },
       'aria-live': {
         type: 'nmtoken',
+        prop: 'ariaLive',
         values: [ 'assertive', 'off', 'polite' ],
-        global: true
+        global: true,
+        caseInsensitive: true
       },
       'aria-modal': {
-        type: 'boolean'
+        type: 'boolean',
+        prop: 'ariaModal',
+        caseInsensitive: true
       },
       'aria-multiline': {
-        type: 'boolean'
+        type: 'boolean',
+        prop: 'ariaMultiline',
+        caseInsensitive: false
       },
       'aria-multiselectable': {
-        type: 'boolean'
+        type: 'boolean',
+        prop: 'ariaMultiSelectable',
+        caseInsensitive: true
       },
       'aria-orientation': {
         type: 'nmtoken',
-        values: [ 'horizontal', 'undefined', 'vertical' ]
+        prop: 'ariaOrientation',
+        values: [ 'horizontal', 'undefined', 'vertical' ],
+        caseInsensitive: true
       },
       'aria-owns': {
         type: 'idrefs',
+        prop: 'ariaOwnsElements',
         allowEmpty: true,
         global: true
       },
       'aria-placeholder': {
         type: 'string',
+        prop: 'ariaPlaceholder',
         allowEmpty: true
       },
       'aria-posinset': {
         type: 'int',
+        prop: 'ariaPosInSet',
         minValue: 1
       },
       'aria-pressed': {
         type: 'nmtoken',
-        values: [ 'false', 'mixed', 'true', 'undefined' ]
+        prop: 'ariaPressed',
+        values: [ 'false', 'mixed', 'true', 'undefined' ],
+        caseInsensitive: false
       },
       'aria-readonly': {
-        type: 'boolean'
+        type: 'boolean',
+        prop: 'ariaReadOnly',
+        caseInsensitive: false
       },
       'aria-relevant': {
         type: 'nmtokens',
+        prop: 'ariaRelevant',
         values: [ 'additions', 'all', 'removals', 'text' ],
-        global: true
+        global: true,
+        caseInsensitive: false
       },
       'aria-required': {
-        type: 'boolean'
+        type: 'boolean',
+        prop: 'ariaRequired',
+        caseInsensitive: false
       },
       'aria-roledescription': {
         type: 'string',
+        prop: 'ariaRoleDescription',
         allowEmpty: true,
         global: true
       },
       'aria-rowcount': {
         type: 'int',
+        prop: 'ariaRowCount',
         minValue: -1
       },
       'aria-rowindex': {
         type: 'int',
+        prop: 'ariaRowIndex',
         minValue: 1
       },
       'aria-rowspan': {
         type: 'int',
+        prop: 'ariaRowSpan',
         minValue: 0
       },
       'aria-selected': {
         type: 'nmtoken',
-        values: [ 'false', 'true', 'undefined' ]
+        prop: 'ariaSelected',
+        values: [ 'false', 'true', 'undefined' ],
+        caseInsensitive: true
       },
       'aria-setsize': {
         type: 'int',
+        prop: 'ariaSetSize',
         minValue: -1
       },
       'aria-sort': {
         type: 'nmtoken',
-        values: [ 'ascending', 'descending', 'none', 'other' ]
+        prop: 'ariaSort',
+        values: [ 'ascending', 'descending', 'none', 'other' ],
+        caseInsensitive: false
       },
       'aria-valuemax': {
-        type: 'decimal'
+        type: 'decimal',
+        prop: 'ariaValueMax'
       },
       'aria-valuemin': {
-        type: 'decimal'
+        type: 'decimal',
+        prop: 'ariaValueMin'
       },
       'aria-valuenow': {
-        type: 'decimal'
+        type: 'decimal',
+        prop: 'ariaValueNow'
       },
       'aria-valuetext': {
         type: 'string',
+        prop: 'ariaValueText',
         allowEmpty: true
       }
     };
     var aria_attrs_default = ariaAttrs;
+    var imgRole = {
+      type: 'structure',
+      allowedAttrs: [ 'aria-expanded' ],
+      superclassRole: [ 'section' ],
+      accessibleNameRequired: true,
+      childrenPresentational: true
+    };
+    var noneRole = {
+      type: 'structure',
+      superclassRole: [ 'structure' ],
+      prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+    };
     var ariaRoles = {
       alert: {
         type: 'structure',
@@ -14394,7 +13111,7 @@
         type: 'structure',
         requiredContext: [ 'figure', 'table', 'grid', 'treegrid' ],
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       cell: {
         type: 'structure',
@@ -14415,7 +13132,7 @@
       code: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       columnheader: {
         type: 'structure',
@@ -14463,7 +13180,7 @@
       deletion: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       dialog: {
         type: 'window',
@@ -14486,7 +13203,7 @@
       emphasis: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       feed: {
         type: 'structure',
@@ -14532,13 +13249,8 @@
         accessibleNameRequired: false,
         nameFromContent: true
       },
-      img: {
-        type: 'structure',
-        allowedAttrs: [ 'aria-expanded' ],
-        superclassRole: [ 'section' ],
-        accessibleNameRequired: true,
-        childrenPresentational: true
-      },
+      image: _extends({}, imgRole),
+      img: _extends({}, imgRole),
       input: {
         type: 'abstract',
         superclassRole: [ 'widget' ]
@@ -14546,7 +13258,7 @@
       insertion: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       landmark: {
         type: 'abstract',
@@ -14651,18 +13363,14 @@
       mark: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       navigation: {
         type: 'landmark',
         allowedAttrs: [ 'aria-expanded' ],
         superclassRole: [ 'landmark' ]
       },
-      none: {
-        type: 'structure',
-        superclassRole: [ 'structure' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
-      },
+      none: _extends({}, noneRole),
       note: {
         type: 'structure',
         allowedAttrs: [ 'aria-expanded' ],
@@ -14680,13 +13388,9 @@
       paragraph: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
-      presentation: {
-        type: 'structure',
-        superclassRole: [ 'structure' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
-      },
+      presentation: _extends({}, noneRole),
       progressbar: {
         type: 'widget',
         allowedAttrs: [ 'aria-expanded', 'aria-valuemax', 'aria-valuemin', 'aria-valuenow', 'aria-valuetext' ],
@@ -14769,10 +13473,18 @@
         superclassRole: [ 'structure' ],
         nameFromContent: true
       },
+      sectionfooter: {
+        type: 'structure',
+        superclassRole: [ 'section' ]
+      },
       sectionhead: {
         type: 'abstract',
         superclassRole: [ 'structure' ],
         nameFromContent: true
+      },
+      sectionheader: {
+        type: 'structure',
+        superclassRole: [ 'section' ]
       },
       select: {
         type: 'abstract',
@@ -14807,7 +13519,7 @@
       strong: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       structure: {
         type: 'abstract',
@@ -14816,12 +13528,12 @@
       subscript: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       superscript: {
         type: 'structure',
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       switch: {
         type: 'widget',
@@ -14836,7 +13548,7 @@
         type: 'structure',
         requiredOwned: [ 'insertion', 'deletion' ],
         superclassRole: [ 'section' ],
-        prohibitedAttrs: [ 'aria-label', 'aria-labelledby' ]
+        prohibitedAttrs: [ 'aria-actions', 'aria-label', 'aria-labelledby' ]
       },
       tab: {
         type: 'widget',
@@ -15170,13 +13882,15 @@
           },
           default: {
             contentTypes: [ 'phrasing', 'flow' ],
-            allowedRoles: true
+            allowedRoles: true,
+            namingProhibited: true
           }
         }
       },
       abbr: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       address: {
         contentTypes: [ 'flow' ],
@@ -15189,7 +13903,8 @@
             allowedRoles: false
           },
           default: {
-            allowedRoles: [ 'button', 'link' ]
+            allowedRoles: [ 'button', 'link' ],
+            namingProhibited: true
           }
         },
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15219,19 +13934,22 @@
       },
       b: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       base: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       bdi: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       bdo: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       blockquote: {
         contentTypes: [ 'flow' ],
@@ -15240,7 +13958,8 @@
       },
       body: {
         allowedRoles: false,
-        shadowRoot: true
+        shadowRoot: true,
+        namingProhibited: true
       },
       br: {
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15259,42 +13978,48 @@
         chromiumRole: 'Canvas'
       },
       caption: {
-        allowedRoles: false
+        allowedRoles: false,
+        namingProhibited: true
       },
       cite: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       code: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       col: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       colgroup: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       data: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       datalist: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true,
+        allowedAriaAttrs: [],
         implicitAttrs: {
           'aria-multiselectable': 'false'
         }
       },
       dd: {
-        allowedRoles: false
+        allowedRoles: false,
+        namingProhibited: true
       },
       del: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       dfn: {
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15311,7 +14036,8 @@
       div: {
         contentTypes: [ 'flow' ],
         allowedRoles: true,
-        shadowRoot: true
+        shadowRoot: true,
+        namingProhibited: true
       },
       dl: {
         contentTypes: [ 'flow' ],
@@ -15323,11 +14049,12 @@
       },
       em: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       embed: {
         contentTypes: [ 'interactive', 'embedded', 'phrasing', 'flow' ],
-        allowedRoles: [ 'application', 'document', 'img', 'presentation', 'none' ],
+        allowedRoles: [ 'application', 'document', 'img', 'image', 'presentation', 'none' ],
         chromiumRole: 'EmbeddedObject'
       },
       fieldset: {
@@ -15336,11 +14063,22 @@
         namingMethods: [ 'fieldsetLegendText' ]
       },
       figcaption: {
-        allowedRoles: [ 'group', 'none', 'presentation' ]
+        allowedRoles: [ 'group', 'none', 'presentation' ],
+        namingProhibited: true
       },
       figure: {
+        variant: {
+          figcaption: {
+            matches: {
+              hasChild: 'figcaption'
+            },
+            allowedRoles: [ 'doc-example' ]
+          },
+          default: {
+            allowedRoles: true
+          }
+        },
         contentTypes: [ 'flow' ],
-        allowedRoles: true,
         namingMethods: [ 'figureText', 'titleText' ]
       },
       footer: {
@@ -15402,7 +14140,7 @@
       },
       head: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       header: {
         contentTypes: [ 'flow' ],
@@ -15420,15 +14158,16 @@
       },
       html: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       i: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       iframe: {
         contentTypes: [ 'interactive', 'embedded', 'phrasing', 'flow' ],
-        allowedRoles: [ 'application', 'document', 'img', 'none', 'presentation' ],
+        allowedRoles: [ 'application', 'document', 'img', 'image', 'none', 'presentation' ],
         chromiumRole: 'Iframe'
       },
       img: {
@@ -15516,7 +14255,7 @@
             },
             contentTypes: [ 'flow' ],
             allowedRoles: false,
-            noAriaAttrs: true
+            allowedAriaAttrs: []
           },
           image: {
             matches: {
@@ -15561,19 +14300,23 @@
       },
       ins: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       kbd: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       label: {
         contentTypes: [ 'interactive', 'phrasing', 'flow' ],
         allowedRoles: false,
-        chromiumRole: 'Label'
+        chromiumRole: 'Label',
+        namingProhibited: true
       },
       legend: {
-        allowedRoles: false
+        allowedRoles: false,
+        namingProhibited: true
       },
       li: {
         allowedRoles: [ 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'none', 'presentation', 'radio', 'separator', 'tab', 'treeitem', 'doc-biblioentry', 'doc-endnote' ],
@@ -15585,7 +14328,7 @@
       link: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       main: {
         contentTypes: [ 'flow' ],
@@ -15595,7 +14338,7 @@
       map: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       math: {
         contentTypes: [ 'embedded', 'phrasing', 'flow' ],
@@ -15603,7 +14346,8 @@
       },
       mark: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       menu: {
         contentTypes: [ 'flow' ],
@@ -15617,7 +14361,7 @@
           }
         },
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       meter: {
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15632,7 +14376,7 @@
       noscript: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       object: {
         variant: {
@@ -15644,7 +14388,7 @@
             contentTypes: [ 'embedded', 'phrasing', 'flow' ]
           }
         },
-        allowedRoles: [ 'application', 'document', 'img' ],
+        allowedRoles: [ 'application', 'document', 'img', 'image' ],
         chromiumRole: 'PluginObject'
       },
       ol: {
@@ -15668,20 +14412,22 @@
       p: {
         contentTypes: [ 'flow' ],
         allowedRoles: true,
-        shadowRoot: true
+        shadowRoot: true,
+        namingProhibited: true
       },
       param: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       picture: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: [ 'aria-hidden' ]
       },
       pre: {
         contentTypes: [ 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       progress: {
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15694,13 +14440,16 @@
       },
       q: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       rp: {
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       rt: {
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       ruby: {
         contentTypes: [ 'phrasing', 'flow' ],
@@ -15708,16 +14457,18 @@
       },
       s: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       samp: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       script: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       search: {
         contentTypes: [ 'flow' ],
@@ -15752,28 +14503,31 @@
       slot: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       small: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       source: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       span: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: true,
-        shadowRoot: true
+        shadowRoot: true,
+        namingProhibited: true
       },
       strong: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       style: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       svg: {
         contentTypes: [ 'embedded', 'phrasing', 'flow' ],
@@ -15783,15 +14537,27 @@
       },
       sub: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       summary: {
-        allowedRoles: false,
+        variant: {
+          summaryForDetails: {
+            matches: {
+              isSummaryForDetails: true
+            },
+            allowedRoles: false
+          },
+          default: {
+            allowedRoles: true
+          }
+        },
         namingMethods: [ 'subtreeText' ]
       },
       sup: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       table: {
         contentTypes: [ 'flow' ],
@@ -15804,7 +14570,7 @@
       template: {
         contentTypes: [ 'phrasing', 'flow' ],
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       textarea: {
         contentTypes: [ 'interactive', 'phrasing', 'flow' ],
@@ -15823,11 +14589,12 @@
       },
       time: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       title: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       td: {
         allowedRoles: true
@@ -15840,11 +14607,12 @@
       },
       track: {
         allowedRoles: false,
-        noAriaAttrs: true
+        allowedAriaAttrs: []
       },
       u: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       ul: {
         contentTypes: [ 'flow' ],
@@ -15852,7 +14620,8 @@
       },
       var: {
         contentTypes: [ 'phrasing', 'flow' ],
-        allowedRoles: true
+        allowedRoles: true,
+        namingProhibited: true
       },
       video: {
         variant: {
@@ -16045,13 +14814,1535 @@
       });
     }
     var standards_default = standards;
+    var idrefTypes = [ 'idref', 'idrefs' ];
+    var sources = [ {
+      source: 'attribute',
+      getValue: getAttributeValue
+    }, {
+      source: 'property',
+      getValue: getPropertyValue
+    }, {
+      source: 'internals',
+      getValue: getInternalValue
+    } ];
+    function _getAriaValue(node, attrName) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var attrStandard = standards_default.ariaAttrs[attrName];
+      if (!attrStandard) {
+        return {
+          value: null,
+          source: null
+        };
+      }
+      var type2 = attrStandard.type;
+      var _nodeLookup2 = _nodeLookup(node), vNode = _nodeLookup2.vNode;
+      var lowercase = options.lowercase;
+      var _iterator8 = _createForOfIteratorHelper(sources), _step8;
+      try {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done; ) {
+          var _step8$value = _step8.value, source = _step8$value.source, getValue = _step8$value.getValue;
+          var value = getValue(vNode, attrStandard, attrName);
+          if (value === null || value === void 0) {
+            continue;
+          }
+          if (typeof value === 'string') {
+            if (type2 !== 'string') {
+              value = value.trim();
+            }
+            value = lowercase || attrStandard.caseInsensitive ? value.toLowerCase() : value;
+          } else if (value instanceof window.Node) {
+            value = value.nodeName;
+          } else {
+            value = '[' + Array.from(value).map(function(n2) {
+              return n2.nodeName;
+            }).join(',') + ']';
+          }
+          return {
+            value: value,
+            source: source
+          };
+        }
+      } catch (err) {
+        _iterator8.e(err);
+      } finally {
+        _iterator8.f();
+      }
+      return {
+        value: null,
+        source: null
+      };
+    }
+    function getAttributeValue(vNode, attrStandard, attrName) {
+      var type2 = attrStandard.type;
+      var value = vNode.attr(attrName);
+      if (!idrefTypes.includes(type2)) {
+        return value;
+      }
+      if (!!value) {
+        return value;
+      }
+      var propValue = getPropertyValue(vNode, attrStandard);
+      var propEmpty = Array.isArray(propValue) ? propValue.length : !!propValue;
+      return propEmpty ? null : value;
+    }
+    function getPropertyValue(vNode, attrStandard) {
+      var prop = attrStandard.prop;
+      return prop && vNode.actualNode ? vNode.actualNode[prop] : null;
+    }
+    function getInternalValue(vNode, attrStandard) {
+      var prop = attrStandard.prop;
+      return prop && vNode.elementInternals ? vNode.elementInternals[prop] : null;
+    }
+    var clipRegex = /rect\s*\(([0-9]+)px,?\s*([0-9]+)px,?\s*([0-9]+)px,?\s*([0-9]+)px\s*\)/;
+    var clipPathRegex = /(\w+)\((\d+)/;
+    function nativelyHidden(vNode) {
+      return [ 'style', 'script', 'noscript', 'template' ].includes(vNode.props.nodeName);
+    }
+    function displayHidden(vNode) {
+      if (vNode.props.nodeName === 'area') {
+        return false;
+      }
+      return vNode.getComputedStylePropertyValue('display') === 'none';
+    }
+    function visibilityHidden(vNode) {
+      var _ref37 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref37.isAncestor;
+      return !isAncestor && [ 'hidden', 'collapse' ].includes(vNode.getComputedStylePropertyValue('visibility'));
+    }
+    function contentVisibiltyHidden(vNode) {
+      var _ref38 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref38.isAncestor;
+      return !!isAncestor && vNode.getComputedStylePropertyValue('content-visibility') === 'hidden';
+    }
+    function ariaHidden(vNode) {
+      return _getAriaValue(vNode, 'aria-hidden').value === 'true';
+    }
+    function opacityHidden(vNode) {
+      return vNode.getComputedStylePropertyValue('opacity') === '0';
+    }
+    function scrollHidden(vNode) {
+      var scroll = get_scroll_default(vNode.actualNode);
+      var elHeight = parseInt(vNode.getComputedStylePropertyValue('height'));
+      var elWidth = parseInt(vNode.getComputedStylePropertyValue('width'));
+      return !!scroll && (elHeight === 0 || elWidth === 0);
+    }
+    function overflowHidden(vNode) {
+      var _ref39 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref39.isAncestor;
+      if (isAncestor) {
+        return false;
+      }
+      var position = vNode.getComputedStylePropertyValue('position');
+      if (position === 'fixed') {
+        return false;
+      }
+      var nodes = get_overflow_hidden_ancestors_default(vNode);
+      if (!nodes.length) {
+        return false;
+      }
+      var rect = vNode.boundingClientRect;
+      return nodes.some(function(node) {
+        if (position === 'absolute' && !hasPositionedAncestorBetween(vNode, node) && node.getComputedStylePropertyValue('position') === 'static') {
+          return false;
+        }
+        var nodeRect = node.boundingClientRect;
+        if (nodeRect.width < 2 || nodeRect.height < 2) {
+          return true;
+        }
+        return !_rectsOverlap(rect, nodeRect);
+      });
+    }
+    function clipHidden(vNode) {
+      var matchesClip = vNode.getComputedStylePropertyValue('clip').match(clipRegex);
+      var matchesClipPath = vNode.getComputedStylePropertyValue('clip-path').match(clipPathRegex);
+      if (matchesClip && matchesClip.length === 5) {
+        var position = vNode.getComputedStylePropertyValue('position');
+        if ([ 'fixed', 'absolute' ].includes(position)) {
+          return matchesClip[3] - matchesClip[1] <= 0 && matchesClip[2] - matchesClip[4] <= 0;
+        }
+      }
+      if (matchesClipPath) {
+        var type2 = matchesClipPath[1];
+        var value = parseInt(matchesClipPath[2], 10);
+        switch (type2) {
+         case 'inset':
+          return value >= 50;
+
+         case 'circle':
+          return value === 0;
+
+         default:
+        }
+      }
+      return false;
+    }
+    function areaHidden(vNode, visibleFunction) {
+      var mapEl = closest_default(vNode, 'map');
+      if (!mapEl) {
+        return true;
+      }
+      var mapElName = mapEl.attr('name');
+      if (!mapElName) {
+        return true;
+      }
+      var mapElRootNode = get_root_node_default(vNode.actualNode);
+      if (!mapElRootNode || mapElRootNode.nodeType !== 9) {
+        return true;
+      }
+      var refs = query_selector_all_default(axe._tree, 'img[usemap="#'.concat(escape_selector_default(mapElName), '"]'));
+      if (!refs || !refs.length) {
+        return true;
+      }
+      return refs.some(function(ref) {
+        return !visibleFunction(ref);
+      });
+    }
+    function detailsHidden(vNode) {
+      var _vNode$parent;
+      if (((_vNode$parent = vNode.parent) === null || _vNode$parent === void 0 ? void 0 : _vNode$parent.props.nodeName) !== 'details') {
+        return false;
+      }
+      if (vNode.props.nodeName === 'summary') {
+        var firstSummary = vNode.parent.children.find(function(node) {
+          return node.props.nodeName === 'summary';
+        });
+        if (firstSummary === vNode) {
+          return false;
+        }
+      }
+      return !vNode.parent.hasAttr('open');
+    }
+    function hasPositionedAncestorBetween(child, ancestor) {
+      var node = child.parent;
+      while (node && node !== ancestor) {
+        if ([ 'relative', 'sticky' ].includes(node.getComputedStylePropertyValue('position'))) {
+          return true;
+        }
+        node = node.parent;
+      }
+      return false;
+    }
+    var hiddenMethods = [ displayHidden, visibilityHidden, contentVisibiltyHidden, detailsHidden ];
+    function _isHiddenForEveryone(vNode) {
+      var _ref40 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref40.skipAncestors, _ref40$isAncestor = _ref40.isAncestor, isAncestor = _ref40$isAncestor === void 0 ? false : _ref40$isAncestor;
+      vNode = _nodeLookup(vNode).vNode;
+      if (skipAncestors) {
+        return isHiddenSelf(vNode, isAncestor);
+      }
+      return isHiddenAncestors(vNode, isAncestor);
+    }
+    var isHiddenSelf = memoize_default(function isHiddenSelfMemoized(vNode, isAncestor) {
+      if (nativelyHidden(vNode)) {
+        return true;
+      }
+      if (!vNode.actualNode) {
+        return false;
+      }
+      if (hiddenMethods.some(function(method) {
+        return method(vNode, {
+          isAncestor: isAncestor
+        });
+      })) {
+        return true;
+      }
+      if (!vNode.actualNode.isConnected) {
+        return true;
+      }
+      return false;
+    });
+    var isHiddenAncestors = memoize_default(function isHiddenAncestorsMemoized(vNode, isAncestor) {
+      if (isHiddenSelf(vNode, isAncestor)) {
+        return true;
+      }
+      if (!vNode.parent) {
+        return false;
+      }
+      return isHiddenAncestors(vNode.parent, true);
+    });
+    function getComposedParent(element) {
+      if (element.assignedSlot) {
+        return getComposedParent(element.assignedSlot);
+      } else if (element.parentNode) {
+        var parentNode = element.parentNode;
+        if (parentNode.nodeType === 1) {
+          return parentNode;
+        } else if (parentNode.host) {
+          return parentNode.host;
+        }
+      }
+      return null;
+    }
+    var get_composed_parent_default = getComposedParent;
+    function getScrollOffset(element) {
+      if (!element.nodeType && element.document) {
+        element = element.document;
+      }
+      if (element.nodeType === 9) {
+        var docElement = element.documentElement, body = element.body;
+        return {
+          left: docElement && docElement.scrollLeft || body && body.scrollLeft || 0,
+          top: docElement && docElement.scrollTop || body && body.scrollTop || 0
+        };
+      }
+      return {
+        left: element.scrollLeft,
+        top: element.scrollTop
+      };
+    }
+    var get_scroll_offset_default = getScrollOffset;
+    function getElementCoordinates(element) {
+      var scrollOffset = get_scroll_offset_default(document), xOffset = scrollOffset.left, yOffset = scrollOffset.top, coords = element.getBoundingClientRect();
+      return {
+        top: coords.top + yOffset,
+        right: coords.right + xOffset,
+        bottom: coords.bottom + yOffset,
+        left: coords.left + xOffset,
+        width: coords.right - coords.left,
+        height: coords.bottom - coords.top
+      };
+    }
+    var get_element_coordinates_default = getElementCoordinates;
+    function getViewportSize(win) {
+      var doc = win.document;
+      var docElement = doc.documentElement;
+      if (win.innerWidth) {
+        return {
+          width: win.innerWidth,
+          height: win.innerHeight
+        };
+      }
+      if (docElement) {
+        return {
+          width: docElement.clientWidth,
+          height: docElement.clientHeight
+        };
+      }
+      var body = doc.body;
+      return {
+        width: body.clientWidth,
+        height: body.clientHeight
+      };
+    }
+    var get_viewport_size_default = getViewportSize;
+    function _isFixedPosition(node) {
+      var _ref41 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref41.skipAncestors;
+      var _nodeLookup3 = _nodeLookup(node), vNode = _nodeLookup3.vNode;
+      if (!vNode) {
+        return false;
+      }
+      if (skipAncestors) {
+        return isFixedSelf(vNode);
+      }
+      return isFixedAncestors(vNode);
+    }
+    var isFixedSelf = memoize_default(function isFixedSelfMemoized(vNode) {
+      return vNode.getComputedStylePropertyValue('position') === 'fixed';
+    });
+    var isFixedAncestors = memoize_default(function isFixedAncestorsMemoized(vNode) {
+      if (isFixedSelf(vNode)) {
+        return true;
+      }
+      if (!vNode.parent) {
+        return false;
+      }
+      return isFixedAncestors(vNode.parent);
+    });
+    function noParentScrolled(element, offset) {
+      element = get_composed_parent_default(element);
+      while (element && element.nodeName.toLowerCase() !== 'html') {
+        if (element.scrollTop) {
+          offset += element.scrollTop;
+          if (offset >= 0) {
+            return false;
+          }
+        }
+        element = get_composed_parent_default(element);
+      }
+      return true;
+    }
+    function isOffscreen(element) {
+      var _ref42 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, isAncestor = _ref42.isAncestor;
+      if (isAncestor) {
+        return false;
+      }
+      var _nodeLookup4 = _nodeLookup(element), domNode = _nodeLookup4.domNode;
+      if (!domNode) {
+        return void 0;
+      }
+      var docElement = document.documentElement;
+      var styl = window.getComputedStyle(domNode);
+      var dir = window.getComputedStyle(document.body || docElement).getPropertyValue('direction');
+      var isFixed = _isFixedPosition(domNode);
+      var coords = isFixed ? domNode.getBoundingClientRect() : get_element_coordinates_default(domNode);
+      if (coords.top === 0 && coords.bottom === 0) {
+        return false;
+      }
+      if (coords.left === 0 && coords.right === 0) {
+        return false;
+      }
+      if (coords.bottom <= 0 && (noParentScrolled(domNode, coords.bottom) || styl.position === 'absolute')) {
+        return true;
+      }
+      var viewportSize = get_viewport_size_default(window);
+      if (isFixed && coords.top >= viewportSize.height) {
+        return true;
+      }
+      var rightEdge = Math.max(docElement.scrollWidth, viewportSize.width);
+      if ((isFixed || dir === 'rtl') && coords.left >= rightEdge) {
+        return true;
+      }
+      if ((isFixed || dir === 'ltr') && coords.right <= 0) {
+        return true;
+      }
+      return false;
+    }
+    var is_offscreen_default = isOffscreen;
+    var hiddenMethods2 = [ opacityHidden, scrollHidden, overflowHidden, clipHidden, is_offscreen_default ];
+    function _isVisibleOnScreen(vNode) {
+      vNode = _nodeLookup(vNode).vNode;
+      return isVisibleOnScreenVirtual(vNode);
+    }
+    var isVisibleOnScreenVirtual = memoize_default(function isVisibleOnScreenMemoized(vNode, isAncestor) {
+      if (vNode.actualNode && vNode.props.nodeName === 'area') {
+        return !areaHidden(vNode, isVisibleOnScreenVirtual);
+      }
+      if (_isHiddenForEveryone(vNode, {
+        skipAncestors: true,
+        isAncestor: isAncestor
+      })) {
+        return false;
+      }
+      if (vNode.actualNode && hiddenMethods2.some(function(method) {
+        return method(vNode, {
+          isAncestor: isAncestor
+        });
+      })) {
+        return false;
+      }
+      if (!vNode.parent) {
+        return true;
+      }
+      return isVisibleOnScreenVirtual(vNode.parent, true);
+    });
+    function _getBoundingRect(rectA, rectB) {
+      var top = Math.min(rectA.top, rectB.top);
+      var right = Math.max(rectA.right, rectB.right);
+      var bottom = Math.max(rectA.bottom, rectB.bottom);
+      var left = Math.min(rectA.left, rectB.left);
+      return new window.DOMRect(left, top, right - left, bottom - top);
+    }
+    function _isPointInRect(_ref43, _ref44) {
+      var x = _ref43.x, y = _ref43.y;
+      var top = _ref44.top, right = _ref44.right, bottom = _ref44.bottom, left = _ref44.left;
+      return y >= top && x <= right && y <= bottom && x >= left;
+    }
+    var math_exports = {};
+    __export(math_exports, {
+      getBoundingRect: function getBoundingRect() {
+        return _getBoundingRect;
+      },
+      getIntersectionRect: function getIntersectionRect() {
+        return _getIntersectionRect;
+      },
+      getOffset: function getOffset() {
+        return _getOffset;
+      },
+      getRectCenter: function getRectCenter() {
+        return _getRectCenter;
+      },
+      hasVisualOverlap: function hasVisualOverlap() {
+        return _hasVisualOverlap;
+      },
+      isPointInRect: function isPointInRect() {
+        return _isPointInRect;
+      },
+      rectHasMinimumSize: function rectHasMinimumSize() {
+        return _rectHasMinimumSize;
+      },
+      rectsOverlap: function rectsOverlap() {
+        return _rectsOverlap;
+      },
+      splitRects: function splitRects() {
+        return _splitRects;
+      }
+    });
+    function _getIntersectionRect(rect1, rect2) {
+      var leftX = Math.max(rect1.left, rect2.left);
+      var rightX = Math.min(rect1.right, rect2.right);
+      var topY = Math.max(rect1.top, rect2.top);
+      var bottomY = Math.min(rect1.bottom, rect2.bottom);
+      if (leftX >= rightX || topY >= bottomY) {
+        return null;
+      }
+      return new window.DOMRect(leftX, topY, rightX - leftX, bottomY - topY);
+    }
+    function _getRectCenter(_ref45) {
+      var left = _ref45.left, top = _ref45.top, width = _ref45.width, height = _ref45.height;
+      return new window.DOMPoint(left + width / 2, top + height / 2);
+    }
+    var roundingMargin = .05;
+    function _rectHasMinimumSize(minSize, _ref46) {
+      var width = _ref46.width, height = _ref46.height;
+      return width + roundingMargin >= minSize && height + roundingMargin >= minSize;
+    }
+    function _getOffset(vTarget, vNeighbor) {
+      var minRadiusNeighbour = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 12;
+      var targetRects = get_target_rects_default(vTarget);
+      var neighborRects = get_target_rects_default(vNeighbor);
+      if (!targetRects.length || !neighborRects.length) {
+        return null;
+      }
+      return targetRects.reduce(function(minDistance, targetRect) {
+        var targetCenter = _getRectCenter(targetRect);
+        var _iterator9 = _createForOfIteratorHelper(neighborRects), _step9;
+        try {
+          for (_iterator9.s(); !(_step9 = _iterator9.n()).done; ) {
+            var rect = _step9.value;
+            if (_isPointInRect(targetCenter, rect)) {
+              return 0;
+            }
+            var closestPoint = getClosestPoint(targetCenter, rect);
+            var distance2 = pointDistance(targetCenter, closestPoint);
+            minDistance = Math.min(minDistance, distance2);
+          }
+        } catch (err) {
+          _iterator9.e(err);
+        } finally {
+          _iterator9.f();
+        }
+        var neighborTargetSize = get_target_size_default(vNeighbor);
+        if (_rectHasMinimumSize(minRadiusNeighbour * 2, neighborTargetSize)) {
+          return minDistance;
+        }
+        var neighborBoundingBox = neighborRects.reduce(_getBoundingRect);
+        var neighborCenter = _getRectCenter(neighborBoundingBox);
+        var centerDistance = pointDistance(targetCenter, neighborCenter) - minRadiusNeighbour;
+        return Math.max(0, Math.min(minDistance, centerDistance));
+      }, Infinity);
+    }
+    function getClosestPoint(point, rect) {
+      var x;
+      var y;
+      if (point.x < rect.left) {
+        x = rect.left;
+      } else if (point.x > rect.right) {
+        x = rect.right;
+      } else {
+        x = point.x;
+      }
+      if (point.y < rect.top) {
+        y = rect.top;
+      } else if (point.y > rect.bottom) {
+        y = rect.bottom;
+      } else {
+        y = point.y;
+      }
+      return {
+        x: x,
+        y: y
+      };
+    }
+    function pointDistance(pointA, pointB) {
+      return Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+    }
+    function _hasVisualOverlap(vNodeA, vNodeB) {
+      var rectA = vNodeA.boundingClientRect;
+      var rectB = vNodeB.boundingClientRect;
+      if (rectA.left >= rectB.right || rectA.right <= rectB.left || rectA.top >= rectB.bottom || rectA.bottom <= rectB.top) {
+        return false;
+      }
+      return _visuallySort(vNodeA, vNodeB) > 0;
+    }
+    function _splitRects(outerRect, overlapRects) {
+      var uniqueRects = Array.isArray(outerRect) ? outerRect : [ outerRect ];
+      var _iterator0 = _createForOfIteratorHelper(overlapRects), _step0;
+      try {
+        var _loop6 = function _loop6() {
+          var overlapRect = _step0.value;
+          uniqueRects = uniqueRects.reduce(function(rects, inputRect) {
+            return rects.concat(splitRect(inputRect, overlapRect));
+          }, []);
+          if (uniqueRects.length > 4e3) {
+            throw new Error('splitRects: Too many rects');
+          }
+        };
+        for (_iterator0.s(); !(_step0 = _iterator0.n()).done; ) {
+          _loop6();
+        }
+      } catch (err) {
+        _iterator0.e(err);
+      } finally {
+        _iterator0.f();
+      }
+      return uniqueRects;
+    }
+    function splitRect(inputRect, clipRect) {
+      var top = inputRect.top, left = inputRect.left, bottom = inputRect.bottom, right = inputRect.right;
+      var yAligned = top < clipRect.bottom && bottom > clipRect.top;
+      var xAligned = left < clipRect.right && right > clipRect.left;
+      var rects = [];
+      if (between(clipRect.top, top, bottom) && xAligned) {
+        rects.push({
+          top: top,
+          left: left,
+          bottom: clipRect.top,
+          right: right
+        });
+      }
+      if (between(clipRect.right, left, right) && yAligned) {
+        rects.push({
+          top: top,
+          left: clipRect.right,
+          bottom: bottom,
+          right: right
+        });
+      }
+      if (between(clipRect.bottom, top, bottom) && xAligned) {
+        rects.push({
+          top: clipRect.bottom,
+          right: right,
+          bottom: bottom,
+          left: left
+        });
+      }
+      if (between(clipRect.left, left, right) && yAligned) {
+        rects.push({
+          top: top,
+          left: left,
+          bottom: bottom,
+          right: clipRect.left
+        });
+      }
+      if (rects.length === 0) {
+        if (isEnclosedRect(inputRect, clipRect)) {
+          return [];
+        }
+        rects.push(inputRect);
+      }
+      return rects.map(computeRect);
+    }
+    var between = function between(num, min, max2) {
+      return num > min && num < max2;
+    };
+    function computeRect(baseRect) {
+      return new window.DOMRect(baseRect.left, baseRect.top, baseRect.right - baseRect.left, baseRect.bottom - baseRect.top);
+    }
+    function isEnclosedRect(rectA, rectB) {
+      return rectA.top >= rectB.top && rectA.left >= rectB.left && rectA.bottom <= rectB.bottom && rectA.right <= rectB.right;
+    }
+    var ROOT_LEVEL = 0;
+    var FLOAT_LEVEL = .1;
+    var DEFAULT_LEVEL = .2;
+    var nodeIndex = 0;
+    function _createGrid() {
+      var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document.body;
+      var rootGrid = arguments.length > 1 ? arguments[1] : undefined;
+      var parentVNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      if (cache_default.get('gridCreated') && !parentVNode) {
+        return constants_default.gridSize;
+      }
+      cache_default.set('gridCreated', true);
+      if (!parentVNode) {
+        var vNode = get_node_from_tree_default(document.documentElement);
+        if (!vNode) {
+          vNode = new virtual_node_default(document.documentElement);
+        }
+        nodeIndex = 0;
+        vNode._stackingOrder = [ createStackingContext(ROOT_LEVEL, true, nodeIndex++, null) ];
+        rootGrid !== null && rootGrid !== void 0 ? rootGrid : rootGrid = new Grid();
+        addNodeToGrid(rootGrid, vNode);
+        if (get_scroll_default(vNode.actualNode)) {
+          var subGrid = new Grid(vNode);
+          vNode._subGrid = subGrid;
+        }
+      }
+      var treeWalker = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT, null, false);
+      var node = parentVNode ? treeWalker.nextNode() : treeWalker.currentNode;
+      while (node) {
+        var _vNode = get_node_from_tree_default(node);
+        if (_vNode && _vNode.parent) {
+          parentVNode = _vNode.parent;
+        } else if (node.assignedSlot) {
+          parentVNode = get_node_from_tree_default(node.assignedSlot);
+        } else if (node.parentElement) {
+          parentVNode = get_node_from_tree_default(node.parentElement);
+        } else if (node.parentNode && get_node_from_tree_default(node.parentNode)) {
+          parentVNode = get_node_from_tree_default(node.parentNode);
+        }
+        if (!_vNode) {
+          _vNode = new axe.VirtualNode(node, parentVNode);
+        }
+        _vNode._stackingOrder = createStackingOrder(_vNode, parentVNode, nodeIndex++);
+        var scrollRegionParent = findScrollRegionParent(_vNode, parentVNode);
+        var grid = scrollRegionParent ? scrollRegionParent._subGrid : rootGrid;
+        if (get_scroll_default(_vNode.actualNode)) {
+          var _subGrid = new Grid(_vNode);
+          _vNode._subGrid = _subGrid;
+        }
+        var rect = _vNode.boundingClientRect;
+        if (rect.width !== 0 && rect.height !== 0 && _isVisibleOnScreen(node)) {
+          addNodeToGrid(grid, _vNode);
+        }
+        if (is_shadow_root_default(node)) {
+          _createGrid(node.shadowRoot, grid, _vNode);
+        }
+        node = treeWalker.nextNode();
+      }
+      return constants_default.gridSize;
+    }
+    function isStackingContext(vNode, parentVNode) {
+      var position = vNode.getComputedStylePropertyValue('position');
+      var zIndex = vNode.getComputedStylePropertyValue('z-index');
+      if (position === 'fixed' || position === 'sticky') {
+        return true;
+      }
+      if (zIndex !== 'auto' && position !== 'static') {
+        return true;
+      }
+      if (vNode.getComputedStylePropertyValue('opacity') !== '1') {
+        return true;
+      }
+      var transform = vNode.getComputedStylePropertyValue('-webkit-transform') || vNode.getComputedStylePropertyValue('-ms-transform') || vNode.getComputedStylePropertyValue('transform') || 'none';
+      if (transform !== 'none') {
+        return true;
+      }
+      var mixBlendMode = vNode.getComputedStylePropertyValue('mix-blend-mode');
+      if (mixBlendMode && mixBlendMode !== 'normal') {
+        return true;
+      }
+      var filter = vNode.getComputedStylePropertyValue('filter');
+      if (filter && filter !== 'none') {
+        return true;
+      }
+      var perspective = vNode.getComputedStylePropertyValue('perspective');
+      if (perspective && perspective !== 'none') {
+        return true;
+      }
+      var clipPath = vNode.getComputedStylePropertyValue('clip-path');
+      if (clipPath && clipPath !== 'none') {
+        return true;
+      }
+      var mask = vNode.getComputedStylePropertyValue('-webkit-mask') || vNode.getComputedStylePropertyValue('mask') || 'none';
+      if (mask !== 'none') {
+        return true;
+      }
+      var maskImage = vNode.getComputedStylePropertyValue('-webkit-mask-image') || vNode.getComputedStylePropertyValue('mask-image') || 'none';
+      if (maskImage !== 'none') {
+        return true;
+      }
+      var maskBorder = vNode.getComputedStylePropertyValue('-webkit-mask-border') || vNode.getComputedStylePropertyValue('mask-border') || 'none';
+      if (maskBorder !== 'none') {
+        return true;
+      }
+      if (vNode.getComputedStylePropertyValue('isolation') === 'isolate') {
+        return true;
+      }
+      var willChange = vNode.getComputedStylePropertyValue('will-change');
+      if (willChange === 'transform' || willChange === 'opacity') {
+        return true;
+      }
+      if (vNode.getComputedStylePropertyValue('-webkit-overflow-scrolling') === 'touch') {
+        return true;
+      }
+      var contain = vNode.getComputedStylePropertyValue('contain');
+      if ([ 'layout', 'paint', 'strict', 'content' ].includes(contain)) {
+        return true;
+      }
+      if (zIndex !== 'auto' && isFlexOrGridContainer(parentVNode)) {
+        return true;
+      }
+      return false;
+    }
+    function isFlexOrGridContainer(vNode) {
+      if (!vNode) {
+        return false;
+      }
+      var display2 = vNode.getComputedStylePropertyValue('display');
+      return [ 'flex', 'inline-flex', 'grid', 'inline-grid' ].includes(display2);
+    }
+    function createStackingOrder(vNode, parentVNode, treeOrder) {
+      var stackingOrder = parentVNode._stackingOrder.slice();
+      var isRealStack = isStackingContext(vNode, parentVNode);
+      var isPositioned = vNode.getComputedStylePropertyValue('position') !== 'static';
+      if (isRealStack || isPositioned) {
+        var firstPseudo = stackingOrder.findIndex(function(_ref47) {
+          var pseudo = _ref47.pseudo;
+          return !!pseudo;
+        });
+        if (firstPseudo !== -1) {
+          stackingOrder.splice(firstPseudo);
+        }
+      }
+      var stackLevel = getStackLevel(vNode, parentVNode);
+      if (stackLevel !== null) {
+        stackingOrder.push(createStackingContext(stackLevel, !isRealStack, treeOrder, vNode));
+      }
+      return stackingOrder;
+    }
+    function createStackingContext(stackLevel, pseudo, treeOrder, vNode) {
+      return {
+        stackLevel: stackLevel,
+        pseudo: pseudo,
+        treeOrder: treeOrder,
+        vNode: vNode
+      };
+    }
+    function getStackLevel(vNode, parentVNode) {
+      var zIndex = getRealZIndex(vNode, parentVNode);
+      if (![ 'auto', '0' ].includes(zIndex)) {
+        return parseInt(zIndex);
+      }
+      if (vNode.getComputedStylePropertyValue('float') !== 'none') {
+        return FLOAT_LEVEL;
+      }
+      var isRealStack = isStackingContext(vNode, parentVNode);
+      var isPseudoStack = vNode.getComputedStylePropertyValue('position') !== 'static';
+      if (isRealStack || isPseudoStack) {
+        return DEFAULT_LEVEL;
+      }
+      return null;
+    }
+    function getRealZIndex(vNode, parentVNode) {
+      var position = vNode.getComputedStylePropertyValue('position');
+      if (position === 'static' && !isFlexOrGridContainer(parentVNode)) {
+        return 'auto';
+      }
+      return vNode.getComputedStylePropertyValue('z-index');
+    }
+    function findScrollRegionParent(vNode, parentVNode) {
+      var scrollRegionParent = null;
+      var checkedNodes = [ vNode ];
+      while (parentVNode) {
+        if (get_scroll_default(parentVNode.actualNode)) {
+          scrollRegionParent = parentVNode;
+          break;
+        }
+        if (parentVNode._scrollRegionParent) {
+          scrollRegionParent = parentVNode._scrollRegionParent;
+          break;
+        }
+        checkedNodes.push(parentVNode);
+        parentVNode = get_node_from_tree_default(parentVNode.actualNode.parentElement || parentVNode.actualNode.parentNode);
+      }
+      checkedNodes.forEach(function(virtualNode) {
+        return virtualNode._scrollRegionParent = scrollRegionParent;
+      });
+      return scrollRegionParent;
+    }
+    function addNodeToGrid(grid, vNode) {
+      var overflowHiddenNodes = get_overflow_hidden_ancestors_default(vNode);
+      vNode.clientRects.forEach(function(clientRect) {
+        var _vNode$_grid;
+        var visibleRect = overflowHiddenNodes.reduce(function(rect, overflowNode) {
+          return rect && _getIntersectionRect(rect, overflowNode.boundingClientRect);
+        }, clientRect);
+        if (!visibleRect) {
+          return;
+        }
+        (_vNode$_grid = vNode._grid) !== null && _vNode$_grid !== void 0 ? _vNode$_grid : vNode._grid = grid;
+        var gridRect = grid.getGridPositionOfRect(visibleRect);
+        grid.loopGridPosition(gridRect, function(gridCell) {
+          if (!gridCell.includes(vNode)) {
+            gridCell.push(vNode);
+          }
+        });
+      });
+    }
+    var Grid = function() {
+      function Grid() {
+        var container = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+        _classCallCheck(this, Grid);
+        this.container = container;
+        this.cells = [];
+      }
+      return _createClass(Grid, [ {
+        key: 'toGridIndex',
+        value: function toGridIndex(num) {
+          return Math.floor(num / constants_default.gridSize);
+        }
+      }, {
+        key: 'getCellFromPoint',
+        value: function getCellFromPoint(_ref48) {
+          var _this$cells, _row;
+          var x = _ref48.x, y = _ref48.y;
+          assert_default(this.boundaries, 'Grid does not have cells added');
+          var rowIndex = this.toGridIndex(y);
+          var colIndex = this.toGridIndex(x);
+          assert_default(_isPointInRect({
+            y: rowIndex,
+            x: colIndex
+          }, this.boundaries), 'Element midpoint exceeds the grid bounds');
+          var row = (_this$cells = this.cells[rowIndex - this.cells._negativeIndex]) !== null && _this$cells !== void 0 ? _this$cells : [];
+          return (_row = row[colIndex - row._negativeIndex]) !== null && _row !== void 0 ? _row : [];
+        }
+      }, {
+        key: 'loopGridPosition',
+        value: function loopGridPosition(gridPosition, callback) {
+          var _gridPosition = gridPosition, left = _gridPosition.left, right = _gridPosition.right, top = _gridPosition.top, bottom = _gridPosition.bottom;
+          if (this.boundaries) {
+            gridPosition = _getBoundingRect(this.boundaries, gridPosition);
+          }
+          this.boundaries = gridPosition;
+          loopNegativeIndexMatrix(this.cells, top, bottom, function(gridRow, row) {
+            loopNegativeIndexMatrix(gridRow, left, right, function(gridCell, col) {
+              callback(gridCell, {
+                row: row,
+                col: col
+              });
+            });
+          });
+        }
+      }, {
+        key: 'getGridPositionOfRect',
+        value: function getGridPositionOfRect(_ref49) {
+          var top = _ref49.top, right = _ref49.right, bottom = _ref49.bottom, left = _ref49.left;
+          var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+          top = this.toGridIndex(top - margin);
+          right = this.toGridIndex(right + margin - 1);
+          bottom = this.toGridIndex(bottom + margin - 1);
+          left = this.toGridIndex(left - margin);
+          return new window.DOMRect(left, top, right - left, bottom - top);
+        }
+      } ]);
+    }();
+    function loopNegativeIndexMatrix(matrix, start, end, callback) {
+      var _matrix$_negativeInde;
+      (_matrix$_negativeInde = matrix._negativeIndex) !== null && _matrix$_negativeInde !== void 0 ? _matrix$_negativeInde : matrix._negativeIndex = 0;
+      if (start < matrix._negativeIndex) {
+        for (var _i0 = 0; _i0 < matrix._negativeIndex - start; _i0++) {
+          matrix.splice(0, 0, []);
+        }
+        matrix._negativeIndex = start;
+      }
+      var startOffset = start - matrix._negativeIndex;
+      var endOffset = end - matrix._negativeIndex;
+      for (var index = startOffset; index <= endOffset; index++) {
+        var _index, _matrix$_index;
+        (_matrix$_index = matrix[_index = index]) !== null && _matrix$_index !== void 0 ? _matrix$_index : matrix[_index] = [];
+        callback(matrix[index], index + matrix._negativeIndex);
+      }
+    }
+    function _getNodeGrid(node) {
+      _createGrid();
+      var _nodeLookup5 = _nodeLookup(node), vNode = _nodeLookup5.vNode;
+      return vNode._grid;
+    }
+    function _findNearbyElms(vNode) {
+      var _grid$cells;
+      var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var grid = _getNodeGrid(vNode);
+      if (!(grid !== null && grid !== void 0 && (_grid$cells = grid.cells) !== null && _grid$cells !== void 0 && _grid$cells.length)) {
+        return [];
+      }
+      var rect = vNode.boundingClientRect;
+      var selfIsFixed = _isFixedPosition(vNode);
+      var gridPosition = grid.getGridPositionOfRect(rect, margin);
+      var neighbors = [];
+      grid.loopGridPosition(gridPosition, function(vNeighbors) {
+        var _iterator1 = _createForOfIteratorHelper(vNeighbors), _step1;
+        try {
+          for (_iterator1.s(); !(_step1 = _iterator1.n()).done; ) {
+            var vNeighbor = _step1.value;
+            if (vNeighbor && vNeighbor !== vNode && !neighbors.includes(vNeighbor) && selfIsFixed === _isFixedPosition(vNeighbor)) {
+              neighbors.push(vNeighbor);
+            }
+          }
+        } catch (err) {
+          _iterator1.e(err);
+        } finally {
+          _iterator1.f();
+        }
+      });
+      return neighbors;
+    }
+    var getModalDialog = memoize_default(function getModalDialogMemoized() {
+      var _dialogs$find;
+      if (!axe._tree) {
+        return null;
+      }
+      var dialogs = query_selector_all_filter_default(axe._tree[0], 'dialog[open]', function(vNode) {
+        var rect = vNode.boundingClientRect;
+        var stack = document.elementsFromPoint(rect.left + 1, rect.top + 1);
+        return stack.includes(vNode.actualNode) && _isVisibleOnScreen(vNode);
+      });
+      if (!dialogs.length) {
+        return null;
+      }
+      var modalDialog = dialogs.find(function(dialog) {
+        var rect = dialog.boundingClientRect;
+        var stack = document.elementsFromPoint(rect.left - 10, rect.top - 10);
+        return stack.includes(dialog.actualNode);
+      });
+      if (modalDialog) {
+        return modalDialog;
+      }
+      return (_dialogs$find = dialogs.find(function(dialog) {
+        var _getNodeFromGrid;
+        var _ref50 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref50.vNode, rect = _ref50.rect;
+        if (!vNode) {
+          return false;
+        }
+        var stack = document.elementsFromPoint(rect.left + 1, rect.top + 1);
+        return !stack.includes(vNode.actualNode);
+      })) !== null && _dialogs$find !== void 0 ? _dialogs$find : null;
+    });
+    var get_modal_dialog_default = getModalDialog;
+    function getNodeFromGrid(dialog) {
+      _createGrid();
+      var grid = axe._tree[0]._grid;
+      var viewRect = new window.DOMRect(0, 0, window.innerWidth, window.innerHeight);
+      if (!grid) {
+        return;
+      }
+      for (var row = 0; row < grid.cells.length; row++) {
+        var cols = grid.cells[row];
+        if (!cols) {
+          continue;
+        }
+        for (var col = 0; col < cols.length; col++) {
+          var cells = cols[col];
+          if (!cells) {
+            continue;
+          }
+          for (var _i1 = 0; _i1 < cells.length; _i1++) {
+            var vNode = cells[_i1];
+            var rect = vNode.boundingClientRect;
+            var intersection = _getIntersectionRect(rect, viewRect);
+            if (vNode.props.nodeName !== 'html' && vNode !== dialog && vNode.getComputedStylePropertyValue('pointer-events') !== 'none' && intersection) {
+              return {
+                vNode: vNode,
+                rect: intersection
+              };
+            }
+          }
+        }
+      }
+    }
+    function _isInert(vNode) {
+      var _ref51 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref51.skipAncestors, isAncestor = _ref51.isAncestor;
+      if (skipAncestors) {
+        return isInertSelf(vNode, isAncestor);
+      }
+      return isInertAncestors(vNode, isAncestor);
+    }
+    var isInertSelf = memoize_default(function isInertSelfMemoized(vNode, isAncestor) {
+      if (vNode.hasAttr('inert')) {
+        return true;
+      }
+      if (!isAncestor && vNode.actualNode) {
+        var modalDialog = get_modal_dialog_default();
+        if (modalDialog && !_contains(modalDialog, vNode)) {
+          return true;
+        }
+      }
+      return false;
+    });
+    var isInertAncestors = memoize_default(function isInertAncestorsMemoized(vNode, isAncestor) {
+      if (isInertSelf(vNode, isAncestor)) {
+        return true;
+      }
+      if (!vNode.parent) {
+        return false;
+      }
+      return isInertAncestors(vNode.parent, true);
+    });
+    var allowedDisabledNodeNames = [ 'button', 'command', 'fieldset', 'keygen', 'optgroup', 'option', 'select', 'textarea', 'input' ];
+    function isDisabledAttrAllowed(nodeName2) {
+      return allowedDisabledNodeNames.includes(nodeName2);
+    }
+    function focusDisabled(el) {
+      var _nodeLookup6 = _nodeLookup(el), vNode = _nodeLookup6.vNode;
+      if (isDisabledAttrAllowed(vNode.props.nodeName) && vNode.hasAttr('disabled') || _isInert(vNode)) {
+        return true;
+      }
+      var parentNode = vNode.parent;
+      var ancestors = [];
+      var fieldsetDisabled = false;
+      while (parentNode && parentNode.shadowId === vNode.shadowId && !fieldsetDisabled) {
+        ancestors.push(parentNode);
+        if (parentNode.props.nodeName === 'legend') {
+          break;
+        }
+        if (parentNode._inDisabledFieldset !== void 0) {
+          fieldsetDisabled = parentNode._inDisabledFieldset;
+          break;
+        }
+        if (parentNode.props.nodeName === 'fieldset' && parentNode.hasAttr('disabled')) {
+          fieldsetDisabled = true;
+        }
+        parentNode = parentNode.parent;
+      }
+      ancestors.forEach(function(ancestor) {
+        return ancestor._inDisabledFieldset = fieldsetDisabled;
+      });
+      if (fieldsetDisabled) {
+        return true;
+      }
+      if (vNode.props.nodeName !== 'area') {
+        if (!vNode.actualNode) {
+          return false;
+        }
+        return _isHiddenForEveryone(vNode);
+      }
+      return false;
+    }
+    var focus_disabled_default = focusDisabled;
+    var angularSkipLinkRegex = /^\/\#/;
+    var angularRouterLinkRegex = /^#[!/]/;
+    function _isCurrentPageLink(anchor) {
+      var _window$location;
+      var href = anchor.getAttribute('href');
+      if (!href || href === '#') {
+        return false;
+      }
+      if (angularSkipLinkRegex.test(href)) {
+        return true;
+      }
+      var hash = anchor.hash, protocol = anchor.protocol, hostname = anchor.hostname, port = anchor.port, pathname = anchor.pathname;
+      if (angularRouterLinkRegex.test(hash)) {
+        return false;
+      }
+      if (href.charAt(0) === '#') {
+        return true;
+      }
+      if (typeof ((_window$location = window.location) === null || _window$location === void 0 ? void 0 : _window$location.origin) !== 'string' || window.location.origin.indexOf('://') === -1) {
+        return null;
+      }
+      var currentPageUrl = window.location.origin + window.location.pathname;
+      var url;
+      if (!hostname) {
+        url = window.location.origin;
+      } else {
+        url = ''.concat(protocol, '//').concat(hostname).concat(port ? ':'.concat(port) : '');
+      }
+      if (!pathname) {
+        url += window.location.pathname;
+      } else {
+        url += (pathname[0] !== '/' ? '/' : '') + pathname;
+      }
+      return url === currentPageUrl;
+    }
+    function _getElementByReference(node, attr) {
+      var _nodeLookup7 = _nodeLookup(node), vNode = _nodeLookup7.vNode;
+      var fragment = vNode.attr(attr);
+      if (!fragment) {
+        return null;
+      }
+      if (attr === 'href' && !_isCurrentPageLink(node)) {
+        return null;
+      }
+      if (fragment.indexOf('#') !== -1) {
+        fragment = decodeURIComponent(fragment.substr(fragment.indexOf('#') + 1));
+      }
+      var candidate = document.getElementById(fragment);
+      if (candidate) {
+        return candidate;
+      }
+      candidate = document.getElementsByName(fragment);
+      if (candidate.length) {
+        return candidate[0];
+      }
+      return null;
+    }
+    function _visuallySort(a2, b2) {
+      _createGrid();
+      var length = Math.max(a2._stackingOrder.length, b2._stackingOrder.length);
+      for (var _i10 = 0; _i10 < length; _i10++) {
+        if (typeof b2._stackingOrder[_i10] === 'undefined') {
+          return -1;
+        } else if (typeof a2._stackingOrder[_i10] === 'undefined') {
+          return 1;
+        }
+        if (b2._stackingOrder[_i10].stackLevel > a2._stackingOrder[_i10].stackLevel) {
+          return 1;
+        }
+        if (b2._stackingOrder[_i10].stackLevel < a2._stackingOrder[_i10].stackLevel) {
+          return -1;
+        }
+        if (b2._stackingOrder[_i10].treeOrder !== a2._stackingOrder[_i10].treeOrder) {
+          return b2._stackingOrder[_i10].treeOrder - a2._stackingOrder[_i10].treeOrder;
+        }
+      }
+      var aNode = a2.actualNode;
+      var bNode = b2.actualNode;
+      if (aNode.getRootNode && aNode.getRootNode() !== bNode.getRootNode()) {
+        var boundaries = [];
+        while (aNode) {
+          boundaries.push({
+            root: aNode.getRootNode(),
+            node: aNode
+          });
+          aNode = aNode.getRootNode().host;
+        }
+        while (bNode && !boundaries.find(function(boundary) {
+          return boundary.root === bNode.getRootNode();
+        })) {
+          bNode = bNode.getRootNode().host;
+        }
+        aNode = boundaries.find(function(boundary) {
+          return boundary.root === bNode.getRootNode();
+        }).node;
+        if (aNode === bNode) {
+          return a2.actualNode.getRootNode() !== aNode.getRootNode() ? -1 : 1;
+        }
+      }
+      var _window$Node = window.Node, DOCUMENT_POSITION_FOLLOWING = _window$Node.DOCUMENT_POSITION_FOLLOWING, DOCUMENT_POSITION_CONTAINS = _window$Node.DOCUMENT_POSITION_CONTAINS, DOCUMENT_POSITION_CONTAINED_BY = _window$Node.DOCUMENT_POSITION_CONTAINED_BY;
+      var docPosition = aNode.compareDocumentPosition(bNode);
+      var DOMOrder = docPosition & DOCUMENT_POSITION_FOLLOWING ? 1 : -1;
+      var isDescendant = docPosition & DOCUMENT_POSITION_CONTAINS || docPosition & DOCUMENT_POSITION_CONTAINED_BY;
+      var aPosition = getPositionOrder(a2);
+      var bPosition = getPositionOrder(b2);
+      if (aPosition === bPosition || isDescendant) {
+        return DOMOrder;
+      }
+      return bPosition - aPosition;
+    }
+    function getPositionOrder(vNode) {
+      if (vNode.getComputedStylePropertyValue('display').indexOf('inline') !== -1) {
+        return 2;
+      }
+      if (isFloated(vNode)) {
+        return 1;
+      }
+      return 0;
+    }
+    function isFloated(vNode) {
+      if (!vNode) {
+        return false;
+      }
+      if (vNode._isFloated !== void 0) {
+        return vNode._isFloated;
+      }
+      var floatStyle = vNode.getComputedStylePropertyValue('float');
+      if (floatStyle !== 'none') {
+        vNode._isFloated = true;
+        return true;
+      }
+      var floated = isFloated(vNode.parent);
+      vNode._isFloated = floated;
+      return floated;
+    }
+    function getRectStack(grid, rect) {
+      var recursed = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      var center = _getRectCenter(rect);
+      var gridCell = grid.getCellFromPoint(center) || [];
+      var floorX = Math.floor(center.x);
+      var floorY = Math.floor(center.y);
+      var stack = gridCell.filter(function(gridCellNode) {
+        return gridCellNode.clientRects.some(function(clientRect) {
+          var rectX = clientRect.left;
+          var rectY = clientRect.top;
+          return floorX < Math.floor(rectX + clientRect.width) && floorX >= Math.floor(rectX) && floorY < Math.floor(rectY + clientRect.height) && floorY >= Math.floor(rectY);
+        });
+      });
+      var gridContainer = grid.container;
+      if (gridContainer) {
+        stack = getRectStack(gridContainer._grid, gridContainer.boundingClientRect, true).concat(stack);
+      }
+      if (!recursed) {
+        stack = stack.sort(_visuallySort).map(function(vNode) {
+          return vNode.actualNode;
+        }).concat(document.documentElement).filter(function(node, index, array) {
+          return array.indexOf(node) === index;
+        });
+      }
+      return stack;
+    }
+    function getElementStack(node) {
+      var grid = _getNodeGrid(node);
+      if (!grid) {
+        return [];
+      }
+      var rect = get_node_from_tree_default(node).boundingClientRect;
+      return getRectStack(grid, rect);
+    }
+    var get_element_stack_default = getElementStack;
+    function _getTabbableElements(virtualNode) {
+      var nodeAndDescendents = query_selector_all_default(virtualNode, '*');
+      var tabbableElements = nodeAndDescendents.filter(function(vNode) {
+        var isFocusable2 = vNode.isFocusable;
+        var tabIndex = parse_tabindex_default(vNode.attr('tabindex'));
+        return tabIndex !== null ? isFocusable2 && tabIndex >= 0 : isFocusable2;
+      });
+      return tabbableElements;
+    }
+    function isNativelyFocusable(el) {
+      var _nodeLookup8 = _nodeLookup(el), vNode = _nodeLookup8.vNode;
+      if (!vNode || focus_disabled_default(vNode)) {
+        return false;
+      }
+      switch (vNode.props.nodeName) {
+       case 'a':
+       case 'area':
+        if (vNode.hasAttr('href')) {
+          return true;
+        }
+        break;
+
+       case 'input':
+        return vNode.props.type !== 'hidden';
+
+       case 'textarea':
+       case 'select':
+       case 'summary':
+       case 'button':
+        return true;
+
+       case 'details':
+        return !query_selector_all_default(vNode, 'summary').length;
+      }
+      return false;
+    }
+    var is_natively_focusable_default = isNativelyFocusable;
+    function _isFocusable(el) {
+      var _nodeLookup9 = _nodeLookup(el), vNode = _nodeLookup9.vNode;
+      if (vNode.props.nodeType !== 1) {
+        return false;
+      }
+      if (focus_disabled_default(vNode)) {
+        return false;
+      } else if (is_natively_focusable_default(vNode)) {
+        return true;
+      }
+      var tabindex = parse_tabindex_default(vNode.attr('tabindex'));
+      return tabindex !== null;
+    }
+    function _isInTabOrder(el) {
+      var _nodeLookup0 = _nodeLookup(el), vNode = _nodeLookup0.vNode;
+      if (vNode.props.nodeType !== 1) {
+        return false;
+      }
+      var tabindex = parse_tabindex_default(vNode.attr('tabindex'));
+      if (tabindex <= -1) {
+        return false;
+      }
+      return _isFocusable(vNode);
+    }
+    var get_target_rects_default = memoize_default(getTargetRects);
+    function getTargetRects(vNode) {
+      var display2 = vNode.getComputedStylePropertyValue('display');
+      var nodeRects = display2 === 'inline' ? vNode.clientRects : [ vNode.boundingClientRect ];
+      var overlappingVNodes = _findNearbyElms(vNode).filter(function(vNeighbor) {
+        return _hasVisualOverlap(vNode, vNeighbor) && vNeighbor.getComputedStylePropertyValue('pointer-events') !== 'none' && !isDescendantNotInTabOrder(vNode, vNeighbor);
+      });
+      if (!overlappingVNodes.length) {
+        return nodeRects;
+      }
+      var obscuringRects = overlappingVNodes.map(function(overlappingVNode) {
+        var overlappingDisplay = overlappingVNode.getComputedStylePropertyValue('display');
+        return overlappingDisplay === 'inline' ? overlappingVNode.clientRects : overlappingVNode.boundingClientRect;
+      }).flat(Infinity);
+      return _splitRects(nodeRects, obscuringRects);
+    }
+    function isDescendantNotInTabOrder(vAncestor, vNode) {
+      return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
+    }
+    function _getResolvedRefs(node, attr) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var _options$self = options.self, self2 = _options$self === void 0 ? true : _options$self;
+      var _nodeLookup1 = _nodeLookup(node), vNode = _nodeLookup1.vNode, domNode = _nodeLookup1.domNode;
+      try {
+        var attrValue = getIdrefsValue(vNode, attr);
+        if (!attrValue) {
+          return [];
+        }
+        var refs;
+        if (typeof attrValue === 'string') {
+          var doc = get_root_node_default2(domNode);
+          refs = token_list_default(attrValue).map(function(value) {
+            return doc.getElementById(value);
+          });
+        } else {
+          refs = Array.from(attrValue);
+        }
+        if (!self2) {
+          refs = refs.filter(function(n2) {
+            return n2 !== domNode;
+          });
+        }
+        return refs.map(function(n2) {
+          var virtualNode = get_node_from_tree_default(n2);
+          return virtualNode ? virtualNode : null;
+        });
+      } catch (cause) {
+        throw new TypeError('Cannot resolve id references for non-DOM nodes', {
+          cause: cause
+        });
+      }
+    }
+    function getIdrefsValue(vNode, attr) {
+      var _standards_default$ar;
+      var _ref52 = (_standards_default$ar = standards_default.ariaAttrs[attr]) !== null && _standards_default$ar !== void 0 ? _standards_default$ar : {}, prop = _ref52.prop;
+      if (prop && vNode.actualNode) {
+        var propValue = vNode.actualNode[prop];
+        if (propValue !== null && propValue !== void 0) {
+          return propValue;
+        }
+      }
+      var attrValue = vNode.attr(attr);
+      if (attrValue !== null) {
+        return attrValue;
+      }
+      if (prop && vNode.elementInternals) {
+        var internalsValue = vNode.elementInternals[prop];
+        if (internalsValue !== null && internalsValue !== void 0) {
+          return internalsValue;
+        }
+      }
+      return null;
+    }
+    var get_target_size_default = memoize_default(getTargetSize);
+    function getTargetSize(vNode, minSize) {
+      var rects = get_target_rects_default(vNode);
+      return getLargestRect(rects, minSize);
+    }
+    function getLargestRect(rects, minSize) {
+      return rects.reduce(function(rectA, rectB) {
+        var rectAisMinimum = _rectHasMinimumSize(minSize, rectA);
+        var rectBisMinimum = _rectHasMinimumSize(minSize, rectB);
+        if (rectAisMinimum !== rectBisMinimum) {
+          return rectAisMinimum ? rectA : rectB;
+        }
+        var areaA = rectA.width * rectA.height;
+        var areaB = rectB.width * rectB.height;
+        return areaA > areaB ? rectA : rectB;
+      });
+    }
+    var text_exports = {};
+    __export(text_exports, {
+      accessibleText: function accessibleText() {
+        return accessible_text_default;
+      },
+      accessibleTextVirtual: function accessibleTextVirtual() {
+        return _accessibleTextVirtual;
+      },
+      autocomplete: function autocomplete() {
+        return _autocomplete;
+      },
+      formControlValue: function formControlValue() {
+        return form_control_value_default;
+      },
+      formControlValueMethods: function formControlValueMethods() {
+        return _formControlValueMethods;
+      },
+      hasUnicode: function hasUnicode() {
+        return has_unicode_default;
+      },
+      isHumanInterpretable: function isHumanInterpretable() {
+        return is_human_interpretable_default;
+      },
+      isIconLigature: function isIconLigature() {
+        return _isIconLigature;
+      },
+      isValidAutocomplete: function isValidAutocomplete() {
+        return is_valid_autocomplete_default;
+      },
+      label: function label() {
+        return label_default;
+      },
+      labelText: function labelText() {
+        return label_text_default;
+      },
+      labelVirtual: function labelVirtual() {
+        return label_virtual_default2;
+      },
+      nativeElementType: function nativeElementType() {
+        return native_element_type_default;
+      },
+      nativeTextAlternative: function nativeTextAlternative() {
+        return _nativeTextAlternative;
+      },
+      nativeTextMethods: function nativeTextMethods() {
+        return native_text_methods_default;
+      },
+      removeUnicode: function removeUnicode() {
+        return remove_unicode_default;
+      },
+      sanitize: function sanitize() {
+        return sanitize_default;
+      },
+      subtreeText: function subtreeText() {
+        return subtree_text_default;
+      },
+      titleText: function titleText() {
+        return title_text_default;
+      },
+      unsupported: function unsupported() {
+        return unsupported_default;
+      },
+      visible: function visible() {
+        return visible_default;
+      },
+      visibleTextNodes: function visibleTextNodes() {
+        return visible_text_nodes_default;
+      },
+      visibleVirtual: function visibleVirtual() {
+        return visible_virtual_default;
+      }
+    });
+    function _hasAriaValue(node, attrName) {
+      var attrStandard = standards_default.ariaAttrs[attrName];
+      if (!attrStandard) {
+        throw new TypeError('Attribute '.concat(attrName, ' is not an ARIA attribute'));
+      }
+      var _nodeLookup10 = _nodeLookup(node), vNode = _nodeLookup10.vNode;
+      return hasAttributeValue(vNode, attrName) || hasPropertyValue(vNode, attrStandard) || hasInternalValue(vNode, attrStandard);
+    }
+    function hasAttributeValue(vNode, attrName) {
+      return vNode.hasAttr(attrName);
+    }
+    function hasPropertyValue(vNode, attrStandard) {
+      var prop = attrStandard.prop;
+      if (prop && vNode.actualNode) {
+        var propValue = vNode.actualNode[prop];
+        return propValue !== null && propValue !== void 0;
+      }
+      return false;
+    }
+    function hasInternalValue(vNode, attrStandard) {
+      var prop = attrStandard.prop;
+      if (prop && vNode.elementInternals) {
+        var internalsValue = vNode.elementInternals[prop];
+        return internalsValue !== null && internalsValue !== void 0;
+      }
+      return false;
+    }
+    function arialabelledbyText(element) {
+      var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var _nodeLookup11 = _nodeLookup(element), vNode = _nodeLookup11.vNode;
+      if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
+        return '';
+      }
+      if (vNode.props.nodeType !== 1 || context.inLabelledByContext || context.inControlContext || !_hasAriaValue(vNode, 'aria-labelledby')) {
+        return '';
+      }
+      var refs = _getResolvedRefs(vNode, 'aria-labelledby').filter(function(elm) {
+        return elm;
+      });
+      return refs.reduce(function(accessibleName, elm) {
+        var accessibleNameAdd = _accessibleTextVirtual(elm, _extends({
+          inLabelledByContext: true,
+          startNode: context.startNode || vNode
+        }, context));
+        if (!accessibleName) {
+          return accessibleNameAdd;
+        } else {
+          return ''.concat(accessibleName, ' ').concat(accessibleNameAdd);
+        }
+      }, '');
+    }
+    var arialabelledby_text_default = arialabelledbyText;
+    function _arialabelText(element) {
+      var _nodeLookup12 = _nodeLookup(element), vNode = _nodeLookup12.vNode;
+      if ((vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) !== 1) {
+        return '';
+      }
+      return _getAriaValue(vNode, 'aria-label').value || '';
+    }
     function isUnsupportedRole(role) {
       var roleDefinition = standards_default.ariaRoles[role];
       return roleDefinition ? !!roleDefinition.unsupported : false;
     }
     var is_unsupported_role_default = isUnsupportedRole;
     function isValidRole(role) {
-      var _ref52 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref52.allowAbstract, _ref52$flagUnsupporte = _ref52.flagUnsupported, flagUnsupported = _ref52$flagUnsupporte === void 0 ? false : _ref52$flagUnsupporte;
+      var _ref53 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref53.allowAbstract, _ref53$flagUnsupporte = _ref53.flagUnsupported, flagUnsupported = _ref53$flagUnsupporte === void 0 ? false : _ref53$flagUnsupporte;
       var roleDefinition = standards_default.ariaRoles[role];
       var isRoleUnsupported = is_unsupported_role_default(role);
       if (!roleDefinition || flagUnsupported && isRoleUnsupported) {
@@ -16061,7 +16352,7 @@
     }
     var is_valid_role_default = isValidRole;
     function getExplicitRole(vNode) {
-      var _ref53 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref53.fallback, abstracts = _ref53.abstracts, dpub = _ref53.dpub;
+      var _ref54 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref54.fallback, abstracts = _ref54.abstracts, dpub = _ref54.dpub;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -16103,6 +16394,24 @@
       });
     }
     var get_global_aria_attrs_default = getGlobalAriaAttrs;
+    function idrefs(node, attr) {
+      node = node.actualNode || node;
+      try {
+        var doc = get_root_node_default2(node);
+        var result = [];
+        var attrValue = node.getAttribute(attr);
+        if (attrValue) {
+          attrValue = token_list_default(attrValue);
+          for (var index = 0; index < attrValue.length; index++) {
+            result.push(doc.getElementById(attrValue[index]));
+          }
+        }
+        return result;
+      } catch (_unused3) {
+        throw new TypeError('Cannot resolve id references for non-DOM nodes');
+      }
+    }
+    var idrefs_default = idrefs;
     function toGrid(node) {
       var table = [];
       var rows = node.rows;
@@ -16147,7 +16456,7 @@
     }
     var get_cell_position_default = memoize_default(getCellPosition);
     function _getScope(el) {
-      var _nodeLookup1 = _nodeLookup(el), vNode = _nodeLookup1.vNode, cell = _nodeLookup1.domNode;
+      var _nodeLookup13 = _nodeLookup(el), vNode = _nodeLookup13.vNode, cell = _nodeLookup13.domNode;
       var scope = vNode.attr('scope');
       var role = get_explicit_role_default(vNode);
       if (![ 'td', 'th' ].includes(vNode.props.nodeName)) {
@@ -16210,7 +16519,7 @@
       });
     };
     function hasAccessibleName(vNode) {
-      var _ref54 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref54$checkTitle = _ref54.checkTitle, checkTitle = _ref54$checkTitle === void 0 ? false : _ref54$checkTitle;
+      var _ref55 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref55$checkTitle = _ref55.checkTitle, checkTitle = _ref55$checkTitle === void 0 ? false : _ref55$checkTitle;
       return !!(sanitize_default(arialabelledby_text_default(vNode)) || sanitize_default(_arialabelText(vNode)) || checkTitle && (vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) === 1 && sanitize_default(vNode.attr('title')));
     }
     var implicitHtmlRoles = {
@@ -16346,7 +16655,7 @@
       ul: 'list'
     };
     var implicit_html_roles_default = implicitHtmlRoles;
-    function fromPrimative(someString, matcher) {
+    function fromPrimitive(someString, matcher) {
       var matcherType = _typeof(matcher);
       if (Array.isArray(matcher) && typeof someString !== 'undefined') {
         return matcher.includes(someString);
@@ -16365,18 +16674,16 @@
       }
       return matcher === someString;
     }
-    var from_primative_default = fromPrimative;
-    function hasAccessibleName2(vNode, matcher) {
-      return from_primative_default(!!_accessibleTextVirtual(vNode), matcher);
+    function fromPrimative(someString, matcher) {
+      return fromPrimitive(someString, matcher);
     }
-    var has_accessible_name_default = hasAccessibleName2;
     function fromFunction(getValue, matcher) {
       var matcherType = _typeof(matcher);
       if (matcherType !== 'object' || Array.isArray(matcher) || matcher instanceof RegExp) {
         throw new Error('Expect matcher to be an object');
       }
       return Object.keys(matcher).every(function(propName) {
-        return from_primative_default(getValue(propName), matcher[propName]);
+        return fromPrimative(getValue(propName), matcher[propName]);
       });
     }
     var from_function_default = fromFunction;
@@ -16391,16 +16698,66 @@
       return !!matcher(arg);
     }
     function explicitRole(vNode, matcher) {
-      return from_primative_default(get_explicit_role_default(vNode), matcher);
+      return fromPrimative(get_explicit_role_default(vNode), matcher);
     }
     var explicit_role_default = explicitRole;
+    function hasAccessibleName2(vNode, matcher) {
+      return fromPrimative(!!_accessibleTextVirtual(vNode), matcher);
+    }
+    var has_accessible_name_default = hasAccessibleName2;
+    function hasChild(vNode, selector) {
+      return vNode.children.some(function(node) {
+        return _matches(node, selector);
+      });
+    }
     function implicitRole(vNode, matcher) {
-      return from_primative_default(implicit_role_default(vNode), matcher);
+      return fromPrimative(implicit_role_default(vNode), matcher);
     }
     var implicit_role_default2 = implicitRole;
+    var sectioningRoles = [ 'article', 'complementary', 'main', 'navigation', 'region' ];
+    function inSectioningContent(vNode, matcher) {
+      var sectioningElms = cache_default.get('sectioningElms', function() {
+        return get_elements_by_content_type_default('sectioning').concat('main');
+      });
+      if (typeof vNode.parent === 'undefined') {
+        throw new TypeError('Cannot resolve parent for non-DOM nodes');
+      }
+      vNode = vNode.parent;
+      while (vNode) {
+        var _vNode$elementInterna;
+        var nodeName2 = vNode.props.nodeName;
+        var role = get_explicit_role_default(vNode);
+        if ([ 'presentation', 'none' ].includes(role) && hasConflictResolution(vNode)) {
+          role = null;
+        }
+        if (!role && (_vNode$elementInterna = vNode.elementInternals) !== null && _vNode$elementInterna !== void 0 && _vNode$elementInterna.role) {
+          role = vNode.elementInternals.role;
+        }
+        if (!role && sectioningElms.includes(nodeName2) || sectioningRoles.includes(role)) {
+          return fromPrimative(true, matcher);
+        }
+        if (typeof vNode.parent === 'undefined') {
+          throw new TypeError('Cannot resolve parent for non-DOM nodes');
+        }
+        vNode = vNode.parent;
+      }
+      return fromPrimative(false, matcher);
+    }
+    function isSummaryForDetails(vNode, matcher) {
+      if (typeof vNode.parent === 'undefined') {
+        throw new TypeError('Cannot resolve parent for non-DOM nodes');
+      }
+      if (!vNode.parent || vNode.parent.props.nodeName !== 'details') {
+        return fromPrimative(false, matcher);
+      }
+      var firstMatch = vNode.parent.children.find(function(node) {
+        return node.props.nodeName === 'summary';
+      });
+      return fromPrimative(firstMatch === vNode, matcher);
+    }
     function nodeName(vNode, matcher) {
       vNode = _nodeLookup(vNode).vNode;
-      return from_primative_default(vNode.props.nodeName, matcher);
+      return fromPrimative(vNode.props.nodeName, matcher);
     }
     var node_name_default = nodeName;
     function properties(vNode, matcher) {
@@ -16411,15 +16768,18 @@
     }
     var properties_default = properties;
     function semanticRole(vNode, matcher) {
-      return from_primative_default(get_role_default(vNode), matcher);
+      return fromPrimative(get_role_default(vNode), matcher);
     }
     var semantic_role_default = semanticRole;
     var matchers = {
-      hasAccessibleName: has_accessible_name_default,
       attributes: attributes_default,
       condition: condition,
       explicitRole: explicit_role_default,
+      hasAccessibleName: has_accessible_name_default,
+      hasChild: hasChild,
       implicitRole: implicit_role_default2,
+      inSectioningContent: inSectioningContent,
+      isSummaryForDetails: isSummaryForDetails,
       nodeName: node_name_default,
       properties: properties_default,
       semanticRole: semantic_role_default
@@ -16448,20 +16808,24 @@
       return from_definition_default(vNode, definition);
     }
     var matches_default = matches2;
-    matches_default.hasAccessibleName = has_accessible_name_default;
     matches_default.attributes = attributes_default;
     matches_default.condition = condition;
     matches_default.explicitRole = explicit_role_default;
     matches_default.fromDefinition = from_definition_default;
     matches_default.fromFunction = from_function_default;
-    matches_default.fromPrimative = from_primative_default;
+    matches_default.fromPrimative = fromPrimative;
+    matches_default.fromPrimitive = fromPrimitive;
+    matches_default.hasAccessibleName = has_accessible_name_default;
+    matches_default.hasChild = hasChild;
     matches_default.implicitRole = implicit_role_default2;
+    matches_default.inSectioningContent = inSectioningContent;
+    matches_default.isSummaryForDetails = isSummaryForDetails;
     matches_default.nodeName = node_name_default;
     matches_default.properties = properties_default;
     matches_default.semanticRole = semantic_role_default;
     var matches_default2 = matches_default;
     function getElementSpec(vNode) {
-      var _ref55 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref55$noMatchAccessi = _ref55.noMatchAccessibleName, noMatchAccessibleName = _ref55$noMatchAccessi === void 0 ? false : _ref55$noMatchAccessi;
+      var _ref56 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref56$noMatchAccessi = _ref56.noMatchAccessibleName, noMatchAccessibleName = _ref56$noMatchAccessi === void 0 ? false : _ref56$noMatchAccessi;
       var standard = standards_default.htmlElms[vNode.props.nodeName];
       if (!standard) {
         return {};
@@ -16498,13 +16862,13 @@
     }
     var get_element_spec_default = getElementSpec;
     function implicitRole2(node) {
-      var _vNode$elementInterna;
-      var _ref56 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref56.chromium;
-      var _nodeLookup10 = _nodeLookup(node), vNode = _nodeLookup10.vNode;
+      var _vNode$elementInterna2;
+      var _ref57 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref57.chromium;
+      var _nodeLookup14 = _nodeLookup(node), vNode = _nodeLookup14.vNode;
       if (!vNode) {
         throw new ReferenceError('Cannot get implicit role of a node outside the current scope.');
       }
-      if ((_vNode$elementInterna = vNode.elementInternals) !== null && _vNode$elementInterna !== void 0 && _vNode$elementInterna.role) {
+      if ((_vNode$elementInterna2 = vNode.elementInternals) !== null && _vNode$elementInterna2 !== void 0 && _vNode$elementInterna2.role) {
         return vNode.elementInternals.role;
       }
       var nodeName2 = vNode.props.nodeName;
@@ -16554,8 +16918,8 @@
       }
       return getInheritedRole(vNode.parent, explicitRoleOptions);
     }
-    function resolveImplicitRole(vNode, _ref57) {
-      var chromium = _ref57.chromium, explicitRoleOptions = _objectWithoutProperties(_ref57, _excluded1);
+    function resolveImplicitRole(vNode, _ref58) {
+      var chromium = _ref58.chromium, explicitRoleOptions = _objectWithoutProperties(_ref58, _excluded1);
       var implicitRole3 = implicit_role_default(vNode, {
         chromium: chromium
       });
@@ -16575,9 +16939,9 @@
       return hasGlobalAria || _isFocusable(vNode);
     }
     function resolveRole(node) {
-      var _ref58 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noImplicit = _ref58.noImplicit, roleOptions = _objectWithoutProperties(_ref58, _excluded10);
-      var _nodeLookup11 = _nodeLookup(node), vNode = _nodeLookup11.vNode;
+      var _ref59 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noImplicit = _ref59.noImplicit, roleOptions = _objectWithoutProperties(_ref59, _excluded10);
+      var _nodeLookup15 = _nodeLookup(node), vNode = _nodeLookup15.vNode;
       if (vNode.props.nodeType !== 1) {
         return null;
       }
@@ -16589,13 +16953,16 @@
         return explicitRole2;
       }
       if (hasConflictResolution(vNode)) {
+        if (_isValidCustomElementName(vNode.props.nodeName)) {
+          return null;
+        }
         return noImplicit ? null : resolveImplicitRole(vNode, roleOptions);
       }
       return explicitRole2;
     }
     function getRole(node) {
-      var _ref59 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noPresentational = _ref59.noPresentational, options = _objectWithoutProperties(_ref59, _excluded11);
+      var _ref60 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noPresentational = _ref60.noPresentational, options = _objectWithoutProperties(_ref60, _excluded11);
       var role = resolveRole(node, options);
       if (noPresentational && [ 'presentation', 'none' ].includes(role)) {
         return null;
@@ -16605,7 +16972,7 @@
     var get_role_default = getRole;
     var alwaysTitleElements = [ 'iframe' ];
     function titleText(node) {
-      var _nodeLookup12 = _nodeLookup(node), vNode = _nodeLookup12.vNode;
+      var _nodeLookup16 = _nodeLookup(node), vNode = _nodeLookup16.vNode;
       if (vNode.props.nodeType !== 1 || !node.hasAttr('title')) {
         return '';
       }
@@ -16616,7 +16983,7 @@
     }
     var title_text_default = titleText;
     function namedFromContents(vNode) {
-      var _ref60 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref60.strict;
+      var _ref61 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref61.strict;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return false;
@@ -16633,15 +17000,13 @@
     }
     var named_from_contents_default = namedFromContents;
     function getOwnedVirtual(virtualNode) {
-      var actualNode = virtualNode.actualNode, children = virtualNode.children;
+      var children = virtualNode.children;
       if (!children) {
         throw new Error('getOwnedVirtual requires a virtual node');
       }
-      if (virtualNode.hasAttr('aria-owns')) {
-        var owns = idrefs_default(actualNode, 'aria-owns').filter(function(element) {
-          return !!element;
-        }).map(function(element) {
-          return axe.utils.getNodeFromTree(element);
+      if (_hasAriaValue(virtualNode, 'aria-owns')) {
+        var owns = _getResolvedRefs(virtualNode, 'aria-owns').filter(function(vNode) {
+          return !!vNode;
         });
         var uniqueOwns = owns.filter(function(own, index) {
           return owns.indexOf(own) === index;
@@ -16785,8 +17150,8 @@
         }
         return ++diff;
       }, 0);
-      var expectedWidth = nodeValue.split('').reduce(function(totalWidth, _char2) {
-        return totalWidth + canvasContext.measureText(_char2).width;
+      var expectedWidth = nodeValue.split('').reduce(function(totalWidth, _char3) {
+        return totalWidth + canvasContext.measureText(_char3).width;
       }, 0);
       var actualWidth = canvasContext.measureText(nodeValue).width;
       var pixelDifference = differences / compareData.length;
@@ -16799,7 +17164,7 @@
     }
     function visibleVirtual(element, screenReader, noRecursing) {
       var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-      var _nodeLookup13 = _nodeLookup(element), vNode = _nodeLookup13.vNode;
+      var _nodeLookup17 = _nodeLookup(element), vNode = _nodeLookup17.vNode;
       var visibleMethod = screenReader ? _isVisibleToScreenReaders : _isVisibleOnScreen;
       var visible2 = !element.actualNode || element.actualNode && visibleMethod(element);
       var ignoreIconLigature = options.ignoreIconLigature, pixelThreshold = options.pixelThreshold, occurrenceThreshold = options.occurrenceThreshold;
@@ -16887,14 +17252,14 @@
       return valueString;
     }
     function nativeTextboxValue(node) {
-      var _nodeLookup14 = _nodeLookup(node), vNode = _nodeLookup14.vNode;
+      var _nodeLookup18 = _nodeLookup(node), vNode = _nodeLookup18.vNode;
       if (is_native_textbox_default(vNode)) {
         return vNode.props.value || '';
       }
       return '';
     }
     function nativeSelectValue(node) {
-      var _nodeLookup15 = _nodeLookup(node), vNode = _nodeLookup15.vNode;
+      var _nodeLookup19 = _nodeLookup(node), vNode = _nodeLookup19.vNode;
       if (!is_native_select_default(vNode)) {
         return '';
       }
@@ -16910,7 +17275,7 @@
       }).join(' ') || '';
     }
     function ariaTextboxValue(node) {
-      var _nodeLookup16 = _nodeLookup(node), vNode = _nodeLookup16.vNode, domNode = _nodeLookup16.domNode;
+      var _nodeLookup20 = _nodeLookup(node), vNode = _nodeLookup20.vNode, domNode = _nodeLookup20.domNode;
       if (!is_aria_textbox_default(vNode)) {
         return '';
       }
@@ -16921,12 +17286,12 @@
       }
     }
     function ariaListboxValue(node, context) {
-      var _nodeLookup17 = _nodeLookup(node), vNode = _nodeLookup17.vNode;
+      var _nodeLookup21 = _nodeLookup(node), vNode = _nodeLookup21.vNode;
       if (!is_aria_listbox_default(vNode)) {
         return '';
       }
       var selected = get_owned_virtual_default(vNode).filter(function(owned) {
-        return get_role_default(owned) === 'option' && owned.attr('aria-selected') === 'true';
+        return get_role_default(owned) === 'option' && _getAriaValue(owned, 'aria-selected').value === 'true';
       });
       if (selected.length === 0) {
         return '';
@@ -16934,7 +17299,7 @@
       return _accessibleTextVirtual(selected[0], context);
     }
     function ariaComboboxValue(node, context) {
-      var _nodeLookup18 = _nodeLookup(node), vNode = _nodeLookup18.vNode;
+      var _nodeLookup22 = _nodeLookup(node), vNode = _nodeLookup22.vNode;
       if (!is_aria_combobox_default(vNode)) {
         return '';
       }
@@ -16944,11 +17309,11 @@
       return listbox ? ariaListboxValue(listbox, context) : '';
     }
     function ariaRangeValue(node) {
-      var _nodeLookup19 = _nodeLookup(node), vNode = _nodeLookup19.vNode;
-      if (!is_aria_range_default(vNode) || !vNode.hasAttr('aria-valuenow')) {
+      var _nodeLookup23 = _nodeLookup(node), vNode = _nodeLookup23.vNode;
+      if (!is_aria_range_default(vNode) || !_hasAriaValue(vNode, 'aria-valuenow')) {
         return '';
       }
-      var valueNow = +vNode.attr('aria-valuenow');
+      var valueNow = +_getAriaValue(vNode, 'aria-valuenow').value;
       return !isNaN(valueNow) ? String(valueNow) : '0';
     }
     var form_control_value_default = formControlValue;
@@ -16997,6 +17362,11 @@
       return contentText + contentTextAdd;
     }
     var subtree_text_default = subtreeText;
+    function accessibleText(element, context) {
+      var virtualNode = get_node_from_tree_default(element);
+      return _accessibleTextVirtual(virtualNode, context);
+    }
+    var accessible_text_default = accessibleText;
     function labelText(virtualNode) {
       var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var alreadyProcessed2 = _accessibleTextVirtual.alreadyProcessed;
@@ -17009,6 +17379,17 @@
       var labelContext = _extends({
         inControlContext: true
       }, context);
+      var internals = virtualNode.elementInternals;
+      if (internals) {
+        try {
+          var internalLabels = Array.from(internals.labels);
+          return internalLabels.map(function(label3) {
+            return accessible_text_default(label3, labelContext);
+          }).filter(function(text) {
+            return text !== '';
+          }).join(' ');
+        } catch (_unused4) {}
+      }
       var explicitLabels = getExplicitLabels(virtualNode);
       var implicitLabel = closest_default(virtualNode, 'label');
       var labels;
@@ -17069,8 +17450,8 @@
     function attrText(attr, vNode) {
       return vNode.attr(attr) || '';
     }
-    function descendantText(nodeName2, _ref61, context) {
-      var actualNode = _ref61.actualNode;
+    function descendantText(nodeName2, _ref62, context) {
+      var actualNode = _ref62.actualNode;
       nodeName2 = nodeName2.toLowerCase();
       var nodeNames2 = [ nodeName2, actualNode.nodeName.toLowerCase() ].join(',');
       var candidate = actualNode.querySelector(nodeNames2);
@@ -17100,9 +17481,18 @@
         noMatchAccessibleName: true
       });
       var methods = elmSpec.namingMethods || [];
-      return methods.map(function(methodName) {
+      var textMethods = methods.map(function(methodName) {
         return native_text_methods_default[methodName];
       });
+      var internals = virtualNode.elementInternals;
+      if (internals && !methods.includes('labelText')) {
+        try {
+          if (internals.labels) {
+            textMethods.push(native_text_methods_default.labelText);
+          }
+        } catch (_unused5) {}
+      }
+      return textMethods;
     }
     function _accessibleTextVirtual(virtualNode) {
       var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -17223,7 +17613,7 @@
       locations: [ 'billing', 'shipping' ]
     };
     function isValidAutocomplete(autocompleteValue) {
-      var _ref62 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref62$looseTyped = _ref62.looseTyped, looseTyped = _ref62$looseTyped === void 0 ? false : _ref62$looseTyped, _ref62$stateTerms = _ref62.stateTerms, stateTerms = _ref62$stateTerms === void 0 ? [] : _ref62$stateTerms, _ref62$locations = _ref62.locations, locations = _ref62$locations === void 0 ? [] : _ref62$locations, _ref62$qualifiers = _ref62.qualifiers, qualifiers = _ref62$qualifiers === void 0 ? [] : _ref62$qualifiers, _ref62$standaloneTerm = _ref62.standaloneTerms, standaloneTerms = _ref62$standaloneTerm === void 0 ? [] : _ref62$standaloneTerm, _ref62$qualifiedTerms = _ref62.qualifiedTerms, qualifiedTerms = _ref62$qualifiedTerms === void 0 ? [] : _ref62$qualifiedTerms, _ref62$ignoredValues = _ref62.ignoredValues, ignoredValues = _ref62$ignoredValues === void 0 ? [] : _ref62$ignoredValues;
+      var _ref63 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref63$looseTyped = _ref63.looseTyped, looseTyped = _ref63$looseTyped === void 0 ? false : _ref63$looseTyped, _ref63$stateTerms = _ref63.stateTerms, stateTerms = _ref63$stateTerms === void 0 ? [] : _ref63$stateTerms, _ref63$locations = _ref63.locations, locations = _ref63$locations === void 0 ? [] : _ref63$locations, _ref63$qualifiers = _ref63.qualifiers, qualifiers = _ref63$qualifiers === void 0 ? [] : _ref63$qualifiers, _ref63$standaloneTerm = _ref63.standaloneTerms, standaloneTerms = _ref63$standaloneTerm === void 0 ? [] : _ref63$standaloneTerm, _ref63$qualifiedTerms = _ref63.qualifiedTerms, qualifiedTerms = _ref63$qualifiedTerms === void 0 ? [] : _ref63$qualifiedTerms, _ref63$ignoredValues = _ref63.ignoredValues, ignoredValues = _ref63$ignoredValues === void 0 ? [] : _ref63$ignoredValues;
       autocompleteValue = autocompleteValue.toLowerCase().trim();
       stateTerms = stateTerms.concat(_autocomplete.stateTerms);
       if (stateTerms.includes(autocompleteValue) || autocompleteValue === '') {
@@ -17264,17 +17654,16 @@
     var is_valid_autocomplete_default = isValidAutocomplete;
     function labelVirtual(virtualNode) {
       var ref, candidate;
-      if (virtualNode.attr('aria-labelledby')) {
-        ref = idrefs_default(virtualNode.actualNode, 'aria-labelledby');
-        candidate = ref.map(function(thing) {
-          var vNode = get_node_from_tree_default(thing);
+      if (_hasAriaValue(virtualNode, 'aria-labelledby')) {
+        ref = _getResolvedRefs(virtualNode, 'aria-labelledby');
+        candidate = ref.map(function(vNode) {
           return vNode ? visible_virtual_default(vNode) : '';
         }).join(' ').trim();
         if (candidate) {
           return candidate;
         }
       }
-      candidate = virtualNode.attr('aria-label');
+      candidate = _getAriaValue(virtualNode, 'aria-label').value;
       if (candidate) {
         candidate = sanitize_default(candidate);
         if (candidate) {
@@ -17454,7 +17843,7 @@
     var get_text_element_stack_default = getTextElementStack;
     var visualRoles = [ 'checkbox', 'img', 'meter', 'progressbar', 'scrollbar', 'radio', 'slider', 'spinbutton', 'textbox' ];
     function isVisualContent(el) {
-      var _nodeLookup20 = _nodeLookup(el), vNode = _nodeLookup20.vNode;
+      var _nodeLookup24 = _nodeLookup(el), vNode = _nodeLookup24.vNode;
       var role = axe.commons.aria.getExplicitRole(vNode);
       if (role) {
         return visualRoles.indexOf(role) !== -1;
@@ -17489,8 +17878,8 @@
       if (hiddenTextElms.includes(elm.props.nodeName)) {
         return false;
       }
-      return elm.children.some(function(_ref63) {
-        var props = _ref63.props;
+      return elm.children.some(function(_ref64) {
+        var props = _ref64.props;
         return props.nodeType === 3 && props.nodeValue.trim();
       });
     }
@@ -17516,13 +17905,13 @@
         return !child.attr('lang') && _hasLangText(child) && !_isHiddenForEveryone(child);
       });
     }
-    function insertedIntoFocusOrder(el) {
-      var tabIndex = parse_tabindex_default(el.getAttribute('tabindex'));
-      return tabIndex > -1 && _isFocusable(el) && !is_natively_focusable_default(el);
+    function _insertedIntoFocusOrder(node) {
+      var _nodeLookup25 = _nodeLookup(node), vNode = _nodeLookup25.vNode;
+      var tabIndex = parse_tabindex_default(vNode.attr('tabindex'));
+      return tabIndex > -1 && _isFocusable(node) && !is_natively_focusable_default(node);
     }
-    var inserted_into_focus_order_default = insertedIntoFocusOrder;
     function isHiddenWithCSS(el, descendentVisibilityValue) {
-      var _nodeLookup21 = _nodeLookup(el), vNode = _nodeLookup21.vNode, domNode = _nodeLookup21.domNode;
+      var _nodeLookup26 = _nodeLookup(el), vNode = _nodeLookup26.vNode, domNode = _nodeLookup26.domNode;
       if (!vNode) {
         return _isHiddenWithCSS(domNode, descendentVisibilityValue);
       }
@@ -17584,8 +17973,8 @@
     var blockLike = [ 'block', 'list-item', 'table', 'flex', 'grid' ];
     var inlineBlockLike = [ 'inline-block', 'inline-flex', 'inline-grid' ];
     function isInTextBlock(node) {
-      var _ref64 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref64.noLengthCompare, _ref64$includeInlineB = _ref64.includeInlineBlock, includeInlineBlock = _ref64$includeInlineB === void 0 ? false : _ref64$includeInlineB;
-      var _nodeLookup22 = _nodeLookup(node), vNode = _nodeLookup22.vNode, domNode = _nodeLookup22.domNode;
+      var _ref65 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref65.noLengthCompare, _ref65$includeInlineB = _ref65.includeInlineBlock, includeInlineBlock = _ref65$includeInlineB === void 0 ? false : _ref65$includeInlineB;
+      var _nodeLookup27 = _nodeLookup(node), vNode = _nodeLookup27.vNode, domNode = _nodeLookup27.domNode;
       if (isBlock(domNode) || !includeInlineBlock && isInlineBlockLike(vNode)) {
         return false;
       }
@@ -17635,7 +18024,7 @@
     }
     var is_in_text_block_default = isInTextBlock;
     function isBlock(node) {
-      var _nodeLookup23 = _nodeLookup(node), vNode = _nodeLookup23.vNode;
+      var _nodeLookup28 = _nodeLookup(node), vNode = _nodeLookup28.vNode;
       var display2 = vNode.getComputedStylePropertyValue('display');
       return blockLike.includes(display2) || display2.substr(0, 6) === 'table-';
     }
@@ -17723,10 +18112,10 @@
       range2.setEnd(domNode, domNode.childNodes.length);
       var lastLineEnd = 0;
       var lineCount = 0;
-      var _iterator1 = _createForOfIteratorHelper(range2.getClientRects()), _step1;
+      var _iterator10 = _createForOfIteratorHelper(range2.getClientRects()), _step10;
       try {
-        for (_iterator1.s(); !(_step1 = _iterator1.n()).done; ) {
-          var rect = _step1.value;
+        for (_iterator10.s(); !(_step10 = _iterator10.n()).done; ) {
+          var rect = _step10.value;
           if (rect.height <= margin) {
             continue;
           }
@@ -17740,9 +18129,9 @@
           }
         }
       } catch (err) {
-        _iterator1.e(err);
+        _iterator10.e(err);
       } finally {
-        _iterator1.f();
+        _iterator10.f();
       }
       return false;
     }
@@ -17922,7 +18311,7 @@
             this.g = _color2.g;
             this.b = _color2.b;
             this.alpha = +_color2.alpha;
-          } catch (_unused4) {
+          } catch (_unused6) {
             incomplete_data_default.set('colorParse', colorString);
             throw new Error('Unable to parse color "'.concat(colorString, '"'));
           }
@@ -18117,8 +18506,8 @@
       if (!refs || !refs.length) {
         return false;
       }
-      return refs.some(function(_ref65) {
-        var actualNode = _ref65.actualNode;
+      return refs.some(function(_ref66) {
+        var actualNode = _ref66.actualNode;
         return isVisible(actualNode, screenReader, recursed);
       });
     }
@@ -18130,7 +18519,7 @@
       var vNode = el instanceof abstract_virtual_node_default ? el : get_node_from_tree_default(el);
       el = vNode ? vNode.actualNode : el;
       var cacheName = '_isVisible' + (screenReader ? 'ScreenReader' : '');
-      var _ref66 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref66.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref66.DOCUMENT_FRAGMENT_NODE;
+      var _ref67 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref67.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref67.DOCUMENT_FRAGMENT_NODE;
       var nodeType = vNode ? vNode.props.nodeType : el.nodeType;
       var nodeName2 = vNode ? vNode.props.nodeName : el.nodeName.toLowerCase();
       if (vNode && typeof vNode[cacheName] !== 'undefined') {
@@ -18483,7 +18872,7 @@
         key: 'tabbableElements',
         get: function get() {
           if (!this._cache.hasOwnProperty('tabbableElements')) {
-            this._cache.tabbableElements = get_tabbable_elements_default(this);
+            this._cache.tabbableElements = _getTabbableElements(this);
           }
           return this._cache.tabbableElements;
         }
@@ -18508,9 +18897,6 @@
       }, {
         key: 'elementInternals',
         get: function get() {
-          if (!axe._enableElementInternals) {
-            return;
-          }
           if (!this._cache.hasOwnProperty('elementInternals')) {
             this._cache.elementInternals = _getElementInternals(this.actualNode);
           }
@@ -18943,7 +19329,7 @@
         return {};
       }
       var navigator = win.navigator, innerHeight = win.innerHeight, innerWidth = win.innerWidth;
-      var _ref67 = getOrientation(win) || {}, angle = _ref67.angle, type2 = _ref67.type;
+      var _ref68 = getOrientation(win) || {}, angle = _ref68.angle, type2 = _ref68.type;
       return {
         userAgent: navigator.userAgent,
         windowWidth: innerWidth,
@@ -18952,12 +19338,12 @@
         orientationType: type2
       };
     }
-    function getOrientation(_ref68) {
-      var screen = _ref68.screen;
+    function getOrientation(_ref69) {
+      var screen = _ref69.screen;
       return screen.orientation || screen.msOrientation || screen.mozOrientation;
     }
-    function createFrameContext(frame, _ref69) {
-      var focusable = _ref69.focusable, page = _ref69.page;
+    function createFrameContext(frame, _ref70) {
+      var focusable = _ref70.focusable, page = _ref70.page;
       return {
         node: frame,
         include: [],
@@ -19045,10 +19431,10 @@
         return;
       }
       var normalizedSelectors = [];
-      var _iterator10 = _createForOfIteratorHelper(frameSelectors), _step10;
+      var _iterator11 = _createForOfIteratorHelper(frameSelectors), _step11;
       try {
-        for (_iterator10.s(); !(_step10 = _iterator10.n()).done; ) {
-          var selector = _step10.value;
+        for (_iterator11.s(); !(_step11 = _iterator11.n()).done; ) {
+          var selector = _step11.value;
           if (_isLabelledShadowDomSelector(selector)) {
             assertLabelledShadowDomSelector(selector);
             selector = selector.fromShadowDom;
@@ -19059,9 +19445,9 @@
           normalizedSelectors.push(selector);
         }
       } catch (err) {
-        _iterator10.e(err);
+        _iterator11.e(err);
       } finally {
-        _iterator10.f();
+        _iterator11.f();
       }
       return normalizedSelectors;
     }
@@ -19171,8 +19557,8 @@
       }
       context.frames.push(createFrameContext(frame, context));
     }
-    function isPageContext(_ref70) {
-      var include = _ref70.include;
+    function isPageContext(_ref71) {
+      var include = _ref71.include;
       return include.length === 1 && include[0].actualNode === document.documentElement;
     }
     function validateContext(context) {
@@ -19181,8 +19567,8 @@
         throw new Error('No elements found for include in ' + env + ' Context');
       }
     }
-    function getRootNode2(_ref71) {
-      var include = _ref71.include, exclude = _ref71.exclude;
+    function getRootNode2(_ref72) {
+      var include = _ref72.include, exclude = _ref72.exclude;
       var selectors = Array.from(include).concat(Array.from(exclude));
       for (var _i18 = 0; _i18 < selectors.length; _i18++) {
         var item = selectors[_i18];
@@ -19201,8 +19587,8 @@
         return [];
       }
       var _Context = new Context(context), frames = _Context.frames;
-      return frames.map(function(_ref72) {
-        var node = _ref72.node, frameContext = _objectWithoutProperties(_ref72, _excluded12);
+      return frames.map(function(_ref73) {
+        var node = _ref73.node, frameContext = _objectWithoutProperties(_ref73, _excluded12);
         frameContext.initiator = false;
         var frameSelector = _getAncestry(node);
         return {
@@ -19212,8 +19598,8 @@
       });
     }
     function _getRule(ruleId) {
-      var rule = axe._audit.rules.find(function(_ref73) {
-        var id = _ref73.id;
+      var rule = axe._audit.rules.find(function(_ref74) {
+        var id = _ref74.id;
         return id === ruleId;
       });
       if (!rule) {
@@ -19309,11 +19695,11 @@
       if (!('ElementInternals' in window)) {
         return;
       }
-      var _iterator11 = _createForOfIteratorHelper(propNames), _step11;
+      var _iterator12 = _createForOfIteratorHelper(propNames), _step12;
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done; ) {
+        for (_iterator12.s(); !(_step12 = _iterator12.n()).done; ) {
           var _Object$getOwnPropert;
-          var propName = _step11.value;
+          var propName = _step12.value;
           if ((_Object$getOwnPropert = Object.getOwnPropertyDescriptor(node, propName)) !== null && _Object$getOwnPropert !== void 0 && _Object$getOwnPropert.get) {
             continue;
           }
@@ -19322,18 +19708,18 @@
           }
         }
       } catch (err) {
-        _iterator11.e(err);
+        _iterator12.e(err);
       } finally {
-        _iterator11.f();
+        _iterator12.f();
       }
       var ownSymbols = Object.getOwnPropertySymbols(node);
       if (!ownSymbols.length) {
         return;
       }
-      var _iterator12 = _createForOfIteratorHelper(symbolNames), _step12;
+      var _iterator13 = _createForOfIteratorHelper(symbolNames), _step13;
       try {
         var _loop8 = function _loop8() {
-          var symbolName = _step12.value;
+          var symbolName = _step13.value;
           var symbol = ownSymbols.find(function(s) {
             return s.description === symbolName;
           });
@@ -19349,7 +19735,7 @@
             }
           }
         }, _ret4;
-        for (_iterator12.s(); !(_step12 = _iterator12.n()).done; ) {
+        for (_iterator13.s(); !(_step13 = _iterator13.n()).done; ) {
           _ret4 = _loop8();
           if (_ret4 === 0) {
             continue;
@@ -19359,9 +19745,9 @@
           }
         }
       } catch (err) {
-        _iterator12.e(err);
+        _iterator13.e(err);
       } finally {
-        _iterator12.f();
+        _iterator13.f();
       }
     }
     var styleSheet;
@@ -19446,8 +19832,8 @@
       }
       return !!standards_default.htmlElms[nodeName2];
     }
-    function _isNodeInContext(node, _ref74) {
-      var _ref74$include = _ref74.include, include = _ref74$include === void 0 ? [] : _ref74$include, _ref74$exclude = _ref74.exclude, exclude = _ref74$exclude === void 0 ? [] : _ref74$exclude;
+    function _isNodeInContext(node, _ref75) {
+      var _ref75$include = _ref75.include, include = _ref75$include === void 0 ? [] : _ref75$include, _ref75$exclude = _ref75.exclude, exclude = _ref75$exclude === void 0 ? [] : _ref75$exclude;
       var filterInclude = include.filter(function(candidate) {
         return _contains(candidate, node);
       });
@@ -19466,18 +19852,18 @@
     }
     function getDeepest(collection) {
       var deepest;
-      var _iterator13 = _createForOfIteratorHelper(collection), _step13;
+      var _iterator14 = _createForOfIteratorHelper(collection), _step14;
       try {
-        for (_iterator13.s(); !(_step13 = _iterator13.n()).done; ) {
-          var node = _step13.value;
+        for (_iterator14.s(); !(_step14 = _iterator14.n()).done; ) {
+          var node = _step14.value;
           if (!deepest || !_contains(node, deepest)) {
             deepest = node;
           }
         }
       } catch (err) {
-        _iterator13.e(err);
+        _iterator14.e(err);
       } finally {
-        _iterator13.f();
+        _iterator14.f();
       }
       return deepest;
     }
@@ -19860,8 +20246,8 @@
       return matchExpressions(domTree, expressions, filter);
     }
     var query_selector_all_filter_default = querySelectorAllFilter;
-    function preloadCssom(_ref75) {
-      var _ref75$treeRoot = _ref75.treeRoot, treeRoot = _ref75$treeRoot === void 0 ? axe._tree[0] : _ref75$treeRoot;
+    function preloadCssom(_ref76) {
+      var _ref76$treeRoot = _ref76.treeRoot, treeRoot = _ref76$treeRoot === void 0 ? axe._tree[0] : _ref76$treeRoot;
       var rootNodes = getAllRootNodesInTree(treeRoot);
       if (!rootNodes.length) {
         return Promise.resolve();
@@ -19891,8 +20277,8 @@
     }
     function getCssomForAllRootNodes(rootNodes, convertDataToStylesheet) {
       var promises = [];
-      rootNodes.forEach(function(_ref76, index) {
-        var rootNode = _ref76.rootNode, shadowId = _ref76.shadowId;
+      rootNodes.forEach(function(_ref77, index) {
+        var rootNode = _ref77.rootNode, shadowId = _ref77.shadowId;
         var sheets = getStylesheetsOfRootNode(rootNode, shadowId, convertDataToStylesheet);
         if (!sheets) {
           return Promise.all(promises);
@@ -19978,10 +20364,10 @@
         return true;
       });
     }
-    function preloadMedia(_ref77) {
-      var _ref77$treeRoot = _ref77.treeRoot, treeRoot = _ref77$treeRoot === void 0 ? axe._tree[0] : _ref77$treeRoot;
-      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref78) {
-        var actualNode = _ref78.actualNode;
+    function preloadMedia(_ref78) {
+      var _ref78$treeRoot = _ref78.treeRoot, treeRoot = _ref78$treeRoot === void 0 ? axe._tree[0] : _ref78$treeRoot;
+      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref79) {
+        var actualNode = _ref79.actualNode;
         if (actualNode.preload === 'none' && actualNode.readyState === 0 && actualNode.networkState !== actualNode.NETWORK_LOADING) {
           return false;
         }
@@ -19999,8 +20385,8 @@
         }
         return true;
       });
-      return Promise.all(mediaVirtualNodes.map(function(_ref79) {
-        var actualNode = _ref79.actualNode;
+      return Promise.all(mediaVirtualNodes.map(function(_ref80) {
+        var actualNode = _ref80.actualNode;
         return isMediaElementReady(actualNode);
       }));
     }
@@ -20113,7 +20499,7 @@
             throw new Error();
           }
           return msg;
-        } catch (_unused5) {
+        } catch (_unused7) {
           if (typeof checkData.missingData === 'string') {
             return messages.incomplete[checkData.missingData];
           } else {
@@ -20302,18 +20688,18 @@
         };
       }
       var serial = {};
-      var _iterator14 = _createForOfIteratorHelper(constants_default.serializableErrorProps), _step14;
+      var _iterator15 = _createForOfIteratorHelper(constants_default.serializableErrorProps), _step15;
       try {
-        for (_iterator14.s(); !(_step14 = _iterator14.n()).done; ) {
-          var prop = _step14.value;
+        for (_iterator15.s(); !(_step15 = _iterator15.n()).done; ) {
+          var prop = _step15.value;
           if ([ 'string', 'number', 'boolean' ].includes(_typeof(err2[prop]))) {
             serial[prop] = err2[prop];
           }
         }
       } catch (err) {
-        _iterator14.e(err);
+        _iterator15.e(err);
       } finally {
-        _iterator14.f();
+        _iterator15.f();
       }
       if (err2.cause) {
         serial.cause = iteration < 10 ? _serializeError(err2.cause, iteration + 1) : '...';
@@ -20321,10 +20707,10 @@
       return serial;
     }
     var RuleError = function(_Error) {
-      function RuleError(_ref81) {
+      function RuleError(_ref82) {
         var _error$name;
         var _this7;
-        var error = _ref81.error, ruleId = _ref81.ruleId, method = _ref81.method, errorNode = _ref81.errorNode;
+        var error = _ref82.error, ruleId = _ref82.ruleId, method = _ref82.method, errorNode = _ref82.errorNode;
         _classCallCheck(this, RuleError);
         _this7 = _callSuper(this, RuleError);
         _this7.name = (_error$name = error.name) !== null && _error$name !== void 0 ? _error$name : 'RuleError';
@@ -20358,8 +20744,8 @@
       }
     }
     function setScrollState(scrollState) {
-      scrollState.forEach(function(_ref82) {
-        var elm = _ref82.elm, top = _ref82.top, left = _ref82.left;
+      scrollState.forEach(function(_ref83) {
+        var elm = _ref83.elm, top = _ref83.top, left = _ref83.left;
         return setScroll(elm, top, left);
       });
     }
@@ -20387,25 +20773,25 @@
       }
       return selectAllRecursive(selectorArr, doc);
     }
-    function selectAllRecursive(_ref83, doc) {
-      var _ref84 = _toArray(_ref83), selectorStr = _ref84[0], restSelector = _arrayLikeToArray(_ref84).slice(1);
+    function selectAllRecursive(_ref84, doc) {
+      var _ref85 = _toArray(_ref84), selectorStr = _ref85[0], restSelector = _arrayLikeToArray(_ref85).slice(1);
       var elms = doc.querySelectorAll(selectorStr);
       if (restSelector.length === 0) {
         return Array.from(elms);
       }
       var selected = [];
-      var _iterator15 = _createForOfIteratorHelper(elms), _step15;
+      var _iterator16 = _createForOfIteratorHelper(elms), _step16;
       try {
-        for (_iterator15.s(); !(_step15 = _iterator15.n()).done; ) {
-          var elm = _step15.value;
+        for (_iterator16.s(); !(_step16 = _iterator16.n()).done; ) {
+          var elm = _step16.value;
           if (elm !== null && elm !== void 0 && elm.shadowRoot) {
             selected.push.apply(selected, _toConsumableArray(selectAllRecursive(restSelector, elm.shadowRoot)));
           }
         }
       } catch (err) {
-        _iterator15.e(err);
+        _iterator16.e(err);
       } finally {
-        _iterator15.f();
+        _iterator16.f();
       }
       return selected;
     }
@@ -20432,13 +20818,13 @@
       langArray = Array.isArray(langArray) ? langArray : langs;
       var codes = [];
       langArray.forEach(function(lang, index) {
-        var _char3 = String.fromCharCode(index + 96).replace('`', '');
+        var _char4 = String.fromCharCode(index + 96).replace('`', '');
         if (Array.isArray(lang)) {
           codes = codes.concat(_validLangs(lang).map(function(newLang) {
-            return _char3 + newLang;
+            return _char4 + newLang;
           }));
         } else {
-          codes.push(_char3);
+          codes.push(_char4);
         }
       });
       return codes;
@@ -20564,9 +20950,9 @@
       nodeTypeToName[nodeNamesToTypes[nodeName2]] = nodeName2;
     });
     function normaliseProps(serialNode) {
-      var _serialNode$nodeName, _ref85, _serialNode$nodeType;
+      var _serialNode$nodeName, _ref86, _serialNode$nodeType;
       var nodeName2 = (_serialNode$nodeName = serialNode.nodeName) !== null && _serialNode$nodeName !== void 0 ? _serialNode$nodeName : nodeTypeToName[serialNode.nodeType];
-      var nodeType = (_ref85 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref85 !== void 0 ? _ref85 : 1;
+      var nodeType = (_ref86 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref86 !== void 0 ? _ref86 : 1;
       assert_default(typeof nodeType === 'number', 'nodeType has to be a number, got \''.concat(nodeType, '\''));
       assert_default(typeof nodeName2 === 'string', 'nodeName has to be a string, got \''.concat(nodeName2, '\''));
       nodeName2 = nodeName2.toLowerCase();
@@ -20587,8 +20973,8 @@
       delete props.attributes;
       return Object.freeze(props);
     }
-    function normaliseAttrs(_ref86) {
-      var _ref86$attributes = _ref86.attributes, attributes2 = _ref86$attributes === void 0 ? {} : _ref86$attributes;
+    function normaliseAttrs(_ref87) {
+      var _ref87$attributes = _ref87.attributes, attributes2 = _ref87$attributes === void 0 ? {} : _ref87$attributes;
       var attrMap = {
         htmlFor: 'for',
         className: 'class'
@@ -20750,7 +21136,7 @@
     var getElementInternals2;
     var elementInternalsTimeout;
     function externalAPIs() {
-      var _ref87 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, internalsTimeout = _ref87.elementInternalsTimeout, getInternals = _ref87.getElementInternals;
+      var _ref88 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, internalsTimeout = _ref88.elementInternalsTimeout, getInternals = _ref88.getElementInternals;
       if (isNotNullOrUndefined(internalsTimeout)) {
         assert_default(typeof internalsTimeout === 'number', 'elementInternalsTimeout must be a number');
         elementInternalsTimeout = internalsTimeout;
@@ -20929,10 +21315,10 @@
     function setNodeList(internals, key, value) {
       var nodes = [];
       var errorSelectors = [];
-      var _iterator16 = _createForOfIteratorHelper(value), _step16;
+      var _iterator17 = _createForOfIteratorHelper(value), _step17;
       try {
-        for (_iterator16.s(); !(_step16 = _iterator16.n()).done; ) {
-          var selector = _step16.value;
+        for (_iterator17.s(); !(_step17 = _iterator17.n()).done; ) {
+          var selector = _step17.value;
           var node = _shadowSelect(selector);
           if (node) {
             nodes.push(node);
@@ -20941,9 +21327,9 @@
           }
         }
       } catch (err) {
-        _iterator16.e(err);
+        _iterator17.e(err);
       } finally {
-        _iterator16.f();
+        _iterator17.f();
       }
       if (errorSelectors.length === 0) {
         internals[key] = nodes;
@@ -21304,6 +21690,9 @@
       getAccessibleRefs: function getAccessibleRefs() {
         return get_accessible_refs_default;
       },
+      getAriaValue: function getAriaValue() {
+        return _getAriaValue;
+      },
       getElementUnallowedRoles: function getElementUnallowedRoles() {
         return get_element_unallowed_roles_default;
       },
@@ -21327,6 +21716,9 @@
       },
       getRolesWithNameFromContents: function getRolesWithNameFromContents() {
         return get_roles_with_name_from_contents_default;
+      },
+      hasAriaValue: function hasAriaValue() {
+        return _hasAriaValue;
       },
       implicitNodes: function implicitNodes() {
         return implicit_nodes_default;
@@ -21409,10 +21801,10 @@
           if (!attrValue) {
             continue;
           }
-          var _iterator17 = _createForOfIteratorHelper(token_list_default(attrValue)), _step17;
+          var _iterator18 = _createForOfIteratorHelper(token_list_default(attrValue)), _step18;
           try {
-            for (_iterator17.s(); !(_step17 = _iterator17.n()).done; ) {
-              var token = _step17.value;
+            for (_iterator18.s(); !(_step18 = _iterator18.n()).done; ) {
+              var token = _step18.value;
               if (!idRefs.has(token)) {
                 idRefs.set(token, [ node ]);
               } else {
@@ -21420,9 +21812,9 @@
               }
             }
           } catch (err) {
-            _iterator17.e(err);
+            _iterator18.e(err);
           } finally {
-            _iterator17.f();
+            _iterator18.f();
           }
         }
       }
@@ -21486,7 +21878,7 @@
     }
     function getElementUnallowedRoles(node) {
       var allowImplicit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var _nodeLookup24 = _nodeLookup(node), vNode = _nodeLookup24.vNode;
+      var _nodeLookup29 = _nodeLookup(node), vNode = _nodeLookup29.vNode;
       if (!_isHtmlElement(vNode)) {
         return [];
       }
@@ -23276,8 +23668,8 @@
       nodeName: [ 'abbr', 'address', 'canvas', 'div', 'p', 'pre', 'blockquote', 'ins', 'del', 'output', 'span', 'table', 'tbody', 'thead', 'tfoot', 'td', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'br', 'wbr', 'th', 'tr' ]
     } ];
     lookupTable.evaluateRoleForElement = {
-      A: function A(_ref88) {
-        var node = _ref88.node, out = _ref88.out;
+      A: function A(_ref89) {
+        var node = _ref89.node, out = _ref89.out;
         if (node.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -23286,19 +23678,19 @@
         }
         return true;
       },
-      AREA: function AREA(_ref89) {
-        var node = _ref89.node;
+      AREA: function AREA(_ref90) {
+        var node = _ref90.node;
         return !node.href;
       },
-      BUTTON: function BUTTON(_ref90) {
-        var node = _ref90.node, role = _ref90.role, out = _ref90.out;
+      BUTTON: function BUTTON(_ref91) {
+        var node = _ref91.node, role = _ref91.role, out = _ref91.out;
         if (node.getAttribute('type') === 'menu') {
           return role === 'menuitem';
         }
         return out;
       },
-      IMG: function IMG(_ref91) {
-        var node = _ref91.node, role = _ref91.role, out = _ref91.out;
+      IMG: function IMG(_ref92) {
+        var node = _ref92.node, role = _ref92.role, out = _ref92.out;
         switch (node.alt) {
          case null:
           return out;
@@ -23310,8 +23702,8 @@
           return role !== 'presentation' && role !== 'none';
         }
       },
-      INPUT: function INPUT(_ref92) {
-        var node = _ref92.node, role = _ref92.role, out = _ref92.out;
+      INPUT: function INPUT(_ref93) {
+        var node = _ref93.node, role = _ref93.role, out = _ref93.out;
         switch (node.type) {
          case 'button':
          case 'image':
@@ -23341,32 +23733,32 @@
           return false;
         }
       },
-      LI: function LI(_ref93) {
-        var node = _ref93.node, out = _ref93.out;
+      LI: function LI(_ref94) {
+        var node = _ref94.node, out = _ref94.out;
         var hasImplicitListitemRole = axe.utils.matchesSelector(node, 'ol li, ul li');
         if (hasImplicitListitemRole) {
           return out;
         }
         return true;
       },
-      MENU: function MENU(_ref94) {
-        var node = _ref94.node;
+      MENU: function MENU(_ref95) {
+        var node = _ref95.node;
         if (node.getAttribute('type') === 'context') {
           return false;
         }
         return true;
       },
-      OPTION: function OPTION(_ref95) {
-        var node = _ref95.node;
+      OPTION: function OPTION(_ref96) {
+        var node = _ref96.node;
         var withinOptionList = axe.utils.matchesSelector(node, 'select > option, datalist > option, optgroup > option');
         return !withinOptionList;
       },
-      SELECT: function SELECT(_ref96) {
-        var node = _ref96.node, role = _ref96.role;
+      SELECT: function SELECT(_ref97) {
+        var node = _ref97.node, role = _ref97.role;
         return !node.multiple && node.size <= 1 && role === 'menu';
       },
-      SVG: function SVG(_ref97) {
-        var node = _ref97.node, out = _ref97.out;
+      SVG: function SVG(_ref98) {
+        var node = _ref98.node, out = _ref98.out;
         if (node.parentNode && node.parentNode.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -23391,7 +23783,7 @@
     }
     var is_accessible_ref_default = isAccessibleRef;
     function _isComboboxPopup(virtualNode) {
-      var _ref98 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref98.popupRoles;
+      var _ref99 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref99.popupRoles;
       var role = get_role_default(virtualNode);
       popupRoles !== null && popupRoles !== void 0 ? popupRoles : popupRoles = aria_attrs_default['aria-haspopup'].values;
       if (!popupRoles.includes(role)) {
@@ -23483,7 +23875,7 @@
         try {
           var doc = get_root_node_default2(vNode.actualNode);
           return !!(value && doc.getElementById(value));
-        } catch (_unused6) {
+        } catch (_unused8) {
           throw new TypeError('Cannot resolve id references for partial DOM');
         }
 
@@ -23594,10 +23986,10 @@
           }
         });
       });
-      var _iterator18 = _createForOfIteratorHelper(messageKeys), _step18;
+      var _iterator19 = _createForOfIteratorHelper(messageKeys), _step19;
       try {
-        for (_iterator18.s(); !(_step18 = _iterator18.n()).done; ) {
-          var messageKey = _step18.value;
+        for (_iterator19.s(); !(_step19 = _iterator19.n()).done; ) {
+          var messageKey = _step19.value;
           if (badCells[messageKey].size > 0) {
             this.relatedNodes(_toConsumableArray(badCells[messageKey]));
             if (messageKey === emptyHdrs) {
@@ -23610,9 +24002,9 @@
           }
         }
       } catch (err) {
-        _iterator18.e(err);
+        _iterator19.e(err);
       } finally {
-        _iterator18.f();
+        _iterator19.f();
       }
       return true;
     }
@@ -23637,8 +24029,8 @@
       return true;
     }
     var td_has_header_evaluate_default = tdHasHeaderEvaluate;
-    function scopeValueEvaluate(node, options) {
-      var value = node.getAttribute('scope').toLowerCase();
+    function scopeValueEvaluate(node, options, virtualNode) {
+      var value = virtualNode.attr('scope').toLowerCase();
       return options.values.indexOf(value) !== -1;
     }
     var scope_value_evaluate_default = scopeValueEvaluate;
@@ -23680,8 +24072,8 @@
       if (!virtualNode.children) {
         return void 0;
       }
-      var titleNode = virtualNode.children.find(function(_ref99) {
-        var props = _ref99.props;
+      var titleNode = virtualNode.children.find(function(_ref100) {
+        var props = _ref100.props;
         return props.nodeName === 'title';
       });
       if (!titleNode) {
@@ -23700,7 +24092,7 @@
           });
           return false;
         }
-      } catch (_unused7) {
+      } catch (_unused9) {
         return void 0;
       }
       return true;
@@ -23818,8 +24210,8 @@
       }
       return false;
     }
-    function getNumberValue(domNode, _ref100) {
-      var cssProperty = _ref100.cssProperty, absoluteValues = _ref100.absoluteValues, normalValue = _ref100.normalValue;
+    function getNumberValue(domNode, _ref101) {
+      var cssProperty = _ref101.cssProperty, absoluteValues = _ref101.absoluteValues, normalValue = _ref101.normalValue;
       var computedStyle = window.getComputedStyle(domNode);
       var cssPropValue = computedStyle.getPropertyValue(cssProperty);
       if (cssPropValue === 'normal') {
@@ -23869,7 +24261,7 @@
     function ariaLabelledbyEvaluate(node, options, virtualNode) {
       try {
         return !!sanitize_default(arialabelledby_text_default(virtualNode));
-      } catch (_unused8) {
+      } catch (_unused0) {
         return void 0;
       }
     }
@@ -23878,8 +24270,8 @@
       return !!sanitize_default(_arialabelText(virtualNode));
     }
     var aria_label_evaluate_default = ariaLabelEvaluate;
-    function duplicateIdEvaluate(node) {
-      var id = node.getAttribute('id').trim();
+    function duplicateIdEvaluate(node, options, virtualNode) {
+      var id = virtualNode.attr('id').trim();
       if (!id) {
         return true;
       }
@@ -23923,7 +24315,7 @@
     }
     var unique_frame_title_after_default = uniqueFrameTitleAfter;
     function skipLinkEvaluate(node) {
-      var target = get_element_by_reference_default(node, 'href');
+      var target = _getElementByReference(node, 'href');
       if (target) {
         return _isVisibleToScreenReaders(target) || void 0;
       }
@@ -23953,7 +24345,7 @@
     }
     function findRegionlessElms(virtualNode, options) {
       var node = virtualNode.actualNode;
-      if (get_role_default(virtualNode) === 'button' || isRegion(virtualNode, options) || [ 'iframe', 'frame' ].includes(virtualNode.props.nodeName) || _isSkipLink(virtualNode.actualNode) && get_element_by_reference_default(virtualNode.actualNode, 'href') || !_isVisibleToScreenReaders(node)) {
+      if (get_role_default(virtualNode) === 'button' || isRegion(virtualNode, options) || [ 'iframe', 'frame' ].includes(virtualNode.props.nodeName) || _isSkipLink(virtualNode.actualNode) && _getElementByReference(virtualNode.actualNode, 'href') || !_isVisibleToScreenReaders(node)) {
         var vNode = virtualNode;
         while (vNode) {
           vNode._hasRegionDescendant = true;
@@ -23966,8 +24358,8 @@
       } else if (node !== document.body && has_content_default(node, true) && !isShallowlyHidden(virtualNode)) {
         return [ virtualNode ];
       } else {
-        return virtualNode.children.filter(function(_ref101) {
-          var actualNode = _ref101.actualNode;
+        return virtualNode.children.filter(function(_ref102) {
+          var actualNode = _ref102.actualNode;
           return actualNode.nodeType === 1;
         }).map(function(vNode) {
           return findRegionlessElms(vNode, options);
@@ -23980,9 +24372,9 @@
       return [ 'none', 'presentation' ].includes(get_role_default(virtualNode)) && !hasChildTextNodes(virtualNode);
     }
     function isRegion(virtualNode, options) {
-      var node = virtualNode.actualNode;
+      var _getAriaValue$value;
       var role = get_role_default(virtualNode);
-      var ariaLive = (node.getAttribute('aria-live') || '').toLowerCase().trim();
+      var ariaLive = (_getAriaValue$value = _getAriaValue(virtualNode, 'aria-live').value) !== null && _getAriaValue$value !== void 0 ? _getAriaValue$value : '';
       var landmarkRoles2 = get_aria_roles_by_type_default('landmark');
       if ([ 'assertive', 'polite' ].includes(ariaLive) || implicitAriaLiveRoles.includes(role)) {
         return true;
@@ -24004,19 +24396,19 @@
           return;
         }
         var frameAncestry = r.node.ancestry.slice(0, -1);
-        var _iterator19 = _createForOfIteratorHelper(iframeResults), _step19;
+        var _iterator20 = _createForOfIteratorHelper(iframeResults), _step20;
         try {
-          for (_iterator19.s(); !(_step19 = _iterator19.n()).done; ) {
-            var iframeResult = _step19.value;
+          for (_iterator20.s(); !(_step20 = _iterator20.n()).done; ) {
+            var iframeResult = _step20.value;
             if (_matchAncestry(frameAncestry, iframeResult.node.ancestry)) {
               r.result = iframeResult.result;
               break;
             }
           }
         } catch (err) {
-          _iterator19.e(err);
+          _iterator20.e(err);
         } finally {
-          _iterator19.f();
+          _iterator20.f();
         }
       });
       iframeResults.forEach(function(r) {
@@ -24115,7 +24507,7 @@
     var separatorRegex = /[;,\s]/;
     var validRedirectNumRegex = /^[0-9.]+$/;
     function metaRefreshEvaluate(node, options, virtualNode) {
-      var _ref102 = options || {}, minDelay = _ref102.minDelay, maxDelay = _ref102.maxDelay;
+      var _ref103 = options || {}, minDelay = _ref103.minDelay, maxDelay = _ref103.maxDelay;
       var content = (virtualNode.attr('content') || '').trim();
       var _content$split = content.split(separatorRegex), _content$split2 = _slicedToArray(_content$split, 1), redirectStr = _content$split2[0];
       if (!redirectStr.match(validRedirectNumRegex)) {
@@ -24478,10 +24870,10 @@
     var OPAQUE_STROKE_OFFSET_MIN_PX = 1.5;
     var edges = [ 'top', 'right', 'bottom', 'left' ];
     function _getStrokeColorsFromShadows(parsedShadows) {
-      var _ref103 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref103$ignoreEdgeCou = _ref103.ignoreEdgeCount, ignoreEdgeCount = _ref103$ignoreEdgeCou === void 0 ? false : _ref103$ignoreEdgeCou;
+      var _ref104 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref104$ignoreEdgeCou = _ref104.ignoreEdgeCount, ignoreEdgeCount = _ref104$ignoreEdgeCou === void 0 ? false : _ref104$ignoreEdgeCou;
       var shadowMap = getShadowColorsMap(parsedShadows);
-      var shadowsByColor = Object.entries(shadowMap).map(function(_ref104) {
-        var _ref105 = _slicedToArray(_ref104, 2), colorStr = _ref105[0], sides = _ref105[1];
+      var shadowsByColor = Object.entries(shadowMap).map(function(_ref105) {
+        var _ref106 = _slicedToArray(_ref105, 2), colorStr = _ref106[0], sides = _ref106[1];
         var edgeCount = edges.filter(function(side) {
           return sides[side].length !== 0;
         }).length;
@@ -24491,8 +24883,8 @@
           edgeCount: edgeCount
         };
       });
-      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref106) {
-        var edgeCount = _ref106.edgeCount;
+      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref107) {
+        var edgeCount = _ref107.edgeCount;
         return edgeCount > 1 && edgeCount < 4;
       })) {
         return null;
@@ -24503,11 +24895,11 @@
     }
     function getShadowColorsMap(parsedShadows) {
       var colorMap = {};
-      var _iterator20 = _createForOfIteratorHelper(parsedShadows), _step20;
+      var _iterator21 = _createForOfIteratorHelper(parsedShadows), _step21;
       try {
-        for (_iterator20.s(); !(_step20 = _iterator20.n()).done; ) {
+        for (_iterator21.s(); !(_step21 = _iterator21.n()).done; ) {
           var _colorMap$colorStr;
-          var _step20$value = _step20.value, colorStr = _step20$value.colorStr, pixels = _step20$value.pixels;
+          var _step21$value = _step21.value, colorStr = _step21$value.colorStr, pixels = _step21$value.pixels;
           (_colorMap$colorStr = colorMap[colorStr]) !== null && _colorMap$colorStr !== void 0 ? _colorMap$colorStr : colorMap[colorStr] = {
             top: [],
             right: [],
@@ -24528,14 +24920,14 @@
           }
         }
       } catch (err) {
-        _iterator20.e(err);
+        _iterator21.e(err);
       } finally {
-        _iterator20.f();
+        _iterator21.f();
       }
       return colorMap;
     }
-    function shadowGroupToColor(_ref107) {
-      var colorStr = _ref107.colorStr, sides = _ref107.sides, edgeCount = _ref107.edgeCount;
+    function shadowGroupToColor(_ref108) {
+      var colorStr = _ref108.colorStr, sides = _ref108.sides, edgeCount = _ref108.edgeCount;
       if (edgeCount !== 4) {
         return null;
       }
@@ -24586,8 +24978,8 @@
           throw new Error('Unable to process text-shadows: '.concat(str));
         }
       }
-      shadows.forEach(function(_ref108) {
-        var pixels = _ref108.pixels;
+      shadows.forEach(function(_ref109) {
+        var pixels = _ref109.pixels;
         if (pixels.length === 2) {
           pixels.push(0);
         }
@@ -24595,7 +24987,7 @@
       return shadows;
     }
     function _getTextShadowColors(node) {
-      var _ref109 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref109.minRatio, maxRatio = _ref109.maxRatio, ignoreEdgeCount = _ref109.ignoreEdgeCount;
+      var _ref110 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref110.minRatio, maxRatio = _ref110.maxRatio, ignoreEdgeCount = _ref110.ignoreEdgeCount;
       var shadowColors = [];
       var style = window.getComputedStyle(node);
       var textShadow = style.getPropertyValue('text-shadow');
@@ -24607,10 +24999,10 @@
       assert_default(isNaN(fontSize) === false, 'Unable to determine font-size value '.concat(fontSizeStr));
       var thinShadows = [];
       var shadows = _parseTextShadows(textShadow);
-      var _iterator21 = _createForOfIteratorHelper(shadows), _step21;
+      var _iterator22 = _createForOfIteratorHelper(shadows), _step22;
       try {
-        for (_iterator21.s(); !(_step21 = _iterator21.n()).done; ) {
-          var shadow = _step21.value;
+        for (_iterator22.s(); !(_step22 = _iterator22.n()).done; ) {
+          var shadow = _step22.value;
           var colorStr = shadow.colorStr || style.getPropertyValue('color');
           var _shadow$pixels = _slicedToArray(shadow.pixels, 3), offsetX = _shadow$pixels[0], offsetY = _shadow$pixels[1], _shadow$pixels$ = _shadow$pixels[2], blurRadius = _shadow$pixels$ === void 0 ? 0 : _shadow$pixels$;
           if (maxRatio && blurRadius >= fontSize * maxRatio) {
@@ -24643,9 +25035,9 @@
           shadowColors.push(_color3);
         }
       } catch (err) {
-        _iterator21.e(err);
+        _iterator22.e(err);
       } finally {
-        _iterator21.f();
+        _iterator22.f();
       }
       if (thinShadows.length > 0) {
         var strokeColors = _getStrokeColorsFromShadows(thinShadows, {
@@ -24658,8 +25050,8 @@
       }
       return shadowColors;
     }
-    function textShadowColor(_ref110) {
-      var colorStr = _ref110.colorStr, offsetX = _ref110.offsetX, offsetY = _ref110.offsetY, blurRadius = _ref110.blurRadius, fontSize = _ref110.fontSize;
+    function textShadowColor(_ref111) {
+      var colorStr = _ref111.colorStr, offsetX = _ref111.offsetX, offsetY = _ref111.offsetY, blurRadius = _ref111.blurRadius, fontSize = _ref111.fontSize;
       if (offsetX > blurRadius || offsetY > blurRadius) {
         return new color_default(0, 0, 0, 0);
       }
@@ -24687,13 +25079,13 @@
         var _stackingOrder2;
         var bgVNode = get_node_from_tree_default(bgElm);
         var bgColor = getOwnBackgroundColor2(bgVNode);
-        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref111) {
-          var vNode = _ref111.vNode;
+        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref112) {
+          var vNode = _ref112.vNode;
           return !!vNode;
         });
-        stackingOrder.forEach(function(_ref112, index) {
+        stackingOrder.forEach(function(_ref113, index) {
           var _stackingOrder;
-          var vNode = _ref112.vNode;
+          var vNode = _ref113.vNode;
           var ancestorVNode2 = (_stackingOrder = stackingOrder[index - 1]) === null || _stackingOrder === void 0 ? void 0 : _stackingOrder.vNode;
           var context2 = addToStackingContext(contextMap, vNode, ancestorVNode2);
           if (index === 0 && !contextMap.get(vNode)) {
@@ -24947,8 +25339,8 @@
     function getTextColor(nodeStyle) {
       return new color_default().parseString(nodeStyle.getPropertyValue('-webkit-text-fill-color') || nodeStyle.getPropertyValue('color'));
     }
-    function getStrokeColor(nodeStyle, _ref113) {
-      var _ref113$textStrokeEmM = _ref113.textStrokeEmMin, textStrokeEmMin = _ref113$textStrokeEmM === void 0 ? 0 : _ref113$textStrokeEmM;
+    function getStrokeColor(nodeStyle, _ref114) {
+      var _ref114$textStrokeEmM = _ref114.textStrokeEmMin, textStrokeEmMin = _ref114$textStrokeEmM === void 0 ? 0 : _ref114$textStrokeEmM;
       var strokeWidth = parseFloat(nodeStyle.getPropertyValue('-webkit-text-stroke-width'));
       if (strokeWidth === 0) {
         return null;
@@ -24990,11 +25382,11 @@
       return fgColor;
     }
     function findNodeInContexts(contexts, node) {
-      var _iterator22 = _createForOfIteratorHelper(contexts), _step22;
+      var _iterator23 = _createForOfIteratorHelper(contexts), _step23;
       try {
-        for (_iterator22.s(); !(_step22 = _iterator22.n()).done; ) {
+        for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
           var _context$vNode;
-          var context = _step22.value;
+          var context = _step23.value;
           if (((_context$vNode = context.vNode) === null || _context$vNode === void 0 ? void 0 : _context$vNode.actualNode) === node) {
             return context;
           }
@@ -25004,9 +25396,9 @@
           }
         }
       } catch (err) {
-        _iterator22.e(err);
+        _iterator23.e(err);
       } finally {
-        _iterator22.f();
+        _iterator23.f();
       }
     }
     function hasValidContrastRatio(bg, fg, fontSize, isBold) {
@@ -25051,11 +25443,11 @@
         return disabledState;
       }
       var nodeName2 = virtualNode.props.nodeName;
-      var ariaDisabled = virtualNode.attr('aria-disabled');
+      var ariaDisabled = _getAriaValue(virtualNode, 'aria-disabled').value;
       if (disabledNodeNames.includes(nodeName2) && virtualNode.hasAttr('disabled')) {
         disabledState = true;
       } else if (ariaDisabled) {
-        disabledState = ariaDisabled.toLowerCase() === 'true';
+        disabledState = ariaDisabled === 'true';
       } else if (virtualNode.parent) {
         disabledState = isDisabled(virtualNode.parent);
       } else {
@@ -25110,8 +25502,8 @@
       if (results.length < 2) {
         return results;
       }
-      var incompleteResults = results.filter(function(_ref114) {
-        var result = _ref114.result;
+      var incompleteResults = results.filter(function(_ref115) {
+        var result = _ref115.result;
         return result !== void 0;
       });
       var uniqueResults = [];
@@ -25123,12 +25515,12 @@
         if (nameMap[name]) {
           return 1;
         }
-        var sameNameResults = incompleteResults.filter(function(_ref115, resultNum) {
-          var data = _ref115.data;
+        var sameNameResults = incompleteResults.filter(function(_ref116, resultNum) {
+          var data = _ref116.data;
           return data.name === name && resultNum !== index;
         });
-        var isSameUrl = sameNameResults.every(function(_ref116) {
-          var data = _ref116.data;
+        var isSameUrl = sameNameResults.every(function(_ref117) {
+          var data = _ref117.data;
           return isIdenticalObject(data.urlProps, urlProps);
         });
         if (sameNameResults.length && !isSameUrl) {
@@ -25152,9 +25544,9 @@
     function getLevel(vNode) {
       var role = get_role_default(vNode);
       var headingRole = role && role.includes('heading');
-      var ariaHeadingLevel = vNode.attr('aria-level');
+      var ariaHeadingLevel = _getAriaValue(vNode, 'aria-level').value;
       var ariaLevel = parseInt(ariaHeadingLevel, 10);
-      var _ref117 = vNode.props.nodeName.match(/h(\d)/) || [], _ref118 = _slicedToArray(_ref117, 2), headingLevel = _ref118[1];
+      var _ref118 = vNode.props.nodeName.match(/h(\d)/) || [], _ref119 = _slicedToArray(_ref118, 2), headingLevel = _ref119[1];
       if (!headingRole) {
         return -1;
       }
@@ -25214,14 +25606,14 @@
     }
     function getHeadingOrder(results) {
       results = _toConsumableArray(results);
-      results.sort(function(_ref119, _ref120) {
-        var nodeA = _ref119.node;
-        var nodeB = _ref120.node;
+      results.sort(function(_ref120, _ref121) {
+        var nodeA = _ref120.node;
+        var nodeB = _ref121.node;
         return nodeA.ancestry.length - nodeB.ancestry.length;
       });
       var headingOrder = results.reduce(mergeHeadingOrder, []);
-      return headingOrder.filter(function(_ref121) {
-        var level = _ref121.level;
+      return headingOrder.filter(function(_ref122) {
+        var level = _ref122.level;
         return level !== -1;
       });
     }
@@ -25350,10 +25742,10 @@
     function filterByElmsOverlap(vNode, nearbyElms) {
       var fullyObscuringElms = [];
       var partialObscuringElms = [];
-      var _iterator23 = _createForOfIteratorHelper(nearbyElms), _step23;
+      var _iterator24 = _createForOfIteratorHelper(nearbyElms), _step24;
       try {
-        for (_iterator23.s(); !(_step23 = _iterator23.n()).done; ) {
-          var vNeighbor = _step23.value;
+        for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
+          var vNeighbor = _step24.value;
           if (!isDescendantNotInTabOrder2(vNode, vNeighbor) && _hasVisualOverlap(vNode, vNeighbor) && getCssPointerEvents(vNeighbor) !== 'none') {
             if (isEnclosedRect2(vNode, vNeighbor)) {
               fullyObscuringElms.push(vNeighbor);
@@ -25363,9 +25755,9 @@
           }
         }
       } catch (err) {
-        _iterator23.e(err);
+        _iterator24.e(err);
       } finally {
-        _iterator23.f();
+        _iterator24.f();
       }
       return {
         fullyObscuringElms: fullyObscuringElms,
@@ -25381,7 +25773,7 @@
       var unobscuredRects;
       try {
         unobscuredRects = _splitRects(nodeRect, obscuringRects);
-      } catch (_unused9) {
+      } catch (_unused1) {
         return null;
       }
       return getLargestRect2(unobscuredRects, minSize);
@@ -25421,8 +25813,8 @@
       return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
     }
     function mapActualNodes(vNodes) {
-      return vNodes.map(function(_ref122) {
-        var actualNode = _ref122.actualNode;
+      return vNodes.map(function(_ref123) {
+        var actualNode = _ref123.actualNode;
         return actualNode;
       });
     }
@@ -25438,10 +25830,10 @@
       }
       var closeNeighbors = [];
       var closestOffset = minOffset;
-      var _iterator24 = _createForOfIteratorHelper(_findNearbyElms(vNode, minOffset)), _step24;
+      var _iterator25 = _createForOfIteratorHelper(_findNearbyElms(vNode, minOffset)), _step25;
       try {
-        for (_iterator24.s(); !(_step24 = _iterator24.n()).done; ) {
-          var vNeighbor = _step24.value;
+        for (_iterator25.s(); !(_step25 = _iterator25.n()).done; ) {
+          var vNeighbor = _step25.value;
           if (get_role_type_default(vNeighbor) !== 'widget' || !_isFocusable(vNeighbor)) {
             continue;
           }
@@ -25470,9 +25862,9 @@
           closeNeighbors.push(vNeighbor);
         }
       } catch (err) {
-        _iterator24.e(err);
+        _iterator25.e(err);
       } finally {
-        _iterator24.f();
+        _iterator25.f();
       }
       if (closeNeighbors.length === 0) {
         this.data({
@@ -25481,8 +25873,8 @@
         });
         return true;
       }
-      this.relatedNodes(closeNeighbors.map(function(_ref123) {
-        var actualNode = _ref123.actualNode;
+      this.relatedNodes(closeNeighbors.map(function(_ref124) {
+        var actualNode = _ref124.actualNode;
         return actualNode;
       }));
       if (!closeNeighbors.some(_isInTabOrder)) {
@@ -25503,7 +25895,7 @@
       return Math.round(num * 10) / 10;
     }
     function metaViewportScaleEvaluate(node, options, virtualNode) {
-      var _ref124 = options || {}, _ref124$scaleMinimum = _ref124.scaleMinimum, scaleMinimum = _ref124$scaleMinimum === void 0 ? 2 : _ref124$scaleMinimum, _ref124$lowerBound = _ref124.lowerBound, lowerBound = _ref124$lowerBound === void 0 ? false : _ref124$lowerBound;
+      var _ref125 = options || {}, _ref125$scaleMinimum = _ref125.scaleMinimum, scaleMinimum = _ref125$scaleMinimum === void 0 ? 2 : _ref125$scaleMinimum, _ref125$lowerBound = _ref125.lowerBound, lowerBound = _ref125$lowerBound === void 0 ? false : _ref125$lowerBound;
       var content = virtualNode.attr('content') || '';
       if (!content) {
         return true;
@@ -25548,8 +25940,8 @@
     }
     var meta_viewport_scale_evaluate_default = metaViewportScaleEvaluate;
     function cssOrientationLockEvaluate(node, options, virtualNode, context) {
-      var _ref125 = context || {}, _ref125$cssom = _ref125.cssom, cssom = _ref125$cssom === void 0 ? void 0 : _ref125$cssom;
-      var _ref126 = options || {}, _ref126$degreeThresho = _ref126.degreeThreshold, degreeThreshold = _ref126$degreeThresho === void 0 ? 0 : _ref126$degreeThresho;
+      var _ref126 = context || {}, _ref126$cssom = _ref126.cssom, cssom = _ref126$cssom === void 0 ? void 0 : _ref126$cssom;
+      var _ref127 = options || {}, _ref127$degreeThresho = _ref127.degreeThreshold, degreeThreshold = _ref127$degreeThresho === void 0 ? 0 : _ref127$degreeThresho;
       if (!cssom || !cssom.length) {
         return void 0;
       }
@@ -25563,8 +25955,8 @@
         if (!orientationRules.length) {
           return 1;
         }
-        orientationRules.forEach(function(_ref127) {
-          var cssRules = _ref127.cssRules;
+        orientationRules.forEach(function(_ref128) {
+          var cssRules = _ref128.cssRules;
           Array.from(cssRules).forEach(function(cssRule) {
             var locked = getIsOrientationLocked(cssRule);
             if (locked && cssRule.selectorText.toUpperCase() !== 'HTML') {
@@ -25588,8 +25980,8 @@
       }
       return false;
       function groupCssomByDocument(cssObjectModel) {
-        return cssObjectModel.reduce(function(out, _ref128) {
-          var sheet = _ref128.sheet, root = _ref128.root, shadowId = _ref128.shadowId;
+        return cssObjectModel.reduce(function(out, _ref129) {
+          var sheet = _ref129.sheet, root = _ref129.root, shadowId = _ref129.shadowId;
           var key = shadowId ? shadowId : 'topDocument';
           if (!out[key]) {
             out[key] = {
@@ -25605,15 +25997,15 @@
           return out;
         }, {});
       }
-      function isMediaRuleWithOrientation(_ref129) {
-        var type2 = _ref129.type, cssText = _ref129.cssText;
+      function isMediaRuleWithOrientation(_ref130) {
+        var type2 = _ref130.type, cssText = _ref130.cssText;
         if (type2 !== 4) {
           return false;
         }
         return /orientation:\s*landscape/i.test(cssText) || /orientation:\s*portrait/i.test(cssText);
       }
-      function getIsOrientationLocked(_ref130) {
-        var selectorText = _ref130.selectorText, style = _ref130.style;
+      function getIsOrientationLocked(_ref131) {
+        var selectorText = _ref131.selectorText, style = _ref131.style;
         if (!selectorText || style.length <= 0) {
           return false;
         }
@@ -25668,7 +26060,7 @@
         }
       }
       function getAngleInDegrees(angleWithUnit) {
-        var _ref131 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref132 = _slicedToArray(_ref131, 1), unit = _ref132[0];
+        var _ref132 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref133 = _slicedToArray(_ref132, 1), unit = _ref133[0];
         if (!unit) {
           return 0;
         }
@@ -25962,8 +26354,8 @@
       this.relatedNodes(relatedNodes);
       return true;
     }
-    function getInvalidSelector(vChild, nested, _ref133) {
-      var _ref133$validRoles = _ref133.validRoles, validRoles = _ref133$validRoles === void 0 ? [] : _ref133$validRoles, _ref133$validNodeName = _ref133.validNodeNames, validNodeNames = _ref133$validNodeName === void 0 ? [] : _ref133$validNodeName;
+    function getInvalidSelector(vChild, nested, _ref134) {
+      var _ref134$validRoles = _ref134.validRoles, validRoles = _ref134$validRoles === void 0 ? [] : _ref134$validRoles, _ref134$validNodeName = _ref134.validNodeNames, validNodeNames = _ref134$validNodeName === void 0 ? [] : _ref134$validNodeName;
       var _vChild$props = vChild.props, nodeName2 = _vChild$props.nodeName, nodeType = _vChild$props.nodeType, nodeValue = _vChild$props.nodeValue;
       var selector = nested ? 'div > ' : '';
       if (nodeType === 3 && nodeValue.trim() !== '') {
@@ -26095,12 +26487,12 @@
     function titleOnlyEvaluate(node, options, virtualNode) {
       var labelText2 = label_virtual_default2(virtualNode);
       var title = title_text_default(virtualNode);
-      var ariaDescribedBy = virtualNode.attr('aria-describedby');
+      var ariaDescribedBy = _getAriaValue(virtualNode, 'aria-describedby').value;
       return !labelText2 && !!(title || ariaDescribedBy);
     }
     var title_only_evaluate_default = titleOnlyEvaluate;
-    function multipleLabelEvaluate(node) {
-      var id = escape_selector_default(node.getAttribute('id'));
+    function multipleLabelEvaluate(node, options, virtualNode) {
+      var id = escape_selector_default(virtualNode.attr('id'));
       var parent = node.parentNode;
       var root = get_root_node_default2(node);
       root = root.documentElement || root;
@@ -26124,8 +26516,10 @@
         if (ATVisibleLabels.length > 1) {
           return void 0;
         }
-        var labelledby = idrefs_default(node, 'aria-labelledby');
-        return !labelledby.includes(ATVisibleLabels[0]) ? void 0 : false;
+        var labelledby = _getResolvedRefs(node, 'aria-labelledby');
+        return !labelledby.some(function(ref) {
+          return (ref === null || ref === void 0 ? void 0 : ref.actualNode) === ATVisibleLabels[0];
+        }) ? void 0 : false;
       }
       return false;
     }
@@ -26182,7 +26576,7 @@
           return !!implicitLabel;
         }
         return false;
-      } catch (_unused0) {
+      } catch (_unused10) {
         return void 0;
       }
     }
@@ -26193,13 +26587,13 @@
           return void 0;
         }
         var root = get_root_node_default2(node);
-        var _id6 = escape_selector_default(node.getAttribute('id'));
+        var _id6 = escape_selector_default(virtualNode.attr('id'));
         var label3 = root.querySelector('label[for="'.concat(_id6, '"]'));
         if (label3 && !_isVisibleToScreenReaders(label3)) {
           var name;
           try {
             name = _accessibleTextVirtual(virtualNode).trim();
-          } catch (_unused1) {
+          } catch (_unused11) {
             return void 0;
           }
           var isNameEmpty = name === '';
@@ -26211,16 +26605,16 @@
     var hidden_explicit_label_evaluate_default = hiddenExplicitLabelEvaluate;
     function helpSameAsLabelEvaluate(node, options, virtualNode) {
       var labelText2 = label_virtual_default2(virtualNode);
-      var check = node.getAttribute('title');
+      var check = virtualNode.attr('title');
       if (!labelText2) {
         return false;
       }
       if (!check) {
         check = '';
-        if (node.getAttribute('aria-describedby')) {
-          var ref = idrefs_default(node, 'aria-describedby');
-          check = ref.map(function(thing) {
-            return thing ? accessible_text_default(thing) : '';
+        if (_hasAriaValue(virtualNode, 'aria-describedby')) {
+          var ref = _getResolvedRefs(virtualNode, 'aria-describedby');
+          check = ref.map(function(vNode) {
+            return vNode ? _accessibleTextVirtual(vNode) : '';
           }).join('');
         }
       }
@@ -26257,7 +26651,7 @@
             return !!explicitLabel;
           }
         });
-      } catch (_unused10) {
+      } catch (_unused12) {
         return void 0;
       }
     }
@@ -26278,6 +26672,9 @@
     }
     var duplicate_img_label_evaluate_default = duplicateImgLabelEvaluate;
     function altSpaceValueEvaluate(node, options, virtualNode) {
+      if ([ 'presentation', 'none' ].includes(get_role_default(virtualNode))) {
+        return false;
+      }
       var alt = virtualNode.attr('alt');
       var isOnlySpace = /^\s+$/;
       return typeof alt === 'string' && isOnlySpace.test(alt);
@@ -26307,7 +26704,7 @@
           this.relatedNodes(focusableDescendants2);
         }
         return false;
-      } catch (_unused11) {
+      } catch (_unused13) {
         return void 0;
       }
     }
@@ -26360,7 +26757,7 @@
         return !virtualNode.children.some(function(child) {
           return focusableDescendants(child);
         });
-      } catch (_unused12) {
+      } catch (_unused14) {
         return void 0;
       }
     }
@@ -26407,14 +26804,14 @@
       }
       try {
         return !_accessibleTextVirtual(virtualNode);
-      } catch (_unused13) {
+      } catch (_unused15) {
         return void 0;
       }
     }
     var focusable_no_name_evaluate_default = focusableNoNameEvaluate;
     function focusableModalOpenEvaluate(node, options, virtualNode) {
-      var tabbableElements = virtualNode.tabbableElements.map(function(_ref134) {
-        var actualNode = _ref134.actualNode;
+      var tabbableElements = virtualNode.tabbableElements.map(function(_ref135) {
+        var actualNode = _ref135.actualNode;
         return actualNode;
       });
       if (!tabbableElements || !tabbableElements.length) {
@@ -26525,7 +26922,7 @@
       });
       if (typeof options.nativeScopeFilter === 'string') {
         elms = elms.filter(function(elm) {
-          return elm.actualNode.hasAttribute('role') || !find_up_virtual_default(elm, options.nativeScopeFilter);
+          return elm.hasAttr('role') || !find_up_virtual_default(elm, options.nativeScopeFilter);
         });
       }
       if (typeof options.role === 'string') {
@@ -26554,7 +26951,7 @@
     function hasTextContentEvaluate(node, options, virtualNode) {
       try {
         return sanitize_default(subtree_text_default(virtualNode)) !== '';
-      } catch (_unused14) {
+      } catch (_unused16) {
         return void 0;
       }
     }
@@ -26809,7 +27206,7 @@
       var bold = parseFloat(fontWeight) >= boldValue || fontWeight === 'bold';
       var ptSize = Math.ceil(fontSize * 72) / 96;
       var isSmallFont = bold && ptSize < boldTextPt || !bold && ptSize < largeTextPt;
-      var _ref135 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref135.expected, minThreshold = _ref135.minThreshold, maxThreshold = _ref135.maxThreshold;
+      var _ref136 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref136.expected, minThreshold = _ref136.minThreshold, maxThreshold = _ref136.maxThreshold;
       var pseudoElm = findPseudoElement(virtualNode, {
         ignorePseudo: ignorePseudo,
         pseudoSizeThreshold: pseudoSizeThreshold
@@ -26905,8 +27302,8 @@
       }
       return isValid;
     }
-    function findPseudoElement(vNode, _ref136) {
-      var _ref136$pseudoSizeThr = _ref136.pseudoSizeThreshold, pseudoSizeThreshold = _ref136$pseudoSizeThr === void 0 ? .25 : _ref136$pseudoSizeThr, _ref136$ignorePseudo = _ref136.ignorePseudo, ignorePseudo = _ref136$ignorePseudo === void 0 ? false : _ref136$ignorePseudo;
+    function findPseudoElement(vNode, _ref137) {
+      var _ref137$pseudoSizeThr = _ref137.pseudoSizeThreshold, pseudoSizeThreshold = _ref137$pseudoSizeThr === void 0 ? .25 : _ref137$pseudoSizeThr, _ref137$ignorePseudo = _ref137.ignorePseudo, ignorePseudo = _ref137$ignorePseudo === void 0 ? false : _ref137$ignorePseudo;
       if (ignorePseudo) {
         return;
       }
@@ -26920,7 +27317,7 @@
         }
       } while (vNode = vNode.parent);
     }
-    var getPseudoElementArea = memoize_default(function getPseudoElementArea2(node, pseudo) {
+    var getPseudoElementArea = memoize_default(function getPseudoElementAreaMemoized(node, pseudo) {
       var style = window.getComputedStyle(node, pseudo);
       var matchPseudoStyle = function matchPseudoStyle(prop, value) {
         return style.getPropertyValue(prop) === value;
@@ -26948,7 +27345,7 @@
     }
     function parseUnit(str) {
       var unitRegex = /^([0-9.]+)([a-z]+)$/i;
-      var _ref137 = str.match(unitRegex) || [], _ref138 = _slicedToArray(_ref137, 3), _ref138$ = _ref138[1], value = _ref138$ === void 0 ? '' : _ref138$, _ref138$2 = _ref138[2], unit = _ref138$2 === void 0 ? '' : _ref138$2;
+      var _ref138 = str.match(unitRegex) || [], _ref139 = _slicedToArray(_ref138, 3), _ref139$ = _ref139[1], value = _ref139$ === void 0 ? '' : _ref139$, _ref139$2 = _ref139[2], unit = _ref139$2 === void 0 ? '' : _ref139$2;
       return {
         value: parseFloat(value),
         unit: unit.toLowerCase()
@@ -27015,7 +27412,7 @@
       try {
         label3 = sanitize_default(label_text_default(virtualNode)).toLowerCase();
         accText = sanitize_default(_accessibleTextVirtual(virtualNode)).toLowerCase();
-      } catch (_unused15) {
+      } catch (_unused17) {
         return void 0;
       }
       if (!accText && !label3) {
@@ -27090,12 +27487,12 @@
       return true;
     }
     function brailleRoleDescriptionEquivalentEvaluate(node, options, virtualNode) {
-      var _virtualNode$attr;
-      var brailleRoleDesc = (_virtualNode$attr = virtualNode.attr('aria-brailleroledescription')) !== null && _virtualNode$attr !== void 0 ? _virtualNode$attr : '';
+      var _getAriaValue$value2, _getAriaValue$value3;
+      var brailleRoleDesc = (_getAriaValue$value2 = _getAriaValue(virtualNode, 'aria-brailleroledescription').value) !== null && _getAriaValue$value2 !== void 0 ? _getAriaValue$value2 : '';
       if (sanitize_default(brailleRoleDesc) === '') {
         return true;
       }
-      var roleDesc = virtualNode.attr('aria-roledescription');
+      var roleDesc = (_getAriaValue$value3 = _getAriaValue(virtualNode, 'aria-roledescription').value) !== null && _getAriaValue$value3 !== void 0 ? _getAriaValue$value3 : null;
       if (typeof roleDesc !== 'string') {
         this.data({
           messageKey: 'noRoleDescription'
@@ -27111,14 +27508,14 @@
       return true;
     }
     function brailleLabelEquivalentEvaluate(node, options, virtualNode) {
-      var _virtualNode$attr2;
-      var brailleLabel = (_virtualNode$attr2 = virtualNode.attr('aria-braillelabel')) !== null && _virtualNode$attr2 !== void 0 ? _virtualNode$attr2 : '';
+      var _getAriaValue$value4;
+      var brailleLabel = (_getAriaValue$value4 = _getAriaValue(virtualNode, 'aria-braillelabel').value) !== null && _getAriaValue$value4 !== void 0 ? _getAriaValue$value4 : '';
       if (!brailleLabel.trim()) {
         return true;
       }
       try {
         return sanitize_default(_accessibleTextVirtual(virtualNode)) !== '';
-      } catch (_unused16) {
+      } catch (_unused18) {
         return void 0;
       }
     }
@@ -27131,33 +27528,34 @@
       var skipAttrs = [ 'aria-errormessage' ];
       var preChecks = {
         'aria-controls': function ariaControls() {
-          var hasPopup = [ 'false', null ].includes(virtualNode.attr('aria-haspopup')) === false;
+          var _getAriaValue$value5;
+          var hasPopup = ![ 'false', null ].includes((_getAriaValue$value5 = _getAriaValue(virtualNode, 'aria-haspopup').value) !== null && _getAriaValue$value5 !== void 0 ? _getAriaValue$value5 : null);
           if (hasPopup) {
-            needsReview = 'aria-controls="'.concat(virtualNode.attr('aria-controls'), '"');
+            needsReview = 'aria-controls="'.concat(_getAriaValue(virtualNode, 'aria-controls').value, '"');
             messageKey = 'controlsWithinPopup';
           }
-          return virtualNode.attr('aria-expanded') !== 'false' && virtualNode.attr('aria-selected') !== 'false' && hasPopup === false;
+          return _getAriaValue(virtualNode, 'aria-expanded').value !== 'false' && _getAriaValue(virtualNode, 'aria-selected').value !== 'false' && hasPopup === false;
         },
         'aria-current': function ariaCurrent(validValue) {
           if (!validValue) {
-            needsReview = 'aria-current="'.concat(virtualNode.attr('aria-current'), '"');
+            needsReview = 'aria-current="'.concat(_getAriaValue(virtualNode, 'aria-current').value, '"');
             messageKey = 'ariaCurrent';
           }
           return;
         },
         'aria-owns': function ariaOwns() {
-          return virtualNode.attr('aria-expanded') !== 'false';
+          return _getAriaValue(virtualNode, 'aria-expanded').value !== 'false';
         },
         'aria-describedby': function ariaDescribedby(validValue) {
           if (!validValue) {
-            needsReview = 'aria-describedby="'.concat(virtualNode.attr('aria-describedby'), '"');
+            needsReview = 'aria-describedby="'.concat(_getAriaValue(virtualNode, 'aria-describedby').value, '"');
             messageKey = axe._tree && axe._tree[0]._hasShadowRoot ? 'noIdShadow' : 'noId';
           }
           return;
         },
         'aria-labelledby': function ariaLabelledby(validValue) {
           if (!validValue) {
-            needsReview = 'aria-labelledby="'.concat(virtualNode.attr('aria-labelledby'), '"');
+            needsReview = 'aria-labelledby="'.concat(_getAriaValue(virtualNode, 'aria-labelledby').value, '"');
             messageKey = axe._tree && axe._tree[0]._hasShadowRoot ? 'noIdShadow' : 'noId';
           }
         }
@@ -27170,7 +27568,7 @@
         var attrValue = virtualNode.attr(attrName);
         try {
           validValue = validate_attr_value_default(virtualNode, attrName);
-        } catch (_unused17) {
+        } catch (_unused19) {
           needsReview = ''.concat(attrName, '="').concat(attrValue, '"');
           messageKey = 'idrefs';
           return;
@@ -27198,8 +27596,8 @@
       return true;
     }
     function isStringType(attrName) {
-      var _standards_default$ar;
-      return ((_standards_default$ar = standards_default.ariaAttrs[attrName]) === null || _standards_default$ar === void 0 ? void 0 : _standards_default$ar.type) === 'string';
+      var _standards_default$ar2;
+      return ((_standards_default$ar2 = standards_default.ariaAttrs[attrName]) === null || _standards_default$ar2 === void 0 ? void 0 : _standards_default$ar2.type) === 'string';
     }
     function ariaValidAttrEvaluate(node, options, virtualNode) {
       options = Array.isArray(options.value) ? options.value : [];
@@ -27327,20 +27725,20 @@
         return true;
       }
       var ownedRoles = getOwnedRoles(virtualNode, required);
-      var unallowed = ownedRoles.filter(function(_ref139) {
-        var role = _ref139.role, vNode = _ref139.vNode;
+      var unallowed = ownedRoles.filter(function(_ref140) {
+        var role = _ref140.role, vNode = _ref140.vNode;
         return vNode.props.nodeType === 1 && !required.includes(role);
       });
       if (unallowed.length) {
-        this.relatedNodes(unallowed.map(function(_ref140) {
-          var vNode = _ref140.vNode;
+        this.relatedNodes(unallowed.map(function(_ref141) {
+          var vNode = _ref141.vNode;
           return vNode;
         }));
-        var messageKey = virtualNode.attr('aria-busy') === 'true' ? 'aria-busy-fail' : 'unallowed';
+        var messageKey = _getAriaValue(virtualNode, 'aria-busy').value === 'true' ? 'aria-busy-fail' : 'unallowed';
         this.data({
           messageKey: messageKey,
-          values: unallowed.map(function(_ref141) {
-            var vNode = _ref141.vNode, attr = _ref141.attr;
+          values: unallowed.map(function(_ref142) {
+            var vNode = _ref142.vNode, attr = _ref142.attr;
             return getUnallowedSelector(vNode, attr);
           }).filter(function(selector, index, array) {
             return array.indexOf(selector) === index;
@@ -27351,7 +27749,7 @@
       if (hasRequiredChildren(required, ownedRoles)) {
         return true;
       }
-      if (virtualNode.attr('aria-busy') === 'true') {
+      if (_getAriaValue(virtualNode, 'aria-busy').value === 'true') {
         this.data({
           messageKey: 'aria-busy'
         });
@@ -27403,8 +27801,8 @@
       return ownedRoles;
     }
     function hasRequiredChildren(required, ownedRoles) {
-      return ownedRoles.some(function(_ref142) {
-        var role = _ref142.role;
+      return ownedRoles.some(function(_ref143) {
+        var role = _ref143.role;
         return role && required.includes(role);
       });
     }
@@ -27429,15 +27827,14 @@
       }
       return nodeName2;
     }
-    function isContent(_ref143) {
-      var vNode = _ref143.vNode;
+    function isContent(_ref144) {
+      var vNode = _ref144.vNode;
       if (vNode.props.nodeType === 3) {
         return vNode.props.nodeValue.trim().length > 0;
       }
       return has_content_virtual_default(vNode, false, true);
     }
     function ariaRequiredAttrEvaluate(node) {
-      var _virtualNode$attr3;
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var virtualNode = arguments.length > 2 ? arguments[2] : undefined;
       var role = get_explicit_role_default(virtualNode);
@@ -27452,12 +27849,12 @@
       if (isStaticSeparator(virtualNode, role) || isClosedCombobox(virtualNode, role)) {
         return true;
       }
-      if (role === 'slider' && (_virtualNode$attr3 = virtualNode.attr('aria-valuetext')) !== null && _virtualNode$attr3 !== void 0 && _virtualNode$attr3.trim()) {
+      if (role === 'slider' && _getAriaValue(virtualNode, 'aria-valuetext').value) {
         return true;
       }
       var elmSpec = get_element_spec_default(virtualNode);
       var missingAttrs = requiredAttrs.filter(function(requiredAttr2) {
-        return !virtualNode.attr(requiredAttr2) && !hasImplicitAttr(elmSpec, requiredAttr2);
+        return !_getAriaValue(virtualNode, requiredAttr2).value && !hasImplicitAttr(elmSpec, requiredAttr2);
       });
       if (missingAttrs.length) {
         this.data(missingAttrs);
@@ -27473,7 +27870,7 @@
       return ((_elmSpec$implicitAttr = elmSpec.implicitAttrs) === null || _elmSpec$implicitAttr === void 0 ? void 0 : _elmSpec$implicitAttr[attr]) !== void 0;
     }
     function isClosedCombobox(vNode, role) {
-      return role === 'combobox' && vNode.attr('aria-expanded') === 'false';
+      return role === 'combobox' && _getAriaValue(vNode, 'aria-expanded').value === 'false';
     }
     function ariaProhibitedAttrEvaluate(node) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -27481,10 +27878,9 @@
       var elementsAllowedAriaLabel = (options === null || options === void 0 ? void 0 : options.elementsAllowedAriaLabel) || [];
       var nodeName2 = virtualNode.props.nodeName;
       var role = get_role_default(virtualNode, {
-        chromium: true,
         fallback: true
       });
-      var prohibitedList = listProhibitedAttrs(virtualNode, role, nodeName2, elementsAllowedAriaLabel);
+      var prohibitedList = listProhibitedAttrs(virtualNode, nodeName2, elementsAllowedAriaLabel);
       var prohibited = prohibitedList.filter(function(attrName) {
         if (!virtualNode.attrNames.includes(attrName)) {
           return false;
@@ -27493,6 +27889,16 @@
       });
       if (prohibited.length === 0) {
         return false;
+      }
+      var labelledbyReviewKey = getLabelledbyReviewKey(virtualNode, prohibited);
+      if (labelledbyReviewKey) {
+        this.data({
+          role: role,
+          nodeName: nodeName2,
+          messageKey: labelledbyReviewKey,
+          prohibited: prohibited
+        });
+        return void 0;
       }
       var messageKey = role !== null ? 'hasRole' : 'noRole';
       messageKey += prohibited.length > 1 ? 'Plural' : 'Singular';
@@ -27510,15 +27916,47 @@
       }
       return true;
     }
-    function listProhibitedAttrs(vNode, role, nodeName2, elementsAllowedAriaLabel) {
-      var roleSpec = standards_default.ariaRoles[role];
-      if (roleSpec) {
-        return roleSpec.prohibitedAttrs || [];
+    function getLabelledbyReviewKey(vNode, prohibited) {
+      if (!vNode.actualNode || !prohibited.includes('aria-labelledby')) {
+        return null;
       }
-      if (!!role || elementsAllowedAriaLabel.includes(nodeName2) || getClosestAncestorRoleType(vNode) === 'widget') {
+      var otherProhibited = prohibited.filter(function(attr) {
+        return attr !== 'aria-label' && attr !== 'aria-labelledby';
+      });
+      if (otherProhibited.length) {
+        return null;
+      }
+      var hasProhibitedAriaLabel = prohibited.includes('aria-label');
+      var resolved = _getResolvedRefs(vNode, 'aria-labelledby').filter(Boolean);
+      if (resolved.length === 0) {
+        return hasProhibitedAriaLabel ? null : 'unresolvedLabel';
+      }
+      if (!resolved.every(function(ref) {
+        return _isVisibleToScreenReaders(ref);
+      })) {
+        return null;
+      }
+      if (hasProhibitedAriaLabel && sanitize_default(arialabelledby_text_default(vNode)) === '') {
+        return null;
+      }
+      return prohibited.length > 1 ? 'visibleLabelPlural' : 'visibleLabelSingular';
+    }
+    function listProhibitedAttrs(vNode, nodeName2, elementsAllowedAriaLabel) {
+      var explicitRole2 = get_explicit_role_default(vNode, {
+        fallback: true
+      });
+      if (explicitRole2) {
+        var roleSpec = standards_default.ariaRoles[explicitRole2];
+        return (roleSpec === null || roleSpec === void 0 ? void 0 : roleSpec.prohibitedAttrs) || [];
+      }
+      if (elementsAllowedAriaLabel.includes(nodeName2) || getClosestAncestorRoleType(vNode) === 'widget' || _isValidCustomElementName(nodeName2)) {
         return [];
       }
-      return [ 'aria-label', 'aria-labelledby' ];
+      var htmlSpec = get_element_spec_default(vNode);
+      if (!standards_default.htmlElms[nodeName2] || htmlSpec.namingProhibited) {
+        return [ 'aria-label', 'aria-labelledby' ];
+      }
+      return [];
     }
     var getClosestAncestorRoleType = memoize_default(function getClosestAncestorRoleTypeMemoized(vNode) {
       if (!vNode) {
@@ -27533,8 +27971,19 @@
       }
       return getClosestAncestorRoleType(vNode.parent);
     });
+    function ariaNoDeprecatedAttrEvaluate(node, options, virtualNode) {
+      var deprecatedAttrs = virtualNode.attrNames.filter(function(attrName) {
+        var _standards_default$ar3;
+        return (_standards_default$ar3 = standards_default.ariaAttrs[attrName]) === null || _standards_default$ar3 === void 0 ? void 0 : _standards_default$ar3.deprecated;
+      });
+      if (!deprecatedAttrs.length) {
+        return true;
+      }
+      this.data(deprecatedAttrs);
+      return void 0;
+    }
     function ariaLevelEvaluate(node, options, virtualNode) {
-      var ariaHeadingLevel = virtualNode.attr('aria-level');
+      var ariaHeadingLevel = _getAriaValue(virtualNode, 'aria-level').value;
       var ariaLevel = parseInt(ariaHeadingLevel, 10);
       if (ariaLevel > 6) {
         return void 0;
@@ -27543,15 +27992,15 @@
     }
     var aria_level_evaluate_default = ariaLevelEvaluate;
     function ariaHiddenBodyEvaluate(node, options, virtualNode) {
-      return virtualNode.attr('aria-hidden') !== 'true';
+      return _getAriaValue(virtualNode, 'aria-hidden').value !== 'true';
     }
     var aria_hidden_body_evaluate_default = ariaHiddenBodyEvaluate;
     function ariaErrormessageEvaluate(node, options, virtualNode) {
       options = Array.isArray(options) ? options : [];
-      var errorMessageAttr = virtualNode.attr('aria-errormessage');
-      var hasAttr = virtualNode.hasAttr('aria-errormessage');
-      var invaid = virtualNode.attr('aria-invalid');
-      var hasInvallid = virtualNode.hasAttr('aria-invalid');
+      var errorMessageAttr = _getAriaValue(virtualNode, 'aria-errormessage').value;
+      var hasAttr = _hasAriaValue(virtualNode, 'aria-errormessage');
+      var invaid = _getAriaValue(virtualNode, 'aria-invalid').value;
+      var hasInvallid = _hasAriaValue(virtualNode, 'aria-invalid');
       if (!hasInvallid || invaid === 'false') {
         return true;
       }
@@ -27569,8 +28018,8 @@
         }
         var idref;
         try {
-          idref = attr && idrefs_default(virtualNode, 'aria-errormessage')[0];
-        } catch (_unused18) {
+          idref = _getResolvedRefs(virtualNode, 'aria-errormessage')[0];
+        } catch (_unused20) {
           this.data({
             messageKey: 'idrefs',
             values: errormessageTokens
@@ -27578,6 +28027,7 @@
           return void 0;
         }
         if (idref) {
+          var _getAriaValue$value6;
           if (!_isVisibleToScreenReaders(idref)) {
             this.data({
               messageKey: 'hidden',
@@ -27585,8 +28035,8 @@
             });
             return false;
           }
-          var describedbyTokens = token_list_default(virtualNode.attr('aria-describedby'));
-          return get_explicit_role_default(idref) === 'alert' || idref.getAttribute('aria-live') === 'assertive' || idref.getAttribute('aria-live') === 'polite' || errormessageTokens.some(function(token) {
+          var describedbyTokens = token_list_default((_getAriaValue$value6 = _getAriaValue(virtualNode, 'aria-describedby').value) !== null && _getAriaValue$value6 !== void 0 ? _getAriaValue$value6 : '');
+          return get_explicit_role_default(idref) === 'alert' || _getAriaValue(idref, 'aria-live').value === 'assertive' || _getAriaValue(idref, 'aria-live').value === 'polite' || errormessageTokens.some(function(token) {
             return describedbyTokens.includes(token);
           });
         }
@@ -27600,7 +28050,7 @@
     }
     function ariaConditionalRowAttr(node) {
       var _invalidTableRowAttrs, _invalidTableRowAttrs2;
-      var _ref144 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref144.invalidTableRowAttrs;
+      var _ref145 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref145.invalidTableRowAttrs;
       var virtualNode = arguments.length > 2 ? arguments[2] : undefined;
       var invalidAttrs = (_invalidTableRowAttrs = invalidTableRowAttrs === null || invalidTableRowAttrs === void 0 || (_invalidTableRowAttrs2 = invalidTableRowAttrs.filter) === null || _invalidTableRowAttrs2 === void 0 ? void 0 : _invalidTableRowAttrs2.call(invalidTableRowAttrs, function(invalidAttr) {
         return virtualNode.hasAttr(invalidAttr);
@@ -27702,7 +28152,7 @@
       return conditionalRoleMap[role].call(this, node, options, virtualNode);
     }
     function ariaBusyEvaluate(node, options, virtualNode) {
-      return virtualNode.attr('aria-busy') === 'true';
+      return _getAriaValue(virtualNode, 'aria-busy').value === 'true';
     }
     function ariaAllowedRoleEvaluate(node) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -27732,18 +28182,18 @@
       if (Array.isArray(options[role])) {
         allowed = unique_array_default(options[role].concat(allowed));
       }
-      var _iterator25 = _createForOfIteratorHelper(virtualNode.attrNames), _step25;
+      var _iterator26 = _createForOfIteratorHelper(virtualNode.attrNames), _step26;
       try {
-        for (_iterator25.s(); !(_step25 = _iterator25.n()).done; ) {
-          var attrName = _step25.value;
+        for (_iterator26.s(); !(_step26 = _iterator26.n()).done; ) {
+          var attrName = _step26.value;
           if (validate_attr_default(attrName) && !allowed.includes(attrName) && !ignoredAttrs(attrName, virtualNode.attr(attrName), virtualNode)) {
             invalid.push(attrName);
           }
         }
       } catch (err) {
-        _iterator25.e(err);
+        _iterator26.e(err);
       } finally {
-        _iterator25.f();
+        _iterator26.f();
       }
       if (!invalid.length) {
         return true;
@@ -27777,18 +28227,18 @@
       var allowedAriaAttrs = elmSpec.allowedAriaAttrs;
       var globalAriaAttrs = get_global_aria_attrs_default();
       var invalid = [];
-      var _iterator26 = _createForOfIteratorHelper(virtualNode.attrNames), _step26;
+      var _iterator27 = _createForOfIteratorHelper(virtualNode.attrNames), _step27;
       try {
-        for (_iterator26.s(); !(_step26 = _iterator26.n()).done; ) {
-          var attrName = _step26.value;
+        for (_iterator27.s(); !(_step27 = _iterator27.n()).done; ) {
+          var attrName = _step27.value;
           if (globalAriaAttrs.includes(attrName) && !allowedAriaAttrs.includes(attrName)) {
             invalid.push(attrName);
           }
         }
       } catch (err) {
-        _iterator26.e(err);
+        _iterator27.e(err);
       } finally {
-        _iterator26.f();
+        _iterator27.f();
       }
       if (!invalid.length) {
         return true;
@@ -27814,9 +28264,9 @@
       return false;
     }
     var abstractrole_evaluate_default = abstractroleEvaluate;
-    function xmlLangMismatchMatches(node) {
-      var primaryLangValue = get_base_lang_default(node.getAttribute('lang'));
-      var primaryXmlLangValue = get_base_lang_default(node.getAttribute('xml:lang'));
+    function xmlLangMismatchMatches(node, virtualNode) {
+      var primaryLangValue = get_base_lang_default(virtualNode.attr('lang'));
+      var primaryXmlLangValue = get_base_lang_default(virtualNode.attr('xml:lang'));
       return valid_langs_default(primaryLangValue) && valid_langs_default(primaryXmlLangValue);
     }
     var xml_lang_mismatch_matches_default = xmlLangMismatchMatches;
@@ -27831,7 +28281,7 @@
           return true;
         }
         return !!closest_default(virtualNode, 'svg');
-      } catch (_unused19) {
+      } catch (_unused21) {
         return false;
       }
     }
@@ -27948,7 +28398,7 @@
       if (!role || [ 'none', 'presentation' ].includes(role)) {
         return true;
       }
-      var _ref145 = aria_roles_default[role] || {}, accessibleNameRequired = _ref145.accessibleNameRequired;
+      var _ref146 = aria_roles_default[role] || {}, accessibleNameRequired = _ref146.accessibleNameRequired;
       if (accessibleNameRequired || _isFocusable(virtualNode)) {
         return true;
       }
@@ -28047,24 +28497,11 @@
     }
     var layout_table_matches_default = dataTableMatches;
     function landmarkUniqueMatches(node, virtualNode) {
-      return isLandmarkVirtual(virtualNode) && _isVisibleToScreenReaders(virtualNode);
-    }
-    function isLandmarkVirtual(vNode) {
-      var landmarkRoles2 = get_aria_roles_by_type_default('landmark');
-      var role = get_role_default(vNode);
-      if (!role) {
-        return false;
-      }
-      var nodeName2 = vNode.props.nodeName;
-      if (nodeName2 === 'section' || nodeName2 === 'form') {
-        var accessibleText2 = _accessibleTextVirtual(vNode);
-        return !!accessibleText2;
-      }
-      return landmarkRoles2.indexOf(role) >= 0 || role === 'region';
+      return get_role_type_default(virtualNode) === 'landmark' && _isVisibleToScreenReaders(virtualNode);
     }
     function landmarkHasBodyContextMatches(node, virtualNode) {
       var nativeScopeFilter = 'article, aside, main, nav, section';
-      return node.hasAttribute('role') || !find_up_virtual_default(virtualNode, nativeScopeFilter);
+      return virtualNode.hasAttr('role') || !find_up_virtual_default(virtualNode, nativeScopeFilter);
     }
     var landmark_has_body_context_matches_default = landmarkHasBodyContextMatches;
     function labelMatches(node, virtualNode) {
@@ -28109,7 +28546,7 @@
     }
     var is_initiator_matches_default = isInitiatorMatches;
     function insertedIntoFocusOrderMatches(node) {
-      return inserted_into_focus_order_default(node);
+      return _insertedIntoFocusOrder(node);
     }
     var inserted_into_focus_order_matches_default = insertedIntoFocusOrderMatches;
     function identicalLinksSamePurposeMatches(node, virtualNode) {
@@ -28137,8 +28574,8 @@
       }) !== null;
     }
     var has_implicit_chromium_role_matches_default = hasImplicitChromiumRoleMatches;
-    function frameTitleHasTextMatches(node) {
-      var title = node.getAttribute('title');
+    function frameTitleHasTextMatches(node, virtualNode) {
+      var title = virtualNode.attr('title');
       return !!sanitize_default(title);
     }
     var frame_title_has_text_matches_default = frameTitleHasTextMatches;
@@ -28147,8 +28584,8 @@
       return !context.initiator && !context.focusable && ((_context$size = context.size) === null || _context$size === void 0 ? void 0 : _context$size.width) * ((_context$size2 = context.size) === null || _context$size2 === void 0 ? void 0 : _context$size2.height) > 1;
     }
     var frame_focusable_content_matches_default = frameFocusableContentMatches;
-    function duplicateIdMiscMatches(node) {
-      var id = node.getAttribute('id').trim();
+    function duplicateIdMiscMatches(node, virtualNode) {
+      var id = virtualNode.attr('id').trim();
       var idSelector = '*[id="'.concat(escape_selector_default(id), '"]');
       var idMatchingElms = Array.from(get_root_node_default2(node).querySelectorAll(idSelector));
       return !is_accessible_ref_default(node) && idMatchingElms.every(function(elm) {
@@ -28160,8 +28597,8 @@
       return is_accessible_ref_default(node);
     }
     var duplicate_id_aria_matches_default = duplicateIdAriaMatches;
-    function duplicateIdActiveMatches(node) {
-      var id = node.getAttribute('id').trim();
+    function duplicateIdActiveMatches(node, virtualNode) {
+      var id = virtualNode.attr('id').trim();
       var idSelector = '*[id="'.concat(escape_selector_default(id), '"]');
       var idMatchingElms = Array.from(get_root_node_default2(node).querySelectorAll(idSelector));
       return !is_accessible_ref_default(node) && idMatchingElms.some(_isFocusable);
@@ -28342,19 +28779,17 @@
       return !!required_owned_default(role);
     }
     var aria_required_children_matches_default = ariaRequiredChildrenMatches;
-    function shouldMatchElement(el) {
-      if (!el) {
-        return true;
+    function ariaHiddenFocusMatches(node, virtualNode) {
+      var vNode = virtualNode.parent;
+      while (vNode) {
+        var ariaHidden2 = _getAriaValue(vNode, 'aria-hidden').value;
+        if (ariaHidden2 === 'true') {
+          return false;
+        }
+        vNode = vNode.parent;
       }
-      if (el.getAttribute('aria-hidden') === 'true') {
-        return false;
-      }
-      return shouldMatchElement(get_composed_parent_default(el));
+      return true;
     }
-    function ariaHiddenFocusMatches(node) {
-      return shouldMatchElement(get_composed_parent_default(node));
-    }
-    var aria_hidden_focus_matches_default = ariaHiddenFocusMatches;
     function ariaHasAttrMatches(node, virtualNode) {
       var aria = /^aria-/;
       return virtualNode.attrNames.some(function(attr) {
@@ -28400,10 +28835,11 @@
       'aria-errormessage-evaluate': ariaErrormessageEvaluate,
       'aria-has-attr-matches': aria_has_attr_matches_default,
       'aria-hidden-body-evaluate': aria_hidden_body_evaluate_default,
-      'aria-hidden-focus-matches': aria_hidden_focus_matches_default,
+      'aria-hidden-focus-matches': ariaHiddenFocusMatches,
       'aria-label-evaluate': aria_label_evaluate_default,
       'aria-labelledby-evaluate': aria_labelledby_evaluate_default,
       'aria-level-evaluate': aria_level_evaluate_default,
+      'aria-no-deprecated-attr-evaluate': ariaNoDeprecatedAttrEvaluate,
       'aria-prohibited-attr-evaluate': ariaProhibitedAttrEvaluate,
       'aria-required-attr-evaluate': ariaRequiredAttrEvaluate,
       'aria-required-children-evaluate': ariaRequiredChildrenEvaluate,
@@ -29185,10 +29621,10 @@
         value: function setAllowedOrigins(allowedOrigins) {
           var defaultOrigin = getDefaultOrigin();
           this.allowedOrigins = [];
-          var _iterator27 = _createForOfIteratorHelper(allowedOrigins), _step27;
+          var _iterator28 = _createForOfIteratorHelper(allowedOrigins), _step28;
           try {
-            for (_iterator27.s(); !(_step27 = _iterator27.n()).done; ) {
-              var origin = _step27.value;
+            for (_iterator28.s(); !(_step28 = _iterator28.n()).done; ) {
+              var origin = _step28.value;
               if (origin === constants_default.allOrigins) {
                 this.allowedOrigins = [ '*' ];
                 return;
@@ -29199,9 +29635,9 @@
               }
             }
           } catch (err) {
-            _iterator27.e(err);
+            _iterator28.e(err);
           } finally {
-            _iterator27.f();
+            _iterator28.f();
           }
         }
       }, {
@@ -29530,8 +29966,8 @@
         } ]
       });
     }
-    function getHelpUrl(_ref146, ruleId, version) {
-      var brand = _ref146.brand, application = _ref146.application, lang = _ref146.lang;
+    function getHelpUrl(_ref147, ruleId, version) {
+      var brand = _ref147.brand, application = _ref147.application, lang = _ref147.lang;
       return constants_default.helpUrlBase + brand + '/' + (version || axe.version.substring(0, axe.version.lastIndexOf('.'))) + '/' + ruleId + '?application=' + encodeURIComponent(application) + (lang && lang !== 'en' ? '&lang=' + encodeURIComponent(lang) : '');
     }
     function setupGlobals(context) {
@@ -29761,9 +30197,9 @@
         toolOptions: options
       });
     }
-    function normalizeRunParams(_ref147) {
-      var _ref149, _options$reporter, _axe$_audit2;
-      var _ref148 = _slicedToArray(_ref147, 3), context = _ref148[0], options = _ref148[1], callback = _ref148[2];
+    function normalizeRunParams(_ref148) {
+      var _ref150, _options$reporter, _axe$_audit2;
+      var _ref149 = _slicedToArray(_ref148, 3), context = _ref149[0], options = _ref149[1], callback = _ref149[2];
       var typeErr = new TypeError('axe.run arguments are invalid');
       if (!_isContextSpec(context)) {
         if (callback !== void 0) {
@@ -29784,7 +30220,7 @@
         throw typeErr;
       }
       options = clone2(options);
-      options.reporter = (_ref149 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref149 !== void 0 ? _ref149 : 'v1';
+      options.reporter = (_ref150 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref150 !== void 0 ? _ref150 : 'v1';
       return {
         context: context,
         options: options,
@@ -29911,8 +30347,8 @@
           performance_timer_default.auditEnd();
         }
         results = node_serializer_default.mapRawResults(results);
-        var frames = contextObj.frames.map(function(_ref150) {
-          var node = _ref150.node;
+        var frames = contextObj.frames.map(function(_ref151) {
+          var node = _ref151.node;
           return node_serializer_default.toSpec(node);
         });
         var environmentData;
@@ -29933,14 +30369,14 @@
       });
     }
     function finishRun(partialResults) {
-      var _ref152, _options$reporter2, _axe$_audit3;
+      var _ref153, _options$reporter2, _axe$_audit3;
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       options = clone2(options);
-      var _ref151 = partialResults.find(function(r) {
+      var _ref152 = partialResults.find(function(r) {
         return r.environmentData;
-      }) || {}, environmentData = _ref151.environmentData;
+      }) || {}, environmentData = _ref152.environmentData;
       _normalizeRunOptions(options);
-      options.reporter = (_ref152 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit3 = axe._audit) === null || _axe$_audit3 === void 0 ? void 0 : _axe$_audit3.reporter) !== null && _ref152 !== void 0 ? _ref152 : 'v1';
+      options.reporter = (_ref153 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit3 = axe._audit) === null || _axe$_audit3 === void 0 ? void 0 : _axe$_audit3.reporter) !== null && _ref153 !== void 0 ? _ref153 : 'v1';
       setFrameSpec(partialResults);
       var results = merge_results_default(partialResults);
       results = axe._audit.after(results, options);
@@ -29952,10 +30388,10 @@
     }
     function setFrameSpec(partialResults) {
       var frameStack = [];
-      var _iterator28 = _createForOfIteratorHelper(partialResults), _step28;
+      var _iterator29 = _createForOfIteratorHelper(partialResults), _step29;
       try {
-        for (_iterator28.s(); !(_step28 = _iterator28.n()).done; ) {
-          var partialResult = _step28.value;
+        for (_iterator29.s(); !(_step29 = _iterator29.n()).done; ) {
+          var partialResult = _step29.value;
           var frameSpec = frameStack.shift();
           if (!partialResult) {
             continue;
@@ -29965,13 +30401,13 @@
           frameStack.unshift.apply(frameStack, _toConsumableArray(frameSpecs));
         }
       } catch (err) {
-        _iterator28.e(err);
+        _iterator29.e(err);
       } finally {
-        _iterator28.f();
+        _iterator29.f();
       }
     }
-    function getMergedFrameSpecs(_ref153) {
-      var childFrameSpecs = _ref153.frames, parentFrameSpec = _ref153.frameSpec;
+    function getMergedFrameSpecs(_ref154) {
+      var childFrameSpecs = _ref154.frames, parentFrameSpec = _ref154.frameSpec;
       if (!parentFrameSpec) {
         return childFrameSpecs;
       }
@@ -30528,8 +30964,8 @@
           help: 'All page content should be contained by landmarks'
         },
         'role-img-alt': {
-          description: 'Ensure [role="img"] elements have alternative text',
-          help: '[role="img"] elements must have alternative text'
+          description: 'Ensure [role="img"] and [role="image"] elements have alternative text',
+          help: '[role="img"] and [role="image"] elements must have alternative text'
         },
         'scope-attr-valid': {
           description: 'Ensure the scope attribute is used correctly on tables',
@@ -30556,8 +30992,8 @@
           help: 'Summary elements must have discernible text'
         },
         'svg-img-alt': {
-          description: 'Ensure <svg> elements with an img, graphics-document or graphics-symbol role have accessible text',
-          help: '<svg> elements with an img role must have alternative text'
+          description: 'Ensure <svg> elements with an img, image, graphics-document or graphics-symbol role have accessible text',
+          help: '<svg> elements with an img or image role must have alternative text'
         },
         tabindex: {
           description: 'Ensure tabindex attribute values are not greater than 0',
@@ -30691,6 +31127,16 @@
             incomplete: 'aria-level values greater than 6 are not supported in all screenreader and browser combinations'
           }
         },
+        'aria-no-deprecated-attr': {
+          impact: 'minor',
+          messages: {
+            pass: 'No deprecated ARIA attributes are used',
+            incomplete: {
+              singular: 'The attribute is deprecated and should not be used: ${data.values}',
+              plural: 'The attributes are deprecated and should not be used: ${data.values}'
+            }
+          }
+        },
         'aria-prohibited-attr': {
           impact: 'serious',
           messages: {
@@ -30705,7 +31151,10 @@
               hasRoleSingular: '${data.prohibited} attribute is not well supported with role "${data.role}".',
               hasRolePlural: '${data.prohibited} attributes are not well supported with role "${data.role}".',
               noRoleSingular: '${data.prohibited} attribute is not well supported on a ${data.nodeName} with no valid role attribute.',
-              noRolePlural: '${data.prohibited} attributes are not well supported on a ${data.nodeName} with no valid role attribute.'
+              noRolePlural: '${data.prohibited} attributes are not well supported on a ${data.nodeName} with no valid role attribute.',
+              visibleLabelSingular: '${data.prohibited} attribute is not well supported, but the elements referenced by aria-labelledby are visible in the page. Verify the label is not necessary.',
+              visibleLabelPlural: '${data.prohibited} attributes are not well supported, but the elements referenced by aria-labelledby are visible in the page. Verify the labels are not necessary.',
+              unresolvedLabel: '${data.prohibited} attribute is not well supported, and does not reference an existing element. Verify the label is not necessary.'
             }
           }
         },
@@ -31739,7 +32188,7 @@
           validTreeRowAttrs: [ 'aria-posinset', 'aria-setsize', 'aria-expanded', 'aria-level' ]
         },
         id: 'aria-allowed-attr'
-      }, 'aria-allowed-attr-elm' ],
+      }, 'aria-allowed-attr-elm', 'aria-no-deprecated-attr' ],
       any: [],
       none: [ 'aria-unsupported-attr' ]
     }, {
@@ -31894,7 +32343,7 @@
       any: [],
       none: [ {
         options: {
-          elementsAllowedAriaLabel: [ 'applet', 'input' ]
+          elementsAllowedAriaLabel: [ 'applet' ]
         },
         id: 'aria-prohibited-attr'
       } ]
@@ -31946,7 +32395,7 @@
       all: [],
       any: [ {
         options: {
-          supportedRoles: [ 'button', 'img', 'checkbox', 'radio', 'combobox', 'menuitemcheckbox', 'menuitemradio' ]
+          supportedRoles: [ 'button', 'img', 'image', 'checkbox', 'radio', 'combobox', 'menuitemcheckbox', 'menuitemradio' ]
         },
         id: 'aria-roledescription'
       } ],
@@ -32918,7 +33367,7 @@
     }, {
       id: 'role-img-alt',
       impact: 'serious',
-      selector: '[role=\'img\']:not(img, area, input, object)',
+      selector: ':is([role=\'img\'], [role=\'image\']):not(img, area, input, object)',
       matches: 'html-namespace-matches',
       tags: [ 'cat.text-alternatives', 'wcag2a', 'wcag111', 'section508', 'section508.22.a', 'TTv5', 'TT7.a', 'EN-301-549', 'EN-9.1.1.1', 'ACT', 'RGAAv4', 'RGAA-1.1.1' ],
       actIds: [ '23a2a8' ],
@@ -33001,7 +33450,7 @@
     }, {
       id: 'svg-img-alt',
       impact: 'serious',
-      selector: '[role="img"], [role="graphics-symbol"], svg[role="graphics-document"]',
+      selector: ':is([role=\'img\'], [role=\'image\']), [role=\'graphics-symbol\'], svg[role=\'graphics-document\']',
       matches: 'svg-namespace-matches',
       tags: [ 'cat.text-alternatives', 'wcag2a', 'wcag111', 'section508', 'section508.22.a', 'TTv5', 'TT7.a', 'EN-301-549', 'EN-9.1.1.1', 'ACT', 'RGAAv4', 'RGAA-1.1.5' ],
       actIds: [ '7d6734' ],
@@ -33150,10 +33599,13 @@
       id: 'aria-level',
       evaluate: 'aria-level-evaluate'
     }, {
+      id: 'aria-no-deprecated-attr',
+      evaluate: 'aria-no-deprecated-attr-evaluate'
+    }, {
       id: 'aria-prohibited-attr',
       evaluate: 'aria-prohibited-attr-evaluate',
       options: {
-        elementsAllowedAriaLabel: [ 'applet', 'input' ]
+        elementsAllowedAriaLabel: [ 'applet' ]
       }
     }, {
       id: 'aria-required-attr',
@@ -33174,7 +33626,7 @@
       id: 'aria-roledescription',
       evaluate: 'aria-roledescription-evaluate',
       options: {
-        supportedRoles: [ 'button', 'img', 'checkbox', 'radio', 'combobox', 'menuitemcheckbox', 'menuitemradio' ]
+        supportedRoles: [ 'button', 'img', 'image', 'checkbox', 'radio', 'combobox', 'menuitemcheckbox', 'menuitemradio' ]
       }
     }, {
       id: 'aria-unsupported-attr',
