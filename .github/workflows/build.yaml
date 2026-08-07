@@ -34,7 +34,7 @@ jobs:
         id: artifact
         run: echo "name=result-output-python-$(echo '${{ matrix.python-version }}' | tr '.' '_')" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
         with:
           name: result-output-python-${{ steps.artifact.outputs.name }}
