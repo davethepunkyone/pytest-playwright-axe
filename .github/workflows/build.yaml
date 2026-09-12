@@ -5,12 +5,13 @@ on: [pull_request]
 jobs:
   run-tests:
     name: "Run Tests"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.12", "3.13", "3.14"]
-    timeout-minutes: 3
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -32,11 +33,12 @@ jobs:
 
       - name: Set artifact name
         id: artifact
-        run: echo "name=result-output-python-$(echo '${{ matrix.python-version }}' | tr '.' '_')" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "name=result-output-${{ matrix.os }}-python-$(echo '${{ matrix.python-version }}' | tr '.' '_')" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}
         with:
-          name: result-output-python-${{ steps.artifact.outputs.name }}
-          path: /home/runner/work/pytest-playwright-axe/pytest-playwright-axe/axe-reports/
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ github.workspace }}/axe-reports/
           retention-days: 5

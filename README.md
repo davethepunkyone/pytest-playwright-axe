@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml/badge.svg)](https://github.com/davethepunkyone/pytest-playwright-axe/actions/workflows/build.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![PyPI version](https://img.shields.io/pypi/v/pytest-playwright-axe.svg)](https://pypi.org/project/pytest-playwright-axe/)
 
-`pytest-playwright-axe` is a package for Playwright Python that allows for the execution of [axe-core](https://github.com/dequelabs/axe-core), a JavaScript
+`pytest-playwright-axe` is a package for Playwright Python that allows for the execution of [axe-core®](https://github.com/dequelabs/axe-core), a JavaScript
 library used for scanning for accessibility issues and providing guidance on how to resolve these issues.
 
 ## Table of Contents
@@ -82,7 +82,7 @@ The `Axe()` class has the following optional arguments that can be passed in:
 | -------------------- | ----------------------- | ----------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `output_directory`   | `pathlib.Path` or `str` | A valid directory path to save results to (e.g. `C:/axe_reports`)       |               | If provided, sets the directory to save HTML and JSON results into. If not provided (default), the default path is `os.getcwd()/axe-reports`. |
 | `css_override`       | `str`                   | A string with valid CSS.                                                |               | If provided, this will override the default CSS used in the HTML report with the CSS styling provided.                                        |
-| `use_minified_file`  | `bool`                  | `True`, `False`                                                         | `False`       | If True, use the minified version of axe-core (axe.min.js). If not provided (default), use the full version of axe-core (axe.js).             |
+| `use_minified_file`  | `bool`                  | `True`, `False`                                                         | `False`       | If True, use the minified version of axe-core® (axe.min.js). If not provided (default), use the full version of axe-core® (axe.js).           |
 | `snapshot_directory` | `pathlib.Path` or `str` | A valid directory path where snapshots are stored (e.g. `C:/snapshots`) |               | If provided, sets the directory to check for JSON outputs from previous runs to compare against.                                              |
 
 
@@ -94,16 +94,16 @@ To conduct a scan, you can just use the following once the page you want to chec
 Axe().run(page)
 ```
 
-This will inject the axe-core code into the page and then execute the axe.run() command, generating an accessibility report for the page being tested.
+This will inject the axe-core® code into the page and then execute the axe.run() command, generating an accessibility report for the page being tested.
 
 By default, the `Axe().run(page)` command will do the following:
 
-- Scan the page passed in with the default axe-core configuration
+- Scan the page passed in with the default axe-core® configuration
 - Generate a HTML and JSON report with the findings in the `axe-reports` directory, regardless of if any violations are found
 - Any steps after the `Axe().run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
-- Will return the full response from axe-core as a dict object if the call is set to a variable, e.g. `axe_results = Axe().run(page)` will populate `axe_results` to interact with as required
+- Will return the full response from axe-core® as a dict object if the call is set to a variable, e.g. `axe_results = Axe().run(page)` will populate `axe_results` to interact with as required
 
-This uses the [axe-core run method outlined in the axe-core documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun).
+This uses the [run method outlined in the axe-core® documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun).
 
 ### Required arguments
 
@@ -117,19 +117,19 @@ The following are required for `Axe().run()`:
 
 The `Axe().run(page)` has the following optional arguments that can be passed in:
 
-| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `filename`                 | `str`  | A string valid for a filename (e.g. `test_report`)                                                                |               | If provided, HTML and JSON reports will save with the filename provided. If not provided (default), the URL of the page under test will be used as the filename.                                                                                                        |
-| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
-| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
-| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                               |
-| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
-| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
-| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
+| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                              |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `filename`                 | `str`  | A string valid for a filename (e.g. `test_report`)                                                                |               | If provided, HTML and JSON reports will save with the filename provided. If not provided (default), the URL of the page under test will be used as the filename.                                                                                                         |
+| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core® should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
+| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core® should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
+| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                                |
+| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                       |
+| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core® findings.                                                                                                                                                                                             |
+| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core® findings.                                                                                                                                                                                               |
 
 ### Returns
 
-This function can be used independently, but when set to a variable returns a `dict` with the axe-core results.
+This function can be used independently, but when set to a variable returns a `dict` with the axe-core® results.
 
 ### Example usage
 
@@ -207,19 +207,19 @@ If a dict is provided as part of the `page_list`, the following key / value pair
 
 The `Axe().run_list(page, page_list)` function has the following optional arguments that can be passed in:
 
-| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                             |
-| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `use_list_for_filename`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, the filename will be derived from the value provided in the list. If False, the full URL will be used.                                                                                                                                                         |
-| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
-| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
-| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                               |
-| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                      |
-| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core findings.                                                                                                                                                                                             |
-| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core findings.                                                                                                                                                                                               |
+| Argument                   | Format | Supported Values                                                                                                  | Default Value | Description                                                                                                                                                                                                                                                              |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `use_list_for_filename`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, the filename will be derived from the value provided in the list. If False, the full URL will be used.                                                                                                                                                          |
+| `context`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ exclude: '.ad-banner' }`)                                   |               | If provided, adds the [context that axe-core® should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#context-parameter). |
+| `options`                  | `str`  | A JavaScript object, represented as a string (e.g. `{ runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } }`) |               | If provided, adds the [options that axe-core® should use](https://www.deque.com/axe/core-documentation/api-documentation/?_gl=1*nt1pxm*_up*MQ..*_ga*Mjc3MzY4NDQ5LjE3NDMxMDMyMDc.*_ga_C9H6VN9QY1*MTc0MzEwMzIwNi4xLjAuMTc0MzEwMzIwNi4wLjAuODE0MjQyMzA2#options-parameter). |
+| `report_on_violation_only` | `bool` | `True`, `False`                                                                                                   | `False`       | If True, HTML and JSON reports will only be generated if at least one violation is found.                                                                                                                                                                                |
+| `strict_mode`              | `bool` | `True`, `False`                                                                                                   | `False`       | If True, when a violation is found an AxeAccessibilityException is raised, causing a test failure.                                                                                                                                                                       |
+| `html_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a HTML report will be generated summarising the axe-core® findings.                                                                                                                                                                                             |
+| `json_report_generated`    | `bool` | `True`, `False`                                                                                                   | `True`        | If True, a JSON report will be generated with the full axe-core® findings.                                                                                                                                                                                               |
 
 ### Returns
 
-This function can be used independently, but when set to a variable returns a `dict` with the axe-core results for all pages scanned (using the URL value in the list provided as the key).
+This function can be used independently, but when set to a variable returns a `dict` with the axe-core® results for all pages scanned (using the URL value in the list provided as the key).
 
 ### Example usage
 
@@ -252,7 +252,7 @@ def test_accessibility(page: Page) -> None:
 
 You can get the rules used for specific tags by using this method, or all rules if no ruleset is provided.
 
-This uses the [axe-core getRules method outlined in the axe-core documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axegetrules).
+This uses the [getRules method outlined in the axe-core® documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axegetrules).
 
 ### Required Arguments
 
@@ -391,7 +391,6 @@ load the JSON file from `snapshots/github_com_davethepunkyone_pytest-playwright-
 and check for changes between the two files, outputting the results in a new
 section on the HTML report.
 
-
 ## Example Reports
 
 The following are examples of the reports generated using this package:
@@ -404,13 +403,13 @@ The following are examples of the reports generated using this package:
 ## Versioning
 
 The versioning for this project is designed to be directly linked to the releases from 
-the [axe-core](https://github.com/dequelabs/axe-core) project, to accurately reflect the
-version of axe-core that is being executed.
+the [axe-core®](https://github.com/dequelabs/axe-core) project, to accurately reflect the
+version of axe-core® that is being executed.
 
 ## Breaking Changes
 
 The following section outlines important breaking changes between version, due to the
-versioning of this project being aligned with axe-core.
+versioning of this project being aligned with axe-core®.
 
 ### 4.10.3 -> Onwards
 
@@ -430,3 +429,5 @@ This covers both the codebase and any sample code in the documentation.
 
 This package was created based on work initially designed for the 
 [NHS England Playwright Python Blueprint](https://github.com/nhs-england-tools/playwright-python-blueprint).
+
+axe-core® is a trademark of Deque Systems, Inc. in the US and other countries.
