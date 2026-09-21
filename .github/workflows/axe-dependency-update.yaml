@@ -44,6 +44,9 @@ jobs:
           mv axe.js ../../../
           mv axe.min.js ../../../
 
+      - name: Update pytest-playwright compatibility floor
+        run: python scripts/update_pytest_playwright_version.py
+
       - name: Find and Replace
         uses: jacobtomlinson/gha-find-replace@f1069b438f125e5395d84d1c6fd3b559a7880cb5 # v3.0.5
         with:
@@ -69,6 +72,7 @@ jobs:
           git add src/pytest_playwright_axe/resources/axe.js
           git add src/pytest_playwright_axe/resources/axe.min.js
           git add pyproject.toml
+          git add README.md
           git add src/pytest_playwright_axe/__init__.py
           
           # Show what will be committed

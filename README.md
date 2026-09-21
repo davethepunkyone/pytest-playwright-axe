@@ -32,9 +32,12 @@ library used for scanning for accessibility issues and providing guidance on how
   - [Rulesets](#rulesets)
   - [Working With Snapshots](#working-with-snapshots)
     - [Example Snapshot Usage](#example-snapshot-usage)
+      - [1 - Get Initial Snapshot](#1---get-initial-snapshot)
+      - [2 - Compare Snapshots](#2---compare-snapshots)
   - [Example Reports](#example-reports)
   - [Versioning](#versioning)
   - [Breaking Changes](#breaking-changes)
+    - [4.13.0 -\> Onwards](#4130---onwards)
     - [4.10.3 -\> Onwards](#4103---onwards)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
@@ -44,11 +47,11 @@ library used for scanning for accessibility issues and providing guidance on how
 This package has the following requirements for use:
 
 - [Python 3.12](https://www.python.org/downloads/) or greater
-- [`pytest-playwright`](https://pypi.org/project/pytest-playwright/) 0.5.1 or greater
+- [`pytest-playwright`](https://pypi.org/project/pytest-playwright/) >=0.7.1
 
 ## Installation
 
-This package is available via PyPi (https://pypi.org/project/pytest-playwright-axe/), so can be installed by running the following
+This package is [available via PyPi](https://pypi.org/project/pytest-playwright-axe/), so can be installed by running the following
 command:
 
 ```shell
@@ -327,7 +330,7 @@ When working with snapshots, the following needs to be considered:
 
 ### Example Snapshot Usage
 
-**1 - Get Initial Snapshot**
+#### 1 - Get Initial Snapshot
 
 An initial scan of the page is conducted, with JSON output enabled.
 
@@ -345,15 +348,18 @@ def test_axe_example(page: Page) -> None:
 
 This generates the following output in the `axe-reports` directory:
 
+```text
     axe-reports/
       |- github_com_davethepunkyone_pytest-playwright-axe.html
       |- github_com_davethepunkyone_pytest-playwright-axe.json
+```
 
 The `.json` file should then be copied into an appropriate directory to be
 referenced later (e.g. `tests/accessibility/snapshots`).
 
 This should then result in a file structure like so:
 
+```text
     axe-reports/
       |- github_com_davethepunkyone_pytest-playwright-axe.html
       |- github_com_davethepunkyone_pytest-playwright-axe.json
@@ -362,8 +368,9 @@ This should then result in a file structure like so:
       |  |- snapshots/
       |  |  |- github_com_davethepunkyone_pytest-playwright-axe.json
       |  |- tests_accessibility.py
+```
 
-**2 - Compare Snapshots**
+#### 2 - Compare Snapshots
 
 To allow for the snapshot comparison, the test needs to be amended to check
 for available snapshots, by adding the `snapshot_directory=<path>` to the
@@ -402,7 +409,7 @@ The following are examples of the reports generated using this package:
 
 ## Versioning
 
-The versioning for this project is designed to be directly linked to the releases from 
+The versioning for this project is designed to be directly linked to the releases from
 the [axe-core®](https://github.com/dequelabs/axe-core) project, to accurately reflect the
 version of axe-core® that is being executed.
 
@@ -410,6 +417,12 @@ version of axe-core® that is being executed.
 
 The following section outlines important breaking changes between version, due to the
 versioning of this project being aligned with axe-core®.
+
+### 4.13.0 -> Onwards
+
+The following policy has been introduced for all releases beyond 4.13.0:
+
+- To encourage updates to `pytest-playwright`, we will be pinning the minimum supported version of `pytest-playwright` to the version that was available 12 months prior to our release.
 
 ### 4.10.3 -> Onwards
 

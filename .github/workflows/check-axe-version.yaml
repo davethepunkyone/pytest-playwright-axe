@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
             python -m pip install --upgrade pip
-            pip install -e .[dev]
+            python -m pip install -e .
 
       - name: Execute Python script to check axe-core version
         id: check_results

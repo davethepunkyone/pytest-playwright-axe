@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm", "pytest-playwright>=0.5.1"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -18,7 +18,7 @@ authors = [
   {name = "Dave Harding", email = "dave@punkamania.org"}
 ]
 dependencies = [
-  "pytest-playwright>=0.5.1"
+  "pytest-playwright>=0.7.1"
 ]
 requires-python = ">= 3.12"
 license = "MIT"
