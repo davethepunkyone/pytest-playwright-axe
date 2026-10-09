@@ -20,6 +20,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Example usage](#example-usage)
     - [Context and options](#context-and-options)
     - [Frames and iframes](#frames-and-iframes)
+    - [Reporters](#reporters)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
       - [`page_list dict` Structure](#page_list-dict-structure)
@@ -137,7 +138,7 @@ The `Axe().run(page)` has the following optional arguments that can be passed in
 
 ### Returns
 
-This function can be used independently, but when set to a variable returns a `dict` with the axe-core® results.
+This function can be used independently, but when set to a variable returns a `dict` with the axe-core® results (or whatever the [reporter](#reporters) used returns).
 
 ### Example usage
 
@@ -235,6 +236,28 @@ Some points to be aware of:
 - The `context` and `options` provided are applied to every frame.
 - Frames should have finished loading before `Axe().run()` is called. If a frame cannot be scanned (for example because it is removed or navigates away during the scan), a warning is logged and the rest of the page is still scanned. A frame that is still waiting for its navigation to complete (e.g. a stalled third-party iframe) can never be scanned, so after waiting 5 seconds for it, it is skipped in the same way.
 - axe-core® is run in each frame separately and the results are combined afterwards, which is done in a blank page. To avoid anything being added to your own browser context (e.g. extra pages in traces or videos), a temporary browser context is opened for this and closed again once the scan completes. If the browser does not allow this, a blank page in your own context is used instead, and as a last resort the page being scanned.
+
+### Reporters
+
+axe-core® can return its results in different formats, which can be chosen using the `reporter` option (e.g. `Axe().run(page, options={"reporter": "no-passes"})`,
+or for every scan using [`.configure()`](#configure-configure-axe-core)). By default the `v1` reporter is used, and the following is supported for each reporter:
+
+| Reporter                      | Returns                                                                                                 | Summary | HTML report                                                                   | JSON report | `strict_mode` |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------- | ----------- | ------------- |
+| `v1` (default)                | The standard results                                                                                    | Yes     | Yes                                                                           | Yes         | Yes           |
+| `v2` or `na`                  | The standard results                                                                                    | Yes     | Yes                                                                           | Yes         | Yes           |
+| `no-passes`                   | Only the violations (and the details of the scan), so is useful for reducing the size of the results    | Yes     | Yes, with the passes, incomplete and inapplicable checks stated as not included | Yes         | Yes           |
+| `raw` or `rawEnv`             | The raw results for each rule (a `list` for `raw`, and a `dict` with `raw` and `env` for `rawEnv`)      | No      | No, as it needs the standard results (a warning is logged)                    | Yes         | Yes           |
+| Custom (using `.configure()`) | Whatever the reporter returns                                                                           | If standard | If standard                                                               | Yes (if it can be converted to JSON) | Only if the violations can be found, otherwise an `AxeAccessibilityException` is raised |
+
+Some points to be aware of:
+
+- What `run()` returns is whatever the reporter returns, so it is a `list` when using `raw`.
+- If `strict_mode` is used but there is no way to tell if the results contain any violations (e.g. the results from a custom reporter), an `AxeAccessibilityException` is raised rather than the scan passing, as it may have been hiding a violation.
+- If `report_on_violation_only` is used but there is no way to tell if the results contain any violations, the reports are generated.
+- The reporter for the raw results with environment details is named `rawEnv` (the axe-core® documentation refers to `raw-env`). axe-core® uses the default reporter if the name provided is not recognised, so a reporter that is incorrectly named does not cause an error.
+- A snapshot (see [Working With Snapshots](#working-with-snapshots)) can be compared against for any results that contain violations, so a snapshot from the `v1` reporter can be used with the `no-passes` reporter, but a snapshot of raw results cannot be used (a warning is logged).
+- A reporter that is a function (rather than the name of one) has to be provided using [`.configure()`](#configure-configure-axe-core), as functions in the `options` are not carried across to each frame.
 
 ## .run_list(): Multiple page scan
 

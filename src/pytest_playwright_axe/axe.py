@@ -232,7 +232,17 @@ class Axe:
         selectors for any elements are relative to that frame. Any Locators in "exclude" must be in the frame being scanned.
 
         Returns:
-            dict: A Python dictionary with the axe-core output of the page scanned.
+            dict: A Python dictionary with the axe-core output of the page scanned. This is whatever the axe-core
+                reporter used returns, so is a dict with the standard results (violations, passes, incomplete and
+                inapplicable) unless a different reporter is used in the options (e.g. "no-passes" only
+                returns the violations, and "raw" returns a list).
+
+        The reporter used affects what else is done:
+
+        - **"v1" (default), "v2" or "na"**: The summary, reports and strict_mode all work.
+        - **"no-passes"**: These all work too, with the HTML report stating that the passes, incomplete and inapplicable checks are not included.
+        - **"raw" or "rawEnv"**: The results are returned and strict_mode works, but there is no HTML report (a warning is logged) as it needs the standard results. The JSON report contains the raw results.
+        - **A custom reporter**: If the results are not in one of the formats above, they are returned and the JSON report is generated, but strict_mode raises an exception as it cannot tell if there are any violations.
         
         Example:
             ```
@@ -275,24 +285,30 @@ class Axe:
         response = self._run_axe(
             page, self.axe_path.read_text(encoding="UTF-8"), context, options)
 
-        logger.info(
-            f"Axe scan summary of [{response['url']}]:\n"
-            f"- Passes = {len(response['passes'])}\n"
-            f"- Violations = {len(response['violations'])}\n"
-            f"- Inapplicable = {len(response['inapplicable'])}\n"
-            f"- Incomplete = {len(response['incomplete'])}"
-        )
+        url = self._get_url(response, page)
+        self._log_summary(response, url)
 
-        violations_detected = len(response["violations"]) > 0
-        if not report_on_violation_only or (report_on_violation_only and violations_detected):
+        # If the results do not show whether there were any violations, reports are still generated
+        violations_detected = self._has_violations(response)
+        if not report_on_violation_only or violations_detected is not False:
             if html_report_generated:
-                self._create_html_report(response, filename)
+                if self._is_standard_results(response):
+                    self._create_html_report(response, filename)
+                else:
+                    logger.warning(
+                        "An HTML report cannot be generated, as the results from the axe-core reporter used are not "
+                        "in the standard format. Set html_report_generated=False to avoid this warning.")
             if json_report_generated:
-                self._create_json_report(response, filename)
+                self._create_json_report(response, filename, url)
 
-        if violations_detected and strict_mode:
-            raise AxeAccessibilityException(
-                f"Axe Accessibility Violation detected on page: {response['url']}")
+        if strict_mode:
+            if violations_detected:
+                raise AxeAccessibilityException(
+                    f"Axe Accessibility Violation detected on page: {url}")
+            if violations_detected is None:
+                raise AxeAccessibilityException(
+                    "strict_mode cannot be used with the axe-core reporter provided, as its results do not show "
+                    "whether there are any violations.")
 
         return response
 
@@ -782,6 +798,58 @@ class Axe:
 
         return [None]
 
+    def _get_url(self, response: Any, page: Page) -> str:
+        """This provides the URL the results are for, which the standard results (and the environment details of rawEnv) contain."""
+        if isinstance(response, dict):
+            if isinstance(response.get("url"), str):
+                return response["url"]
+            environment = response.get("env")
+            if isinstance(environment, dict) and isinstance(environment.get("url"), str):
+                return environment["url"]
+
+        return page.url
+
+    def _is_standard_results(self, response: Any) -> bool:
+        """
+        This checks if the results have what the HTML report needs (the url, timestamp and violations), as the
+        standard results do. The results for passes, incomplete and inapplicable checks are optional, as the
+        "no-passes" reporter does not return them.
+        """
+        return (isinstance(response, dict)
+                and isinstance(response.get("url"), str)
+                and isinstance(response.get("timestamp"), str)
+                and isinstance(response.get("violations"), list))
+
+    def _has_violations(self, response: Any) -> bool | None:
+        """
+        This provides whether the results contain any violations, or None if their format is not recognised.
+
+        This works for the standard results, and also for the raw results (as returned by the "raw" and "rawEnv"
+        reporters), where each rule returned has its own list of violations.
+        """
+        if isinstance(response, dict):
+            if isinstance(response.get("violations"), list):
+                return len(response["violations"]) > 0
+            response = response.get("raw")
+
+        if isinstance(response, list) and all(
+                isinstance(rule, dict) and isinstance(rule.get("violations"), list) for rule in response):
+            return any(rule["violations"] for rule in response)
+
+        return None
+
+    def _log_summary(self, response: Any, url: str) -> None:
+        """This logs a summary of the results, including the number of each type of result available."""
+        groups = [("Passes", "passes"), ("Violations", "violations"),
+                  ("Inapplicable", "inapplicable"), ("Incomplete", "incomplete")]
+        counts = [f"- {label} = {len(response[key])}" for label, key in groups
+                  if isinstance(response, dict) and isinstance(response.get(key), list)]
+
+        if counts:
+            logger.info(f"Axe scan summary of [{url}]:\n" + "\n".join(counts))
+        else:
+            logger.info(f"Axe scan of [{url}] complete, but its results are not in the standard format so cannot be summarised.")
+
     def _modify_filename_for_report(self, filename_to_modify: str) -> str:
         """This determines the filename to use for generated files."""
         if not filename_to_modify:
@@ -799,13 +867,24 @@ class Axe:
         self.output_directory.mkdir(parents=True, exist_ok=True)
         return self.output_directory.joinpath(filename)
 
-    def _create_json_report(self, data: dict, filename_override: str = "") -> None:
-        """This creates a JSON report for the generated report data."""
-        filename = f"{self._modify_filename_for_report(data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
+    def _create_json_report(self, data: Any, filename_override: str = "", url: str | None = None) -> None:
+        """
+        This creates a JSON report for the generated report data.
+
+        The URL is used for the filename if no override is provided, and defaults to the one in the data (which
+        is not available in every format of results).
+        """
+        try:
+            content = json.dumps(data, indent=4)
+        except (TypeError, ValueError) as error:
+            logger.warning(f"A JSON report cannot be generated, as the results are not JSON serialisable: {error}")
+            return
+
+        filename = f"{self._modify_filename_for_report(url or data["url"])}.json" if filename_override == "" else f"{filename_override}.json"
         full_path = self._create_path_for_report(filename)
 
         with open(full_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, indent=4)
+            file.write(content)
 
         logger.info(f"JSON report generated: {full_path}")
 
@@ -813,9 +892,10 @@ class Axe:
         """This creates an HTML report for the generated report data."""
         filename = f"{self._modify_filename_for_report(data["url"])}.html" if filename_override == "" else f"{filename_override}.html"
         full_path = self._create_path_for_report(filename)
+        content = self._generate_html(data, filename.replace(".html", ""))
 
         with open(full_path, 'w', encoding='utf-8') as file:
-            file.write(self._generate_html(data, filename.replace(".html", "")))
+            file.write(content)
 
         logger.info(f"HTML report generated: {full_path}")
 
@@ -844,6 +924,27 @@ class Axe:
 
         return html
 
+
+    def _failure_summary(self, node: dict) -> str:
+        """
+        This provides the summary of how to fix an element, which only the "v1" reporter includes. If it is
+        not provided, it is built from the checks for the element in the same way axe-core does.
+        """
+        if "failureSummary" in node:
+            return node["failureSummary"]
+
+        def summarise(title: str, checks: list[dict]) -> str:
+            messages = (str(check.get("message") or "").replace("\n", "\n  ") for check in checks)
+            return title + "".join(f"\n  {message}" for message in messages)
+
+        sections = []
+        checks_to_fix_all = list(node.get("none", [])) + list(node.get("all", []))
+        if checks_to_fix_all:
+            sections.append(summarise("Fix all of the following:", checks_to_fix_all))
+        if node.get("any"):
+            sections.append(summarise("Fix any of the following:", node["any"]))
+
+        return "\n\n".join(sections)
 
     def _generate_violations_section(self, violations_data: list) -> str:
         """Generate the violations section of the HTML report."""
@@ -890,7 +991,7 @@ class Axe:
                                     <td><p>Element Location:</p>
                                     <pre><code>{escape("<br>".join(node['target']))}</code></pre>
                                     <p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>
-                                    <td>{escape(node['failureSummary']).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
+                                    <td>{escape(self._failure_summary(node)).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
                 node_count += 1
             violations_table += "</table>"
 
@@ -989,6 +1090,10 @@ class Axe:
 
         return f"{html}</table>"
 
+    def _generate_not_included_section(self, title: str) -> str:
+        """This generates a section of the HTML report for results that the axe-core reporter used does not return."""
+        return f"<h2>{title}</h2><p>Not included, as the axe-core reporter used does not return these results.</p>"
+
     def _generate_execution_details_section(self, data: dict) -> str:
         """Generate the execution details section of the HTML report."""
 
@@ -1022,10 +1127,19 @@ class Axe:
 
         try:
             with open(snapshot_path, encoding='utf-8') as file:
-                return json.loads(file.read())
+                snapshot_data = json.loads(file.read())
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse snapshot file {snapshot_path}: {e}")
             return None
+
+        # Snapshots are compared using their violations, which the results from the "raw" reporters do not have
+        if not isinstance(snapshot_data, dict) or not isinstance(snapshot_data.get("violations"), list):
+            logger.warning(
+                f"Snapshot file {snapshot_path} does not contain the violations needed for a comparison (it needs "
+                "to be the standard results, or those from the \"no-passes\" reporter), so has not been used.")
+            return None
+
+        return snapshot_data
 
     def _generate_changes_section(self, data: dict, snapshot_data: dict | None) -> str:
         """Generate the changes section of the HTML report comparing current data with snapshot."""
@@ -1191,13 +1305,16 @@ class Axe:
         html += self._generate_violations_section(data['violations'])
 
         # Passed Checks (Collapsible)
-        html += self._generate_passed_section(data['passes'])
+        html += self._generate_passed_section(data['passes']) if 'passes' in data \
+            else self._generate_not_included_section("Passed Checks")
 
         # Incomplete Checks (Collapsible)
-        html += self._generate_incomplete_section(data['incomplete'])
+        html += self._generate_incomplete_section(data['incomplete']) if 'incomplete' in data \
+            else self._generate_not_included_section("Incomplete Checks")
 
         # Inapplicable Checks (Collapsible)
-        html += self._generate_inapplicable_section(data['inapplicable'])
+        html += self._generate_inapplicable_section(data['inapplicable']) if 'inapplicable' in data \
+            else self._generate_not_included_section("Inapplicable Checks")
 
         # Execution Details (Collapsible)
         html += self._generate_execution_details_section(data)
