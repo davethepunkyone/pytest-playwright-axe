@@ -1,9 +1,12 @@
 import logging
+import time
 from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
-from playwright.sync_api import Browser, BrowserType, Page, Error as PlaywrightError
+from playwright.sync_api import (
+    Browser, BrowserContext, BrowserType, Page, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError)
 from src.pytest_playwright_axe import Axe
+from src.pytest_playwright_axe.axe import FRAME_READY_TIMEOUT_MS
 
 NO_REPORTS = {"html_report_generated": False, "json_report_generated": False}
 
@@ -28,6 +31,7 @@ PAGES = {
     "http://top.test/frame-a": _html(
         f'{IMAGE}<iframe title="a1" src="http://other.test/frame"></iframe>'),
     "http://top.test/no-frames": _html(f'{IMAGE}<button></button>'),
+    "http://top.test/stalled": _html(f'{IMAGE}<iframe title="stalled" src="http://stall.test/frame"></iframe>'),
 }
 
 
@@ -187,15 +191,37 @@ def test_blank_page_uses_separate_context_when_browser_available() -> None:
     page.context.new_page.assert_not_called()
 
 
-def test_blank_page_closes_separate_context_if_page_cannot_be_opened() -> None:
+def test_blank_page_falls_back_to_same_context_if_separate_context_cannot_be_used() -> None:
     page = MagicMock()
     page.context.browser.new_context.return_value.new_page.side_effect = PlaywrightError("boom")
 
-    with pytest.raises(PlaywrightError):
-        with Axe()._blank_page(page):
-            pass
+    with Axe()._blank_page(page) as blank_page:
+        assert blank_page is page.context.new_page.return_value
 
+    # The separate context that was opened is not left behind
     page.context.browser.new_context.return_value.close.assert_called_once()
+    blank_page.close.assert_called_once()
+
+
+def test_blank_page_falls_back_to_same_context_if_new_context_is_not_allowed() -> None:
+    page = MagicMock()
+    page.context.browser.new_context.side_effect = PlaywrightError("Not supported")
+
+    with Axe()._blank_page(page) as blank_page:
+        assert blank_page is page.context.new_page.return_value
+
+    blank_page.close.assert_called_once()
+
+
+def test_blank_page_uses_the_page_scanned_if_no_other_page_can_be_opened() -> None:
+    page = MagicMock()
+    page.context.browser.new_context.side_effect = PlaywrightError("Not supported")
+    page.context.new_page.side_effect = PlaywrightError("Please use browser.new_context()")
+
+    with Axe()._blank_page(page) as blank_page:
+        assert blank_page is page
+
+    page.close.assert_not_called()
 
 
 def test_blank_page_uses_same_context_when_there_is_no_browser() -> None:
@@ -208,11 +234,79 @@ def test_blank_page_uses_same_context_when_there_is_no_browser() -> None:
     blank_page.close.assert_called_once()
 
 
+def test_run_still_completes_if_a_blank_page_cannot_be_opened(routed_page: Page, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Combining the results within the page being scanned is the last resort, and must give the same results
+    routed_page.goto("http://top.test/")
+    expected = _targets(Axe().run(routed_page, **NO_REPORTS), "image-alt")
+
+    def refuse(*args, **kwargs):
+        raise PlaywrightError("Not supported")
+
+    monkeypatch.setattr(Browser, "new_context", refuse)
+    monkeypatch.setattr(BrowserContext, "new_page", refuse)
+
+    results = Axe().run(routed_page, **NO_REPORTS)
+
+    assert _targets(results, "image-alt") == expected
+    assert len(expected) == 3
+
+
+def test_run_skips_a_frame_that_never_finishes_loading(
+        routed_page: Page, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture) -> None:
+    stalled_requests = []
+    # The request for the frame is never answered, so its navigation never completes and it cannot be scripted
+    routed_page.context.route("http://stall.test/**", lambda route: stalled_requests.append(route))
+    monkeypatch.setattr("src.pytest_playwright_axe.axe.FRAME_READY_TIMEOUT_MS", 1000)
+
+    try:
+        routed_page.goto("http://top.test/stalled", wait_until="domcontentloaded")
+        started = time.time()
+
+        with caplog.at_level(logging.WARNING):
+            results = Axe().run(routed_page, **NO_REPORTS)
+
+        assert time.time() - started < 30
+        assert stalled_requests
+        assert _targets(results, "image-alt") == [["img"]]
+        assert "could not be scanned" in caplog.text
+    finally:
+        for route in stalled_requests:
+            try:
+                route.abort()
+            except PlaywrightError:
+                pass
+
+
 def test_run_list_scans_frames(routed_page: Page) -> None:
     results = Axe().run_list(routed_page, ["http://top.test/", "http://top.test/no-frames"], **NO_REPORTS)
 
     assert len(_targets(results["http://top.test/"], "image-alt")) == 3
     assert _targets(results["http://top.test/no-frames"], "image-alt") == [["img"]]
+
+
+def test_run_partial_in_frame_waits_for_the_frame_to_be_ready_before_scripting_it() -> None:
+    frame = MagicMock()
+    frame.evaluate.return_value = {"partial": "{}", "frameContexts": [], "options": {}}
+
+    Axe()._run_partial_in_frame(frame, "axe source", "script")
+
+    assert [call[0] for call in frame.method_calls] == ["wait_for_function", "evaluate", "evaluate"]
+    assert frame.wait_for_function.call_args.kwargs["timeout"] == FRAME_READY_TIMEOUT_MS
+
+
+def test_run_partial_in_child_frame_that_is_not_ready(caplog: pytest.LogCaptureFixture) -> None:
+    child_frame = MagicMock()
+    child_frame.wait_for_function.side_effect = PlaywrightTimeoutError("Timeout 5000ms exceeded.")
+    parent_frame = MagicMock()
+    parent_frame.evaluate_handle.return_value.as_element.return_value.content_frame.return_value = child_frame
+    frame_details = {"frameSelector": "iframe#stalled", "frameContext": {}}
+
+    with caplog.at_level(logging.WARNING):
+        results = Axe()._run_partial_in_child_frame(parent_frame, frame_details, "", {})
+
+    assert results == [None]
+    assert "Frame [iframe#stalled] could not be scanned" in caplog.text
+    child_frame.evaluate.assert_not_called()
 
 
 def test_run_partial_in_child_frame_with_unavailable_frame(caplog: pytest.LogCaptureFixture) -> None:

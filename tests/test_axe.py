@@ -36,11 +36,20 @@ def test_axe_init_around_minified_file() -> None:
     assert axe.axe_path.name == "axe.min.js"
 
 
-def test_normalise_run_arguments() -> None:
-    assert Axe()._normalise_run_arguments('context', 'options') == ("context", "options")
-    assert Axe()._normalise_run_arguments(context=' context ') == ("context", "{}")
-    assert Axe()._normalise_run_arguments(options='options') == ("document", "options")
-    assert Axe()._normalise_run_arguments() == ("document", "{}")
+def test_options_expression() -> None:
+    assert Axe()._options_expression(None) == "{}"
+    assert Axe()._options_expression("") == "{}"
+    assert Axe()._options_expression("  ") == "{}"
+    assert Axe()._options_expression(" {runOnly: 'wcag2a'} ") == "{runOnly: 'wcag2a'}"
+    assert Axe()._options_expression({}) == "{}"
+    assert Axe()._options_expression({"iframes": False}) == '{"iframes": false}'
+
+
+def test_options_expression_invalid() -> None:
+    with pytest.raises(AxeAccessibilityException, match="options must be a dict"):
+        Axe()._options_expression(["wcag2a"])
+    with pytest.raises(AxeAccessibilityException, match="options must be JSON serialisable"):
+        Axe()._options_expression({"values": {1, 2}})
 
 
 def test_modify_filename_for_report() -> None:
