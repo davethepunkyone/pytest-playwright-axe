@@ -11,7 +11,7 @@ from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPI_URL = "https://pypi.org/pypi/pytest-playwright/json"
-DEPENDENCY_PATTERN = re.compile(r"pytest-playwright>=([0-9][^\"\s)]*)")
+DEPENDENCY_PATTERN = re.compile(r"(pytest-playwright(?:\[[^\]]*\])?)>=[0-9][^\"\s)]*")
 README_DEPENDENCY_PATTERN = re.compile(
     r"(?P<prefix>pytest-playwright`\]\([^)]*\)\s+>=)(?P<version>[0-9][^\s)]*)"
 )
@@ -65,7 +65,7 @@ def update_file(path: Path, version: str) -> bool:
     """Update a pytest-playwright minimum in a text file."""
 
     contents = path.read_text(encoding="utf-8")
-    updated = DEPENDENCY_PATTERN.sub(f"pytest-playwright>={version}", contents)
+    updated = DEPENDENCY_PATTERN.sub(rf"\1>={version}", contents)
     updated = README_DEPENDENCY_PATTERN.sub(
         lambda match: f"{match.group('prefix')}{version}", updated
     )
