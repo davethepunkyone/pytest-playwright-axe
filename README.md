@@ -37,7 +37,7 @@ library used for scanning for accessibility issues and providing guidance on how
   - [Example Reports](#example-reports)
   - [Versioning](#versioning)
   - [Breaking Changes](#breaking-changes)
-    - [4.13.0 -\> Onwards](#4130---onwards)
+    - [4.14.0 -\> Onwards](#4130---onwards)
     - [4.10.3 -\> Onwards](#4103---onwards)
   - [Licence](#licence)
   - [Acknowledgements](#acknowledgements)
@@ -418,9 +418,9 @@ version of axe-core® that is being executed.
 The following section outlines important breaking changes between version, due to the
 versioning of this project being aligned with axe-core®.
 
-### 4.13.0 -> Onwards
+### 4.14.0 -> Onwards
 
-The following policy has been introduced for all releases beyond 4.13.0:
+The following policy has been introduced for all releases beyond 4.14.0:
 
 - To encourage updates to `pytest-playwright`, we will be pinning the minimum supported version of `pytest-playwright` to the version that was available 12 months prior to our release.
 
