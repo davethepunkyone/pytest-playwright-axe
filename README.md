@@ -18,6 +18,7 @@ library used for scanning for accessibility issues and providing guidance on how
     - [Optional arguments](#optional-arguments-1)
     - [Returns](#returns)
     - [Example usage](#example-usage)
+    - [Frames and iframes](#frames-and-iframes)
   - [.run\_list(): Multiple page scan](#run_list-multiple-page-scan)
     - [Required arguments](#required-arguments-1)
       - [`page_list dict` Structure](#page_list-dict-structure)
@@ -97,16 +98,16 @@ To conduct a scan, you can just use the following once the page you want to chec
 Axe().run(page)
 ```
 
-This will inject the axe-core® code into the page and then execute the axe.run() command, generating an accessibility report for the page being tested.
+This will inject the axe-core® code into the page (and any frames within it) and then run axe-core®, generating an accessibility report for the page being tested.
 
 By default, the `Axe().run(page)` command will do the following:
 
-- Scan the page passed in with the default axe-core® configuration
+- Scan the page passed in, including any iframes within it, with the default axe-core® configuration (see [Frames and iframes](#frames-and-iframes))
 - Generate a HTML and JSON report with the findings in the `axe-reports` directory, regardless of if any violations are found
 - Any steps after the `Axe().run()` command will continue to execute, and it will not cause the test in progress to fail (it runs a passive scan of the page)
 - Will return the full response from axe-core® as a dict object if the call is set to a variable, e.g. `axe_results = Axe().run(page)` will populate `axe_results` to interact with as required
 
-This uses the [run method outlined in the axe-core® documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun).
+This follows the [run method outlined in the axe-core® documentation](https://www.deque.com/axe/core-documentation/api-documentation/#api-name-axerun), but uses [`axe.runPartial` and `axe.finishRun`](https://github.com/dequelabs/axe-core/blob/develop/doc/run-partial.md) (the approach axe-core® recommends for browser automation tools) so that frames can be scanned.
 
 ### Required arguments
 
@@ -161,6 +162,21 @@ def test_axe_example(page: Page) -> None:
               strict_mode=True,
               json_report_generated=False)
 ```
+
+### Frames and iframes
+
+Any iframes within the page are scanned as part of the same run, including iframes served from a different origin,
+and their findings are included in the same reports and results. The `target` for an element within an iframe
+lists the selector for each iframe followed by the selector for the element, e.g. `['iframe#payment', 'form']`.
+
+Some points to be aware of:
+
+- Earlier releases only scanned the top-level page, so you may see new findings if your pages contain iframes.
+- To skip iframes, use the axe-core® `iframes` option: `Axe().run(page, options="{iframes: false}")`.
+- To only scan part of an iframe, use the axe-core® `fromFrames` context: `Axe().run(page, context="{fromFrames: ['iframe#payment', 'form']}")`.
+- The `context` and `options` provided are applied to every frame.
+- Frames should have finished loading before `Axe().run()` is called. If a frame cannot be scanned (for example because it is removed or navigates away during the scan), a warning is logged and the rest of the page is still scanned.
+- axe-core® is run in each frame separately and the results are combined afterwards, which is done in a blank page. To avoid anything being added to your own browser context (e.g. extra pages in traces or videos), a temporary browser context is opened for this and closed again once the scan completes.
 
 ## .run_list(): Multiple page scan
 

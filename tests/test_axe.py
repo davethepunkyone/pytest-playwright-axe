@@ -36,10 +36,11 @@ def test_axe_init_around_minified_file() -> None:
     assert axe.axe_path.name == "axe.min.js"
 
 
-def test_build_run_command() -> None:
-    assert Axe()._build_run_command('context', 'options') == "context, options"
-    assert Axe()._build_run_command(context='context') == "context"
-    assert Axe()._build_run_command(options='options') == "options"
+def test_normalise_run_arguments() -> None:
+    assert Axe()._normalise_run_arguments('context', 'options') == ("context", "options")
+    assert Axe()._normalise_run_arguments(context=' context ') == ("context", "{}")
+    assert Axe()._normalise_run_arguments(options='options') == ("document", "options")
+    assert Axe()._normalise_run_arguments() == ("document", "{}")
 
 
 def test_modify_filename_for_report() -> None:

@@ -1,10 +1,12 @@
 import logging
 import os
 import json
+from contextlib import contextmanager
 from html import escape
 import re
 from datetime import datetime
-from playwright.sync_api import Page, Locator, expect
+from typing import Any, Iterator
+from playwright.sync_api import Page, Frame, Locator, Error as PlaywrightError, expect
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,22 @@ WCAG_22AA_RULESET = ['wcag2a', 'wcag21a', 'wcag2aa',
                      'wcag21aa', 'wcag22a', 'wcag22aa', 'best-practice']
 OPTIONS_WCAG_22AA = "{runOnly: {type: 'tag', values: " + \
     str(WCAG_22AA_RULESET) + "}}"
+
+# axe-core is run in every frame separately (axe.runPartial) and the results are then combined
+# (axe.finishRun), so frames are scanned regardless of their origin. The placeholders are replaced
+# with the JavaScript expressions to use for the context and options within the frame.
+RUN_PARTIAL_SCRIPT = """async (args) => {
+    const context = (%CONTEXT%
+    );
+    const options = (%OPTIONS%
+    );
+    const frameContexts = axe.utils.getFrameContexts(context, options);
+    const partial = await axe.runPartial(context, options);
+    return { frameContexts, partial: JSON.stringify(partial), options };
+}"""
+FINISH_RUN_SCRIPT = """([partialResults, options]) =>
+    axe.finishRun(partialResults.map(result => result === null ? null : JSON.parse(result)), options)"""
+FRAME_ELEMENT_SCRIPT = "(selector) => axe.utils.shadowSelect(selector)"
 
 
 class Axe:
@@ -87,7 +105,12 @@ class Axe:
             html_report_generated: bool = True,
             json_report_generated: bool = True) -> dict:
         """
-        This runs axe-core against the page provided.
+        This runs axe-core against the page provided, including any iframes within the page (unless
+        the axe-core `iframes` option is set to false).
+
+        Frames are scanned by running axe-core in each frame separately and combining the results, so this
+        also covers frames from a different origin. To do this, a temporary blank page is opened (in a separate
+        browser context where possible) to combine the results, and is closed again afterwards.
 
         Args:
             page (playwright.sync_api.Page): The page object to execute axe-core against.
@@ -115,13 +138,17 @@ class Axe:
                     html_report_generated=False, 
                     json_report_generated=False
                 )
+
+                # Only scan the form within the #payment iframe
+                axe.run(page, context="{fromFrames: ['iframe#payment', 'form']}")
+
+                # Skip scanning any iframes
+                axe.run(page, options="{iframes: false}")
             ```        
         """
 
-        page.evaluate(self.axe_path.read_text(encoding="UTF-8"))
-
-        response = page.evaluate(
-            "axe.run(" + self._build_run_command(context, options) + ").then(results => {return results;})")
+        response = self._run_axe(
+            page, self.axe_path.read_text(encoding="UTF-8"), context, options)
 
         logger.info(
             f"Axe scan summary of [{response['url']}]:\n"
@@ -349,12 +376,99 @@ class Axe:
         if "wait_time" in actions and isinstance(actions["wait_time"], int):
             page.wait_for_timeout(actions["wait_time"])
 
-    def _build_run_command(self, context: str = "", options: str = "") -> str:
-        """This builds the run command for axe-core based on the context and options provided."""
-        if context and options:
-            return f"{context}, {options}"
+    def _normalise_run_arguments(self, context: str = "", options: str = "") -> tuple[str, str]:
+        """This provides the JavaScript expressions to use for the context and options of an axe-core run."""
+        return context.strip() or "document", options.strip() or "{}"
 
-        return context or options
+    def _build_partial_script(self, context_expression: str, options_expression: str) -> str:
+        """This builds the script that runs axe-core in a single frame."""
+        return RUN_PARTIAL_SCRIPT.replace("%CONTEXT%", context_expression).replace("%OPTIONS%", options_expression)
+
+    def _run_axe(self, page: Page, axe_source: str, context: str, options: str) -> dict:
+        """This runs axe-core in the page and all of its frames, returning the combined results."""
+        context_expression, options_expression = self._normalise_run_arguments(context, options)
+
+        partial_results, evaluated_options = self._run_partial_in_frame(
+            page.main_frame, axe_source,
+            self._build_partial_script(context_expression, options_expression))
+
+        # The results are combined in a blank page, so scripts within the page under test (or its frames)
+        # cannot interfere with the data being passed between frames.
+        with self._blank_page(page) as results_page:
+            results_page.evaluate(axe_source)
+            return results_page.evaluate(FINISH_RUN_SCRIPT, [partial_results, evaluated_options])
+
+    @contextmanager
+    def _blank_page(self, page: Page) -> Iterator[Page]:
+        """
+        This provides a blank page that is closed again afterwards.
+
+        A separate browser context is used where possible, so nothing is added to the context under test (and
+        as pages created using browser.new_page() cannot open another page in their context). If the context
+        has no browser (which Playwright documents for persistent contexts), the blank page is opened within
+        the existing context instead.
+        """
+        browser = page.context.browser
+        owner = browser.new_context() if browser else page.context
+        blank_page = None
+        try:
+            blank_page = owner.new_page()
+            yield blank_page
+        finally:
+            if browser:
+                owner.close()
+            elif blank_page:
+                blank_page.close()
+
+    def _run_partial_in_frame(self, frame: Frame, axe_source: str, script: str,
+                              script_args: dict | None = None) -> tuple[list[str | None], Any]:
+        """
+        This runs axe-core in a frame and then in each of the frames within it.
+
+        Returns:
+            tuple: The partial results (in the order axe.finishRun expects, with None for any frame that
+                could not be scanned) and the options axe-core was run with.
+        """
+        frame.evaluate(axe_source)
+        outcome = frame.evaluate(script, script_args)
+
+        partial_results = [outcome["partial"]]
+        for frame_details in outcome["frameContexts"]:
+            partial_results.extend(self._run_partial_in_child_frame(
+                frame, frame_details, axe_source, outcome["options"]))
+
+        return partial_results, outcome["options"]
+
+    def _run_partial_in_child_frame(self, parent_frame: Frame, frame_details: dict,
+                                    axe_source: str, options: Any) -> list[str | None]:
+        """
+        This runs axe-core in a frame within the parent frame provided.
+
+        If the frame cannot be scanned, a warning is logged and None is returned in place of its results
+        (and the results of any frames within it), as axe.finishRun requires.
+        """
+        frame_selector = frame_details["frameSelector"]
+        frame_handle = None
+
+        try:
+            frame_handle = parent_frame.evaluate_handle(FRAME_ELEMENT_SCRIPT, frame_selector)
+            frame_element = frame_handle.as_element()
+            child_frame = frame_element.content_frame() if frame_element else None
+
+            if child_frame is not None:
+                child_results, _ = self._run_partial_in_frame(
+                    child_frame, axe_source, self._build_partial_script("args.context", "args.options"),
+                    {"context": frame_details["frameContext"], "options": options})
+                return child_results
+
+            logger.warning(f"Frame [{frame_selector}] has no content available, so it has not been scanned.")
+        except PlaywrightError as error:
+            logger.warning(f"Frame [{frame_selector}] could not be scanned: {error}")
+        finally:
+            if frame_handle:
+                frame_handle.dispose()
+
+        return [None]
 
     def _modify_filename_for_report(self, filename_to_modify: str) -> str:
         """This determines the filename to use for generated files."""
