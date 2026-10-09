@@ -18,7 +18,7 @@ authors = [
   {name = "Dave Harding", email = "dave@punkamania.org"}
 ]
 dependencies = [
-  "pytest-playwright>=0.7.1"
+  "pytest-playwright[base-url]>=0.7.1"
 ]
 requires-python = ">= 3.12"
 license = "MIT"
