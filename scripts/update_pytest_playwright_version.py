@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
 import json
-from pathlib import Path
 import re
+from datetime import UTC, date, datetime
+from pathlib import Path
 from urllib.request import urlopen
-
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPI_URL = "https://pypi.org/pypi/pytest-playwright/json"
@@ -47,7 +46,7 @@ def supported_version(as_of: date) -> str:
 
         upload_dates = [
             datetime.fromisoformat(
-                file["upload_time_iso_8601"].replace("Z", "+00:00")
+                file["upload_time_iso_8601"]
             ).date()
             for file in files
             if file.get("upload_time_iso_8601")
@@ -77,7 +76,7 @@ def update_file(path: Path, version: str) -> bool:
 
 
 def main() -> None:
-    compatibility_date = twelve_months_ago(datetime.now(timezone.utc).date())
+    compatibility_date = twelve_months_ago(datetime.now(UTC).date())
     version = supported_version(compatibility_date)
     paths = (
         ROOT / "pyproject.toml",

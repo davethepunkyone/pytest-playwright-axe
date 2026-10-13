@@ -1,14 +1,18 @@
+import hashlib
+import json
 import logging
 import os
-import json
+import re
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from html import escape
-import re
 from datetime import datetime
-from typing import Any, Iterator
-from playwright.sync_api import Page, Frame, Locator, ElementHandle, Error as PlaywrightError, expect
+from html import escape
 from pathlib import Path
+from typing import Any
+
+from playwright.sync_api import ElementHandle, Frame, Locator, Page, expect
+from playwright.sync_api import Error as PlaywrightError
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +22,9 @@ MIN_AXE_PATH = RESOURCES_DIR.joinpath("axe.min.js")
 DEFAULT_CSS_PATH = RESOURCES_DIR.joinpath("default.css")
 
 DEFAULT_REPORT_PATH = Path(os.getcwd()).joinpath("axe-reports")
+
+# Filenames generated from a URL are shortened to this, as a longer one can exceed what the file system allows.
+MAX_FILENAME_LENGTH = 100
 
 WCAG_KEYS = {
     'wcag2a': 'WCAG 2.0 (A)',
@@ -123,7 +130,7 @@ class Axe:
         # Snapshot directory specified and custom CSS
         axe = Axe(
             snapshot_directory=Path(__file__).parent.joinpath("snapshots"), 
-            css_override=Path(__file__).parent.joinpath("style.css")
+            css_override=Path(__file__).parent.joinpath("style.css").read_text(encoding="UTF-8")
         )
         ```
     """
@@ -132,7 +139,7 @@ class Axe:
                  output_directory: str | Path = DEFAULT_REPORT_PATH,
                  css_override: str = "", 
                  use_minified_file: bool = False,
-                 snapshot_directory: str | Path = None) -> None:
+                 snapshot_directory: str | Path | None = None) -> None:
         self.output_directory = Path(output_directory)
         self.css_override = css_override
         self.axe_path = MIN_AXE_PATH if use_minified_file else AXE_PATH
@@ -215,7 +222,7 @@ class Axe:
             context (str | dict | list | playwright.sync_api.Locator | playwright.sync_api.Frame): [Optional] If provided, the context axe-core should use. See below for the formats accepted.
             options (str | dict): [Optional] If provided, the options axe-core should use. A dict is sent as JSON, whereas a str is treated as JavaScript. A str is evaluated once in the page and the result sent to each frame, so any functions within it (e.g. a custom reporter) are not carried across: use configure() for those.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
-            strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
+            strict_mode (bool): [Optional] If true, raise an exception if a violation is detected, or if a frame could not be scanned (as it may contain one). If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
 
@@ -282,8 +289,9 @@ class Axe:
             ```        
         """
 
+        skipped_frames: list[str] = []
         response = self._run_axe(
-            page, self.axe_path.read_text(encoding="UTF-8"), context, options)
+            page, self.axe_path.read_text(encoding="UTF-8"), context, options, skipped_frames)
 
         url = self._get_url(response, page)
         self._log_summary(response, url)
@@ -309,6 +317,10 @@ class Axe:
                 raise AxeAccessibilityException(
                     "strict_mode cannot be used with the axe-core reporter provided, as its results do not show "
                     "whether there are any violations.")
+            if skipped_frames:
+                raise AxeAccessibilityException(
+                    f"Axe Accessibility scan of page {url} is incomplete, as these frames could not be scanned: "
+                    f"{', '.join(skipped_frames)}")
 
         return response
 
@@ -334,7 +346,7 @@ class Axe:
             context (str | dict | list | playwright.sync_api.Locator): [Optional] If provided, the context axe-core should use for every page (see run() for the formats accepted). A Frame is not suitable here, as it will no longer be valid once the page navigates.
             options (str | dict): [Optional] If provided, the options axe-core should use for every page. A dict is sent as JSON, whereas a str is treated as JavaScript.
             report_on_violation_only (bool): [Optional] If true, only generates an Axe report if a violation is detected. If false (default), always generate a report.
-            strict_mode (bool): [Optional] If true, raise an exception if a violation is detected. If false (default), proceed with test execution.
+            strict_mode (bool): [Optional] If true, raise an exception if a violation is detected, or if a frame could not be scanned (as it may contain one). If false (default), proceed with test execution.
             html_report_generated (bool): [Optional] If true (default), generates a html report for the page scanned. If false, no html report is generated.
             json_report_generated (bool): [Optional] If true (default), generates a json report for the page scanned. If false, no json report is generated.
 
@@ -407,7 +419,7 @@ class Axe:
         return results
 
 
-    def get_rules(self, page: Page, rules: list[str] = None) -> list[dict]:
+    def get_rules(self, page: Page, rules: list[str] | None = None) -> list[dict]:
         """
         This runs axe.getRules(), returning the rules matching the tags specified (or all if no tags provided).
         Any configuration provided using configure() is applied first, so the rules returned reflect it.
@@ -684,8 +696,10 @@ class Axe:
             RUN_PARTIAL_SCRIPT, configure=self._configure_statement(), arguments=arguments)
 
     def _run_axe(self, page: Page, axe_source: str, context: ContextType | None,
-                 options: OptionsType | None) -> dict:
-        """This runs axe-core in the page and all of its frames, returning the combined results."""
+                 options: OptionsType | None, skipped_frames: list[str] | None = None) -> dict:
+        """This runs axe-core in the page and all of its frames, returning the combined results.
+
+        The selector of any frame that could not be scanned is added to skipped_frames."""
         inputs = self._prepare_run(page, context, options)
 
         try:
@@ -693,7 +707,7 @@ class Axe:
                 inputs.root_frame, axe_source,
                 self._build_partial_script(
                     inputs.context_expression, inputs.options_expression, inputs.single_expression),
-                inputs.script_args)
+                inputs.script_args, skipped_frames)
 
             # The results are combined in a blank page, so scripts within the page under test (or its frames)
             # cannot interfere with the data being passed between frames.
@@ -745,7 +759,8 @@ class Axe:
                 blank_page.close()
 
     def _run_partial_in_frame(self, frame: Frame, axe_source: str, script: str,
-                              script_args: dict | None = None) -> tuple[list[str | None], Any]:
+                              script_args: dict | None = None,
+                              skipped_frames: list[str] | None = None) -> tuple[list[str | None], Any]:
         """
         This runs axe-core in a frame and then in each of the frames within it.
 
@@ -763,17 +778,17 @@ class Axe:
         partial_results = [outcome["partial"]]
         for frame_details in outcome["frameContexts"]:
             partial_results.extend(self._run_partial_in_child_frame(
-                frame, frame_details, axe_source, outcome["options"]))
+                frame, frame_details, axe_source, outcome["options"], skipped_frames))
 
         return partial_results, outcome["options"]
 
-    def _run_partial_in_child_frame(self, parent_frame: Frame, frame_details: dict,
-                                    axe_source: str, options: Any) -> list[str | None]:
+    def _run_partial_in_child_frame(self, parent_frame: Frame, frame_details: dict, axe_source: str,
+                                    options: Any, skipped_frames: list[str] | None = None) -> list[str | None]:
         """
         This runs axe-core in a frame within the parent frame provided.
 
-        If the frame cannot be scanned, a warning is logged and None is returned in place of its results
-        (and the results of any frames within it), as axe.finishRun requires.
+        If the frame cannot be scanned, a warning is logged, its selector is added to skipped_frames and None is
+        returned in place of its results (and the results of any frames within it), as axe.finishRun requires.
         """
         frame_selector = frame_details["frameSelector"]
         frame_handle = None
@@ -786,7 +801,7 @@ class Axe:
             if child_frame is not None:
                 child_results, _ = self._run_partial_in_frame(
                     child_frame, axe_source, self._build_partial_script("args.context", "args.options"),
-                    {"context": frame_details["frameContext"], "options": options})
+                    {"context": frame_details["frameContext"], "options": options}, skipped_frames)
                 return child_results
 
             logger.warning(f"Frame [{frame_selector}] has no content available, so it has not been scanned.")
@@ -796,6 +811,8 @@ class Axe:
             if frame_handle:
                 frame_handle.dispose()
 
+        if skipped_frames is not None:
+            skipped_frames.append(str(frame_selector))
         return [None]
 
     def _get_url(self, response: Any, page: Page) -> str:
@@ -858,7 +875,12 @@ class Axe:
         filename_to_modify = filename_to_modify.rstrip("/")
         for item_to_remove in ["http://", "https://"]:
             filename_to_modify = filename_to_modify.replace(item_to_remove, "")
+        unsanitised = filename_to_modify
         filename_to_modify = re.sub(r'[^a-zA-Z0-9-_]', '_', filename_to_modify)
+
+        if len(filename_to_modify) > MAX_FILENAME_LENGTH:
+            digest = hashlib.sha256(unsanitised.encode("utf-8")).hexdigest()[:8]
+            filename_to_modify = f"{filename_to_modify[:MAX_FILENAME_LENGTH - len(digest) - 1]}_{digest}"
 
         return filename_to_modify
 
@@ -946,6 +968,10 @@ class Axe:
 
         return "\n\n".join(sections)
 
+    def _format_target(self, target: list) -> str:
+        """This provides each selector for an element on its own line, with a selector crossing a shadow root (a list in axe-core) shown host first."""
+        return "\n".join(" >> ".join(selector) if isinstance(selector, list) else str(selector) for selector in target)
+
     def _generate_violations_section(self, violations_data: list) -> str:
         """Generate the violations section of the HTML report."""
 
@@ -972,9 +998,9 @@ class Axe:
             html += f'''<tr>
                     <td style="text-align: center;">{violation_count}</td>
                     <td>{escape(violation['description'])}</td>
-                    <td><a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a></td>
+                    <td><a href="{violation['helpUrl']}" target="_blank">{escape(violation['id'])}</a></td>
                     <td>{self._wcag_tagging(violation['tags'])}</td>
-                    <td>{violation['impact']}</td>
+                    <td>{escape(str(violation['impact']))}</td>
                     <td style="text-align: center;">{len(violation['nodes'])}</td>
                     </tr>'''
 
@@ -989,17 +1015,17 @@ class Axe:
             for node in violation['nodes']:
                 violations_table += f'''<tr><td style="text-align: center;">{node_count}</td>
                                     <td><p>Element Location:</p>
-                                    <pre><code>{escape("<br>".join(node['target']))}</code></pre>
+                                    <pre><code>{escape(self._format_target(node['target']))}</code></pre>
                                     <p>HTML:</p><pre><code>{escape(node['html'])}</code></pre></td>
                                     <td>{escape(self._failure_summary(node)).replace("Fix any of the following:", "<strong>Fix any of the following:</strong><br />").replace("\n ", "<br /> &bullet;")}</td></tr>'''
                 node_count += 1
             violations_table += "</table>"
 
-            violation_section += f'''<table><tr><td style="width: 100%"><h3>{escape(violation['description'])}</h3>
-                                <p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{violation['id']}</a><br />
+            violation_section += f'''<table><tr><td style="width: 100%"><h3 id="violation-{escape(violation['id'])}">{escape(violation['description'])}</h3>
+                                <p><strong>Axe Rule ID:</strong> <a href="{violation['helpUrl']}" target="_blank">{escape(violation['id'])}</a><br />
                                 <strong>WCAG:</strong> {self._wcag_tagging(violation['tags'])}<br />
-                                <strong>Impact:</strong> {violation['impact']}<br />
-                                <strong>Tags:</strong> {", ".join(violation['tags'])}</p>
+                                <strong>Impact:</strong> {escape(str(violation['impact']))}<br />
+                                <strong>Tags:</strong> {escape(", ".join(violation['tags']))}</p>
                                 {violations_table}
                                 </td></tr></table>'''
 
@@ -1025,7 +1051,7 @@ class Axe:
             html += f'''<tr>
                     <td style="text-align: center;">{pass_count}</td>
                     <td>{escape(passed['description'])}</td>
-                    <td><a href="{passed['helpUrl']}" target="_blank">{passed['id']}</a></td>
+                    <td><a href="{passed['helpUrl']}" target="_blank">{escape(passed['id'])}</a></td>
                     <td>{self._wcag_tagging(passed['tags'])}</td>
                     <td style="text-align: center;">{len(passed['nodes'])}</td>
                     </tr>'''
@@ -1054,7 +1080,7 @@ class Axe:
             html += f'''<tr>
                     <td style="text-align: center;">{incomplete_count}</td>
                     <td>{escape(incomplete['description'])}</td>
-                    <td><a href="{incomplete['helpUrl']}" target="_blank">{incomplete['id']}</a></td>
+                    <td><a href="{incomplete['helpUrl']}" target="_blank">{escape(incomplete['id'])}</a></td>
                     <td>{self._wcag_tagging(incomplete['tags'])}</td>
                     <td style="text-align: center;">{len(incomplete['nodes'])}</td>
                     </tr>'''
@@ -1082,7 +1108,7 @@ class Axe:
             html += f'''<tr>
                     <td style="text-align: center;">{inapplicable_count}</td>
                     <td>{escape(inapplicable['description'])}</td>
-                    <td><a href="{inapplicable['helpUrl']}" target="_blank">{inapplicable['id']}</a></td>
+                    <td><a href="{inapplicable['helpUrl']}" target="_blank">{escape(inapplicable['id'])}</a></td>
                     <td>{self._wcag_tagging(inapplicable['tags'])}</td>
                     </tr>'''
 
@@ -1128,7 +1154,7 @@ class Axe:
         try:
             with open(snapshot_path, encoding='utf-8') as file:
                 snapshot_data = json.loads(file.read())
-        except json.JSONDecodeError as e:
+        except ValueError as e:
             logger.warning(f"Failed to parse snapshot file {snapshot_path}: {e}")
             return None
 
@@ -1139,6 +1165,14 @@ class Axe:
                 "to be the standard results, or those from the \"no-passes\" reporter), so has not been used.")
             return None
 
+        required_keys = {"id", "description", "impact", "tags", "nodes"}
+        if not all(isinstance(violation, dict) and required_keys <= violation.keys()
+                   for violation in snapshot_data["violations"]):
+            logger.warning(
+                f"Snapshot file {snapshot_path} has violations that are missing details needed for a comparison "
+                f"({', '.join(sorted(required_keys))}), so has not been used.")
+            return None
+
         return snapshot_data
 
     def _generate_changes_section(self, data: dict, snapshot_data: dict | None) -> str:
@@ -1147,11 +1181,16 @@ class Axe:
         if not snapshot_data:
             return ""
         
-        snapshot_timestamp = datetime.strptime(snapshot_data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")
+        try:
+            snapshot_date = datetime.strptime(
+                snapshot_data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")
+            snapshot_taken = f" taken on <strong>{snapshot_date}</strong>"
+        except (KeyError, TypeError, ValueError):
+            snapshot_taken = ""
         
         html = f"""<section class="changes-section">
         <h2>Changes Since Last Scan</h2>
-        <p><strong>Comparison:</strong> This report has been compared against a snapshot taken on <strong>{snapshot_timestamp}</strong>.</p>"""
+        <p><strong>Comparison:</strong> This report has been compared against a snapshot{snapshot_taken}.</p>"""
         
         changes = self._collect_all_changes(data, snapshot_data)
         
@@ -1270,13 +1309,14 @@ class Axe:
         """Generate a single row for the changes table."""
         change_indicator = f"+{change['change']}" if change['change'] > 0 else str(change['change'])
         row_class = f"class=\"{change['status_class']}\""
+        rule_id = escape(str(change['rule_id']))
         
         return f"""<tr {row_class}>
         <td><strong>{change['type']}</strong></td>
-        <td><a href="#violation-{change['rule_id']}" title="Jump to violation details">{change['rule_id']}</a></td>
+        <td><a href="#violation-{rule_id}" title="Jump to violation details">{rule_id}</a></td>
         <td>{escape(change['description'])}</td>
         <td>{change['wcag']}</td>
-        <td>{change['impact']}</td>
+        <td>{escape(str(change['impact']))}</td>
         <td style="text-align: center;">{change['previous_count']}</td>
         <td style="text-align: center;">{change['current_count']}</td>
         <td style="text-align: center;"><strong>{change_indicator}</strong></td>
@@ -1295,7 +1335,7 @@ class Axe:
         html += '<header role="banner"><h1>Axe Accessibility Report</h1>'
         html += f"""<p>This is an axe-core accessibility summary generated on
                     {datetime.strptime(data["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%Y-%m-%d %H:%M")}
-                    for: <strong>{data['url']}</strong></p></header><main role="main">"""
+                    for: <strong>{escape(data['url'])}</strong></p></header><main role="main">"""
 
         # Changes
         html += self._generate_changes_section(data, snapshot_data)
