@@ -1,3 +1,4 @@
-from .axe import Axe, AxeAccessibilityException, OPTIONS_WCAG_22AA
-__all__ = ["Axe", "AxeAccessibilityException", "OPTIONS_WCAG_22AA"]
+from .axe import OPTIONS_WCAG_22AA, Axe, AxeAccessibilityException
+
+__all__ = ["OPTIONS_WCAG_22AA", "Axe", "AxeAccessibilityException"]
 __version__ = "4.14.0"

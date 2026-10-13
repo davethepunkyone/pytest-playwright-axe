@@ -1,8 +1,10 @@
 import json
 import logging
 from unittest.mock import MagicMock
+
 import pytest
 from playwright.sync_api import Page
+
 from src.pytest_playwright_axe import Axe, AxeAccessibilityException
 
 # An image with no alternative text, which results in an image-alt violation
@@ -139,6 +141,69 @@ def test_generate_html_with_results_not_included() -> None:
     assert "No passed checks found" not in html
 
 
+def _violation(**overrides) -> dict:
+    violation = {"id": "rule", "description": "Description", "help": "Help", "helpUrl": "http://help.test/",
+                 "impact": "serious", "tags": ["wcag2a"],
+                 "nodes": [{"target": ["main"], "html": "<img>", "failureSummary": "Fix any of the following:\n  Fix it"}]}
+    return {**violation, **overrides}
+
+
+def test_format_target() -> None:
+    axe = Axe()
+
+    assert axe._format_target(["img"]) == "img"
+    assert axe._format_target(["iframe#payment", "form"]) == "iframe#payment\nform"
+    # A selector crossing a shadow root is a list of the host and then the element within it
+    assert axe._format_target(["iframe#payment", ["#host", "button"]]) == "iframe#payment\n#host >> button"
+
+
+def test_generate_html_with_an_element_in_a_shadow_root() -> None:
+    results = {**NO_PASSES_RESULTS, "violations": [_violation(
+        nodes=[{"target": [["#host", "button"]], "html": "<button>", "failureSummary": ""}])]}
+
+    html = Axe()._generate_html(results, "report")
+
+    assert "<pre><code>#host &gt;&gt; button</code></pre>" in html
+
+
+def test_generate_html_has_an_anchor_for_each_violation_that_the_changes_link_to() -> None:
+    snapshot_violation = _violation(nodes=[])
+    results = {**NO_PASSES_RESULTS, "violations": [_violation(nodes=[{"target": ["a"], "html": "", "failureSummary": ""}])]}
+    axe = Axe()
+
+    html = axe._generate_html(results, "report")
+    changes = axe._generate_changes_section(results, {"timestamp": "2024-11-04T16:14:57.934Z", "violations": [snapshot_violation]})
+
+    assert '<h3 id="violation-rule">' in html
+    assert 'href="#violation-rule"' in changes
+
+
+def test_generate_html_escapes_values_the_page_or_a_snapshot_can_provide() -> None:
+    results = {**NO_PASSES_RESULTS, "url": "data:text/html,<img src=x onerror=alert(1)>",
+               "violations": [_violation(id='"><script>1</script>', impact="<b>x</b>", tags=["<i>"])]}
+    axe = Axe()
+
+    html = axe._generate_html(results, "report")
+    changes = axe._generate_changes_section(
+        {**results, "violations": []},
+        {"timestamp": "2024-11-04T16:14:57.934Z", "violations": [_violation(id='"><script>2</script>', impact="<u>y</u>")]})
+
+    for markup in ["<img src=x", "<script>1</script>", "<b>x</b>", "<i>"]:
+        assert markup not in html
+    for markup in ["<script>2</script>", "<u>y</u>"]:
+        assert markup not in changes
+    assert "&lt;img src=x onerror=alert(1)&gt;" in html
+
+
+def test_generate_changes_section_without_a_usable_snapshot_timestamp() -> None:
+    results = {**NO_PASSES_RESULTS}
+
+    for snapshot in [{"violations": []}, {"timestamp": "yesterday", "violations": []}, {"timestamp": None, "violations": []}]:
+        changes = Axe()._generate_changes_section(results, snapshot)
+        assert "compared against a snapshot." in changes
+        assert "No changes detected" in changes
+
+
 def test_failure_summary_is_used_if_provided() -> None:
     assert Axe()._failure_summary({"failureSummary": "Provided", "any": [{"message": "Ignored"}]}) == "Provided"
 
@@ -186,6 +251,21 @@ def test_get_snapshot_data_without_violations(tmp_path, caplog: pytest.LogCaptur
         assert axe._get_snapshot_data("raw_env") is None
 
     assert caplog.text.count("does not contain the violations needed for a comparison") == 2
+
+
+def test_get_snapshot_data_with_violations_missing_details(tmp_path, caplog: pytest.LogCaptureFixture) -> None:
+    (tmp_path / "report.json").write_text(json.dumps({"violations": [{"id": "a"}]}))
+    (tmp_path / "not_a_violation.json").write_text(json.dumps({"violations": ["a"]}))
+    (tmp_path / "binary.json").write_bytes(b"\xff\xfe\x00")
+    axe = Axe(snapshot_directory=tmp_path)
+
+    with caplog.at_level(logging.WARNING):
+        assert axe._get_snapshot_data("report") is None
+        assert axe._get_snapshot_data("not_a_violation") is None
+        assert axe._get_snapshot_data("binary") is None
+
+    assert caplog.text.count("missing details needed for a comparison") == 2
+    assert caplog.text.count("Failed to parse snapshot file") == 1
 
 
 # Scanning using each reporter

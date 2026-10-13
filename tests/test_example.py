@@ -1,7 +1,9 @@
 from pathlib import Path
-from playwright.sync_api import Page
+
 import pytest
-from src.pytest_playwright_axe import Axe, OPTIONS_WCAG_22AA
+from playwright.sync_api import Page
+
+from src.pytest_playwright_axe import OPTIONS_WCAG_22AA, Axe
 
 
 def test_basic_example(page: Page) -> None:

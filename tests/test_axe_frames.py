@@ -2,10 +2,13 @@ import logging
 import time
 from pathlib import Path
 from unittest.mock import MagicMock
+
 import pytest
-from playwright.sync_api import (
-    Browser, BrowserContext, BrowserType, Page, Error as PlaywrightError, TimeoutError as PlaywrightTimeoutError)
-from src.pytest_playwright_axe import Axe
+from playwright.sync_api import Browser, BrowserContext, BrowserType, Page
+from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
+from src.pytest_playwright_axe import Axe, AxeAccessibilityException
 from src.pytest_playwright_axe.axe import FRAME_READY_TIMEOUT_MS
 
 NO_REPORTS = {"html_report_generated": False, "json_report_generated": False}
@@ -332,3 +335,65 @@ def test_run_partial_in_child_frame_with_no_content(caplog: pytest.LogCaptureFix
     assert results == [None]
     assert "Frame [iframe#empty] has no content available" in caplog.text
     parent_frame.evaluate_handle.return_value.dispose.assert_called_once()
+
+
+def test_run_partial_in_child_frame_records_the_frames_that_cannot_be_scanned() -> None:
+    unavailable_parent = MagicMock()
+    unavailable_parent.evaluate_handle.side_effect = PlaywrightError("Frame was detached")
+    empty_parent = MagicMock()
+    empty_parent.evaluate_handle.return_value.as_element.return_value = None
+    skipped_frames: list[str] = []
+
+    Axe()._run_partial_in_child_frame(
+        unavailable_parent, {"frameSelector": "iframe#gone", "frameContext": {}}, "", {}, skipped_frames)
+    Axe()._run_partial_in_child_frame(
+        empty_parent, {"frameSelector": ["#host", "iframe"], "frameContext": {}}, "", {}, skipped_frames)
+
+    assert skipped_frames == ["iframe#gone", "['#host', 'iframe']"]
+
+
+def test_run_partial_in_child_frame_does_not_record_a_frame_that_is_scanned() -> None:
+    child_frame = MagicMock()
+    child_frame.evaluate.return_value = {"partial": "{}", "frameContexts": [], "options": {}}
+    parent_frame = MagicMock()
+    parent_frame.evaluate_handle.return_value.as_element.return_value.content_frame.return_value = child_frame
+    skipped_frames: list[str] = []
+
+    results = Axe()._run_partial_in_child_frame(
+        parent_frame, {"frameSelector": "iframe", "frameContext": {}}, "", {}, skipped_frames)
+
+    assert results == ["{}"]
+    assert skipped_frames == []
+
+
+def test_run_in_strict_mode_fails_if_a_frame_could_not_be_scanned(monkeypatch: pytest.MonkeyPatch) -> None:
+    def run_axe(self, page, axe_source, context, options, skipped_frames=None):
+        skipped_frames.append("iframe#stalled")
+        return {"url": "http://top.test/", "timestamp": "2024-11-04T16:14:57.934Z",
+                "violations": [], "passes": [], "incomplete": [], "inapplicable": []}
+
+    monkeypatch.setattr(Axe, "_run_axe", run_axe)
+
+    with pytest.raises(AxeAccessibilityException, match="incomplete.*iframe#stalled"):
+        Axe().run(MagicMock(), strict_mode=True, **NO_REPORTS)
+    # The scan still completes if strict_mode is not used
+    assert Axe().run(MagicMock(), **NO_REPORTS)["violations"] == []
+
+
+def test_run_in_strict_mode_fails_for_a_frame_that_never_finishes_loading(
+        routed_page: Page, monkeypatch: pytest.MonkeyPatch) -> None:
+    stalled_requests = []
+    routed_page.context.route("http://stall.test/**", lambda route: stalled_requests.append(route))
+    monkeypatch.setattr("src.pytest_playwright_axe.axe.FRAME_READY_TIMEOUT_MS", 1000)
+
+    try:
+        routed_page.goto("http://top.test/stalled", wait_until="domcontentloaded")
+
+        with pytest.raises(AxeAccessibilityException, match="iframe"):
+            Axe().run(routed_page, strict_mode=True, options={"rules": {"image-alt": {"enabled": False}}}, **NO_REPORTS)
+    finally:
+        for route in stalled_requests:
+            try:
+                route.abort()
+            except PlaywrightError:
+                pass

@@ -1,11 +1,12 @@
 import json
-import pytest
 import os
 from pathlib import Path
-from src.pytest_playwright_axe import Axe, AxeAccessibilityException
-from src.pytest_playwright_axe.axe import DEFAULT_CSS_PATH
+
+import pytest
 from playwright.sync_api import Locator
 
+from src.pytest_playwright_axe import Axe, AxeAccessibilityException
+from src.pytest_playwright_axe.axe import DEFAULT_CSS_PATH, MAX_FILENAME_LENGTH
 
 AXE_REPORTS_DIR = Path(__file__).parent.parent / "axe-reports"
 
@@ -60,6 +61,16 @@ def test_modify_filename_for_report() -> None:
 def test_empty_filename_for_report() -> None:
     with pytest.raises(AxeAccessibilityException):
         Axe()._modify_filename_for_report('')
+
+
+def test_long_filename_for_report_is_shortened_and_stays_unique() -> None:
+    first = Axe()._modify_filename_for_report("https://www.test.com/search?q=" + "a" * 300)
+    second = Axe()._modify_filename_for_report("https://www.test.com/search?q=" + "a" * 300 + "b")
+
+    assert len(first) == MAX_FILENAME_LENGTH
+    assert first.startswith("www_test_com_search_q_aaa")
+    assert first != second
+    assert first == Axe()._modify_filename_for_report("https://www.test.com/search?q=" + "a" * 300)
 
 
 def test_create_path_for_report() -> None:
@@ -132,7 +143,7 @@ def test_generate_violations_section_no_data() -> None:
 def test_generate_violations_section_with_data() -> None:
     test_data = [{"id": "test3", "impact": "high", "tags": ["cat.keyboard", "best-test"], "description": "test", "help": "test", "helpUrl": "test url", "nodes": []}]
     results = Axe()._generate_violations_section(test_data)
-    assert results == '<h2>Violations Found</h2><p>1 violations found.</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 53%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 15%">WCAG</th><th style="width: 10%">Impact</th><th style="text-align: center; width: 5%">Count</th><tr>\n                    <td style="text-align: center;">1</td>\n                    <td>test</td>\n                    <td><a href="test url" target="_blank">test3</a></td>\n                    <td></td>\n                    <td>high</td>\n                    <td style="text-align: center;">0</td>\n                    </tr></table><table><tr><td style="width: 100%"><h3>test</h3>\n                                <p><strong>Axe Rule ID:</strong> <a href="test url" target="_blank">test3</a><br />\n                                <strong>WCAG:</strong> <br />\n                                <strong>Impact:</strong> high<br />\n                                <strong>Tags:</strong> cat.keyboard, best-test</p>\n                                <table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th></table>\n                                </td></tr></table>'
+    assert results == '<h2>Violations Found</h2><p>1 violations found.</p><table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 53%">Description</th><th style="width: 15%">Axe Rule ID</th><th style="width: 15%">WCAG</th><th style="width: 10%">Impact</th><th style="text-align: center; width: 5%">Count</th><tr>\n                    <td style="text-align: center;">1</td>\n                    <td>test</td>\n                    <td><a href="test url" target="_blank">test3</a></td>\n                    <td></td>\n                    <td>high</td>\n                    <td style="text-align: center;">0</td>\n                    </tr></table><table><tr><td style="width: 100%"><h3 id="violation-test3">test</h3>\n                                <p><strong>Axe Rule ID:</strong> <a href="test url" target="_blank">test3</a><br />\n                                <strong>WCAG:</strong> <br />\n                                <strong>Impact:</strong> high<br />\n                                <strong>Tags:</strong> cat.keyboard, best-test</p>\n                                <table><tr><th style="text-align: center; width: 2%">#</th><th style="width: 49%">Description</th><th style="width: 49%">Fix Information</th></table>\n                                </td></tr></table>'
 
 
 def test_generate_passed_section_no_data() -> None:

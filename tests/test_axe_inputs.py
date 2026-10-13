@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import ElementHandle, Page
-from src.pytest_playwright_axe import Axe, AxeAccessibilityException, OPTIONS_WCAG_22AA
+
+from src.pytest_playwright_axe import OPTIONS_WCAG_22AA, Axe, AxeAccessibilityException
 from src.pytest_playwright_axe.axe import _fill_template
 
 NO_REPORTS = {"html_report_generated": False, "json_report_generated": False}
