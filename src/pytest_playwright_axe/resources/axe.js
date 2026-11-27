@@ -1,4 +1,4 @@
-/*! axe v4.14.0
+/*! axe v4.14.1
  * Copyright (c) 2015 - 2026 Deque Systems, Inc.
  *
  * Your use of this Source Code Form is subject to the terms of the Mozilla Public
@@ -22,7 +22,7 @@
     }, _typeof(o);
   }
   var axe = axe || {};
-  axe.version = '4.14.0';
+  axe.version = '4.14.1';
   if (typeof define === 'function' && define.amd) {
     define('axe-core', [], function() {
       return axe;
@@ -2101,10 +2101,10 @@
       var SHARED = '__core-js_shared__';
       var store = module.exports = globalThis2[SHARED] || defineGlobalProperty(SHARED, {});
       (store.versions || (store.versions = [])).push({
-        version: '3.50.0',
+        version: '3.51.0',
         mode: IS_PURE ? 'pure' : 'global',
         copyright: '\xa9 2013\u20132025 Denis Pushkarev (zloirock.ru), 2025\u20132026 CoreJS Company (core-js.io). All rights reserved.',
-        license: 'https://github.com/zloirock/core-js/blob/v3.50.0/LICENSE',
+        license: 'https://github.com/zloirock/core-js/blob/v3.51.0/LICENSE',
         source: 'https://github.com/zloirock/core-js'
       });
     });
@@ -15597,6 +15597,51 @@
         return _matchesExpression(vNode, expression);
       });
     }
+    function _convertSelector(selector) {
+      var expressions = css_parser_default.parse(selector);
+      expressions = expressions.selectors ? expressions.selectors : [ expressions ];
+      return convertExpressions(expressions);
+    }
+    function _matchesExpression(vNode, expressions) {
+      expressions = Array.isArray(expressions) ? expressions : [ expressions ];
+      var index = expressions.length - 1;
+      if (!matchExpression(vNode, expressions[index])) {
+        return false;
+      }
+      var lastDescendantMatch = {
+        index: index,
+        vNode: vNode
+      };
+      index--;
+      vNode = vNode.parent;
+      while (index >= 0 && index < expressions.length - 1 && vNode) {
+        var expression = expressions[index];
+        var combinator = expressions[index + 1].combinator;
+        var matched = matchExpression(vNode, expression);
+        if (matched) {
+          if (combinator === ' ') {
+            lastDescendantMatch.index = index;
+            lastDescendantMatch.vNode = vNode;
+          }
+          index--;
+          vNode = vNode.parent;
+          continue;
+        }
+        if ([ ' ', '>' ].includes(combinator) === false) {
+          throw new Error('axe.commons.dom.query does not support the combinator: ' + combinator);
+        }
+        if (combinator === ' ') {
+          vNode = vNode.parent;
+        } else {
+          index = lastDescendantMatch.index;
+          vNode = lastDescendantMatch.vNode.parent;
+        }
+      }
+      return index < 0;
+    }
+    function matchExpression(vNode, expression) {
+      return matchesTag(vNode, expression) && matchesClasses(vNode, expression) && matchesAttributes(vNode, expression) && matchesId(vNode, expression) && matchesPseudos(vNode, expression);
+    }
     function matchesTag(vNode, exp2) {
       return vNode.props.nodeType === 1 && (exp2.tag === '*' || vNode.props.nodeName === exp2.tag);
     }
@@ -15630,9 +15675,6 @@
         return true;
       }
       return false;
-    }
-    function matchExpression(vNode, expression) {
-      return matchesTag(vNode, expression) && matchesClasses(vNode, expression) && matchesAttributes(vNode, expression) && matchesId(vNode, expression) && matchesPseudos(vNode, expression);
     }
     var escapeRegExp = function() {
       var from = /(?=[\-\[\]{}()*+?.\\\^$|,#\s])/g;
@@ -15755,33 +15797,6 @@
         }
         return newExp;
       });
-    }
-    function _convertSelector(selector) {
-      var expressions = css_parser_default.parse(selector);
-      expressions = expressions.selectors ? expressions.selectors : [ expressions ];
-      return convertExpressions(expressions);
-    }
-    function optimizedMatchesExpression(vNode, expressions, index, matchAnyParent) {
-      if (!vNode) {
-        return false;
-      }
-      var isArray = Array.isArray(expressions);
-      var expression = isArray ? expressions[index] : expressions;
-      var machedExpression = matchExpression(vNode, expression);
-      while (!machedExpression && matchAnyParent && vNode.parent) {
-        vNode = vNode.parent;
-        machedExpression = matchExpression(vNode, expression);
-      }
-      if (index > 0) {
-        if ([ ' ', '>' ].includes(expression.combinator) === false) {
-          throw new Error('axe.utils.matchesExpression does not support the combinator: ' + expression.combinator);
-        }
-        machedExpression = machedExpression && optimizedMatchesExpression(vNode.parent, expressions, index - 1, expression.combinator === ' ');
-      }
-      return machedExpression;
-    }
-    function _matchesExpression(vNode, expressions, matchAnyParent) {
-      return optimizedMatchesExpression(vNode, expressions, expressions.length - 1, matchAnyParent);
     }
     function closest(vNode, selector) {
       while (vNode) {
@@ -16085,9 +16100,14 @@
     function assetNotGlobalWindow(win) {
       assert_default(window !== win, 'Messages can not be sent to the same window.');
     }
-    var channels = {};
+    var getChannels = function getChannels() {
+      return cache_default.get('frameMessengerChannels', function() {
+        return {};
+      });
+    };
     function storeReplyHandler(channelId, replyHandler) {
       var sendToParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      var channels = getChannels();
       assert_default(!Object.prototype.hasOwnProperty.call(channels, channelId), 'A replyHandler already exists for this message channel.');
       channels[channelId] = {
         replyHandler: replyHandler,
@@ -16095,10 +16115,11 @@
       };
     }
     function getReplyHandler(channelId) {
+      var channels = getChannels();
       return Object.prototype.hasOwnProperty.call(channels, channelId) ? channels[channelId] : void 0;
     }
     function deleteReplyHandler(channelId) {
-      delete channels[channelId];
+      delete getChannels()[channelId];
     }
     var messageIds = [];
     function createMessageId() {
@@ -19575,6 +19596,9 @@
     var ROOT_LEVEL = 0;
     var FLOAT_LEVEL = .1;
     var DEFAULT_LEVEL = .2;
+    var CONTAINING_BLOCK_PROPERTIES = [ 'transform', 'translate', 'rotate', 'scale', 'perspective', 'filter', 'backdrop-filter' ];
+    var CONTAINING_BLOCK_CONTAIN_VALUES = [ 'layout', 'paint', 'strict', 'content' ];
+    var CONTAINING_BLOCK_WILL_CHANGE_PROPERTIES = [].concat(CONTAINING_BLOCK_PROPERTIES, [ 'transform-style', 'contain' ]);
     var nodeIndex = 0;
     function _createGrid() {
       var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document.body;
@@ -19601,6 +19625,7 @@
       var treeWalker = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT, null, false);
       var node = parentVNode ? treeWalker.nextNode() : treeWalker.currentNode;
       while (node) {
+        var _getGrid;
         var _vNode = get_node_from_tree_default(node);
         if (_vNode && _vNode.parent) {
           parentVNode = _vNode.parent;
@@ -19615,8 +19640,7 @@
           _vNode = new axe.VirtualNode(node, parentVNode);
         }
         _vNode._stackingOrder = createStackingOrder(_vNode, parentVNode, nodeIndex++);
-        var scrollRegionParent = findScrollRegionParent(parentVNode);
-        var grid = scrollRegionParent ? scrollRegionParent._subGrid : rootGrid;
+        var grid = (_getGrid = getGrid(_vNode)) !== null && _getGrid !== void 0 ? _getGrid : rootGrid;
         if (_getScroll(_vNode.actualNode)) {
           var _subGrid = new Grid(_vNode);
           _vNode._subGrid = _subGrid;
@@ -19751,17 +19775,79 @@
       }
       return vNode.getComputedStylePropertyValue('z-index');
     }
-    var findScrollRegionParent = memoize_default(function findScrollRegionParentMemoized(parentVNode) {
-      if (!parentVNode) {
+    var getGrid = memoize_default(function getGridMemoized(vNode) {
+      var _ref69, _anchor$_subGrid;
+      var position = vNode.getComputedStylePropertyValue('position');
+      if (position === 'fixed') {
+        return cache_default.get('fixedGrid', function() {
+          return new Grid(get_node_from_tree_default(document.documentElement));
+        });
+      }
+      var anchor = getParent(vNode);
+      if (!anchor) {
         return null;
       }
-      if (_getScroll(parentVNode.actualNode)) {
-        return parentVNode;
+      if (position === 'absolute') {
+        anchor = getContainingBlock(anchor);
       }
-      return findScrollRegionParent(get_node_from_tree_default(parentVNode.actualNode.parentElement || parentVNode.actualNode.parentNode));
+      return (_ref69 = (_anchor$_subGrid = anchor._subGrid) !== null && _anchor$_subGrid !== void 0 ? _anchor$_subGrid : anchor._grid) !== null && _ref69 !== void 0 ? _ref69 : getGrid(anchor);
     }, {
       primitive: true
     });
+    var getContainingBlock = memoize_default(function getContainingBlockMemoized(vNode) {
+      var parent = getParent(vNode);
+      if (!parent || isAbsolutePositioningContainingBox(vNode)) {
+        return vNode;
+      }
+      return getContainingBlock(parent);
+    }, {
+      primitive: true
+    });
+    function getParent(vNode) {
+      if (vNode.parent) {
+        return vNode.parent;
+      }
+      return get_node_from_tree_default(vNode.actualNode.parentElement || vNode.actualNode.parentNode);
+    }
+    function isAbsolutePositioningContainingBox(vNode) {
+      if (vNode.getComputedStylePropertyValue('position') !== 'static') {
+        return true;
+      }
+      if (getWillChange(vNode).includes('position')) {
+        return true;
+      }
+      return isFixedPositioningContainingBox(vNode);
+    }
+    function isFixedPositioningContainingBox(vNode) {
+      var hasContainingBlockProperty = CONTAINING_BLOCK_PROPERTIES.some(function(property) {
+        var value = vNode.getComputedStylePropertyValue(property);
+        return value && value !== 'none';
+      });
+      if (hasContainingBlockProperty) {
+        return true;
+      }
+      if (vNode.getComputedStylePropertyValue('transform-style') === 'preserve-3d') {
+        return true;
+      }
+      var contain = vNode.getComputedStylePropertyValue('contain').split(' ');
+      if (contain.some(function(value) {
+        return CONTAINING_BLOCK_CONTAIN_VALUES.includes(value);
+      })) {
+        return true;
+      }
+      var contentVisibility = vNode.getComputedStylePropertyValue('content-visibility');
+      if (contentVisibility && contentVisibility !== 'visible') {
+        return true;
+      }
+      return getWillChange(vNode).some(function(property) {
+        return CONTAINING_BLOCK_WILL_CHANGE_PROPERTIES.includes(property);
+      });
+    }
+    function getWillChange(vNode) {
+      return vNode.getComputedStylePropertyValue('will-change').split(',').map(function(property) {
+        return property.trim();
+      });
+    }
     function addNodeToGrid(grid, vNode) {
       var overflowHiddenNodes = get_overflow_hidden_ancestors_default(vNode);
       vNode.clientRects.forEach(function(clientRect) {
@@ -19795,9 +19881,9 @@
         }
       }, {
         key: 'getCellFromPoint',
-        value: function getCellFromPoint(_ref69) {
+        value: function getCellFromPoint(_ref70) {
           var _this$cells, _row;
-          var x = _ref69.x, y = _ref69.y;
+          var x = _ref70.x, y = _ref70.y;
           assert_default(this.boundaries, 'Grid does not have cells added');
           var rowIndex = this.toGridIndex(y);
           var colIndex = this.toGridIndex(x);
@@ -19827,8 +19913,8 @@
         }
       }, {
         key: 'getGridPositionOfRect',
-        value: function getGridPositionOfRect(_ref70) {
-          var top = _ref70.top, right = _ref70.right, bottom = _ref70.bottom, left = _ref70.left;
+        value: function getGridPositionOfRect(_ref71) {
+          var top = _ref71.top, right = _ref71.right, bottom = _ref71.bottom, left = _ref71.left;
           var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
           top = this.toGridIndex(top - margin);
           right = this.toGridIndex(right + margin - 1);
@@ -19863,13 +19949,12 @@
     function _findNearbyElms(vNode) {
       var _grid$cells;
       var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-      var _ref71 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {}, _ref71$withinMargin = _ref71.withinMargin, withinMargin = _ref71$withinMargin === void 0 ? false : _ref71$withinMargin;
+      var _ref72 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {}, _ref72$withinMargin = _ref72.withinMargin, withinMargin = _ref72$withinMargin === void 0 ? false : _ref72$withinMargin;
       var grid = _getNodeGrid(vNode);
       if (!(grid !== null && grid !== void 0 && (_grid$cells = grid.cells) !== null && _grid$cells !== void 0 && _grid$cells.length)) {
         return [];
       }
       var rect = vNode.boundingClientRect;
-      var selfIsFixed = _isFixedPosition(vNode);
       var gridPosition = grid.getGridPositionOfRect(rect, margin);
       var marginRect = withinMargin ? new window.DOMRect(rect.left - margin, rect.top - margin, rect.width + margin * 2, rect.height + margin * 2) : null;
       var neighbors = [];
@@ -19878,7 +19963,7 @@
         try {
           for (_iterator13.s(); !(_step13 = _iterator13.n()).done; ) {
             var vNeighbor = _step13.value;
-            if (vNeighbor && vNeighbor !== vNode && (!marginRect || _getIntersectionRect(marginRect, vNeighbor.boundingClientRect)) && !neighbors.includes(vNeighbor) && selfIsFixed === _isFixedPosition(vNeighbor)) {
+            if (vNeighbor && vNeighbor !== vNode && (!marginRect || _getIntersectionRect(marginRect, vNeighbor.boundingClientRect)) && !neighbors.includes(vNeighbor)) {
               neighbors.push(vNeighbor);
             }
           }
@@ -19916,7 +20001,7 @@
       }
       return (_dialogs$find = dialogs.find(function(dialog) {
         var _getNodeFromGrid;
-        var _ref72 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref72.vNode, rect = _ref72.rect;
+        var _ref73 = (_getNodeFromGrid = getNodeFromGrid(dialog)) !== null && _getNodeFromGrid !== void 0 ? _getNodeFromGrid : {}, vNode = _ref73.vNode, rect = _ref73.rect;
         if (!vNode) {
           return false;
         }
@@ -19957,7 +20042,7 @@
       }
     }
     function _isInert(vNode) {
-      var _ref73 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref73.skipAncestors, isAncestor = _ref73.isAncestor;
+      var _ref74 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, skipAncestors = _ref74.skipAncestors, isAncestor = _ref74.isAncestor;
       if (skipAncestors) {
         return isInertSelf(vNode, isAncestor);
       }
@@ -20316,7 +20401,7 @@
     }
     function getIdrefsValue(vNode, attr) {
       var _standards_default$ar;
-      var _ref74 = (_standards_default$ar = standards_default.ariaAttrs[attr]) !== null && _standards_default$ar !== void 0 ? _standards_default$ar : {}, prop = _ref74.prop;
+      var _ref75 = (_standards_default$ar = standards_default.ariaAttrs[attr]) !== null && _standards_default$ar !== void 0 ? _standards_default$ar : {}, prop = _ref75.prop;
       if (prop && vNode.actualNode) {
         var propValue = vNode.actualNode[prop];
         if (propValue !== null && propValue !== void 0) {
@@ -20491,7 +20576,7 @@
     }
     var is_unsupported_role_default = isUnsupportedRole;
     function isValidRole(role) {
-      var _ref75 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref75.allowAbstract, _ref75$flagUnsupporte = _ref75.flagUnsupported, flagUnsupported = _ref75$flagUnsupporte === void 0 ? false : _ref75$flagUnsupporte;
+      var _ref76 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, allowAbstract = _ref76.allowAbstract, _ref76$flagUnsupporte = _ref76.flagUnsupported, flagUnsupported = _ref76$flagUnsupporte === void 0 ? false : _ref76$flagUnsupporte;
       var roleDefinition = standards_default.ariaRoles[role];
       var isRoleUnsupported = is_unsupported_role_default(role);
       if (!roleDefinition || flagUnsupported && isRoleUnsupported) {
@@ -20501,7 +20586,7 @@
     }
     var is_valid_role_default = isValidRole;
     function getExplicitRole(vNode) {
-      var _ref76 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref76.fallback, abstracts = _ref76.abstracts, dpub = _ref76.dpub;
+      var _ref77 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, fallback = _ref77.fallback, abstracts = _ref77.abstracts, dpub = _ref77.dpub;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -20622,7 +20707,7 @@
         return 'col';
       } else if (role === 'rowheader') {
         return 'row';
-      } else if (scope === 'col' || scope === 'row') {
+      } else if ([ 'col', 'row', 'colgroup', 'rowgroup' ].includes(scope)) {
         return scope;
       } else if (vNode.props.nodeName !== 'th') {
         return false;
@@ -20648,11 +20733,11 @@
       return 'auto';
     }
     function isColumnHeader(element) {
-      return [ 'col', 'auto' ].indexOf(_getScope(element)) !== -1;
+      return [ 'col', 'colgroup', 'auto' ].indexOf(_getScope(element)) !== -1;
     }
     var is_column_header_default = isColumnHeader;
     function isRowHeader(cell) {
-      return [ 'row', 'auto' ].includes(_getScope(cell));
+      return [ 'row', 'rowgroup', 'auto' ].includes(_getScope(cell));
     }
     var is_row_header_default = isRowHeader;
     function sanitize(str) {
@@ -20675,7 +20760,7 @@
       });
     };
     function hasAccessibleName(vNode) {
-      var _ref77 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref77$checkTitle = _ref77.checkTitle, checkTitle = _ref77$checkTitle === void 0 ? false : _ref77$checkTitle;
+      var _ref78 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref78$checkTitle = _ref78.checkTitle, checkTitle = _ref78$checkTitle === void 0 ? false : _ref78$checkTitle;
       return !!(sanitize_default(arialabelledby_text_default(vNode)) || sanitize_default(_arialabelText(vNode)) || checkTitle && (vNode === null || vNode === void 0 ? void 0 : vNode.props.nodeType) === 1 && sanitize_default(vNode.attr('title')));
     }
     var implicitHtmlRoles = {
@@ -20830,16 +20915,13 @@
       }
       return matcher === someString;
     }
-    function fromPrimative(someString, matcher) {
-      return fromPrimitive(someString, matcher);
-    }
     function fromFunction(getValue, matcher) {
       var matcherType = _typeof(matcher);
       if (matcherType !== 'object' || Array.isArray(matcher) || matcher instanceof RegExp) {
         throw new Error('Expect matcher to be an object');
       }
       return Object.keys(matcher).every(function(propName) {
-        return fromPrimative(getValue(propName), matcher[propName]);
+        return fromPrimitive(getValue(propName), matcher[propName]);
       });
     }
     var from_function_default = fromFunction;
@@ -20854,11 +20936,11 @@
       return !!matcher(arg);
     }
     function explicitRole(vNode, matcher) {
-      return fromPrimative(get_explicit_role_default(vNode), matcher);
+      return fromPrimitive(get_explicit_role_default(vNode), matcher);
     }
     var explicit_role_default = explicitRole;
     function hasAccessibleName2(vNode, matcher) {
-      return fromPrimative(!!_accessibleTextVirtual(vNode), matcher);
+      return fromPrimitive(!!_accessibleTextVirtual(vNode), matcher);
     }
     var has_accessible_name_default = hasAccessibleName2;
     function hasChild(vNode, selector) {
@@ -20867,7 +20949,7 @@
       });
     }
     function implicitRole(vNode, matcher) {
-      return fromPrimative(implicit_role_default(vNode), matcher);
+      return fromPrimitive(implicit_role_default(vNode), matcher);
     }
     var implicit_role_default2 = implicitRole;
     var sectioningRoles = [ 'article', 'complementary', 'main', 'navigation', 'region' ];
@@ -20890,30 +20972,30 @@
           role = vNode.elementInternals.role;
         }
         if (!role && sectioningElms.includes(nodeName2) || sectioningRoles.includes(role)) {
-          return fromPrimative(true, matcher);
+          return fromPrimitive(true, matcher);
         }
         if (typeof vNode.parent === 'undefined') {
           throw new TypeError('Cannot resolve parent for non-DOM nodes');
         }
         vNode = vNode.parent;
       }
-      return fromPrimative(false, matcher);
+      return fromPrimitive(false, matcher);
     }
     function isSummaryForDetails(vNode, matcher) {
       if (typeof vNode.parent === 'undefined') {
         throw new TypeError('Cannot resolve parent for non-DOM nodes');
       }
       if (!vNode.parent || vNode.parent.props.nodeName !== 'details') {
-        return fromPrimative(false, matcher);
+        return fromPrimitive(false, matcher);
       }
       var firstMatch = vNode.parent.children.find(function(node) {
         return node.props.nodeName === 'summary';
       });
-      return fromPrimative(firstMatch === vNode, matcher);
+      return fromPrimitive(firstMatch === vNode, matcher);
     }
     function nodeName(vNode, matcher) {
       vNode = _nodeLookup(vNode).vNode;
-      return fromPrimative(vNode.props.nodeName, matcher);
+      return fromPrimitive(vNode.props.nodeName, matcher);
     }
     var node_name_default = nodeName;
     function properties(vNode, matcher) {
@@ -20924,7 +21006,7 @@
     }
     var properties_default = properties;
     function semanticRole(vNode, matcher) {
-      return fromPrimative(get_role_default(vNode), matcher);
+      return fromPrimitive(get_role_default(vNode), matcher);
     }
     var semantic_role_default = semanticRole;
     var matchers = {
@@ -20960,6 +21042,9 @@
       });
     }
     var from_definition_default = fromDefinition;
+    function fromPrimative(someString, matcher) {
+      return fromPrimitive(someString, matcher);
+    }
     function matches2(vNode, definition) {
       return from_definition_default(vNode, definition);
     }
@@ -20981,7 +21066,7 @@
     matches_default.semanticRole = semantic_role_default;
     var matches_default2 = matches_default;
     function getElementSpec(vNode) {
-      var _ref78 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref78$noMatchAccessi = _ref78.noMatchAccessibleName, noMatchAccessibleName = _ref78$noMatchAccessi === void 0 ? false : _ref78$noMatchAccessi;
+      var _ref79 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref79$noMatchAccessi = _ref79.noMatchAccessibleName, noMatchAccessibleName = _ref79$noMatchAccessi === void 0 ? false : _ref79$noMatchAccessi;
       var standard = standards_default.htmlElms[vNode.props.nodeName];
       if (!standard) {
         return {};
@@ -21019,7 +21104,7 @@
     var get_element_spec_default = getElementSpec;
     function implicitRole2(node) {
       var _vNode$elementInterna2;
-      var _ref79 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref79.chromium;
+      var _ref80 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, chromium = _ref80.chromium;
       var _nodeLookup14 = _nodeLookup(node), vNode = _nodeLookup14.vNode;
       if (!vNode) {
         throw new ReferenceError('Cannot get implicit role of a node outside the current scope.');
@@ -21074,8 +21159,8 @@
       }
       return getInheritedRole(vNode.parent, explicitRoleOptions);
     }
-    function resolveImplicitRole(vNode, _ref80) {
-      var chromium = _ref80.chromium, explicitRoleOptions = _objectWithoutProperties(_ref80, _excluded1);
+    function resolveImplicitRole(vNode, _ref81) {
+      var chromium = _ref81.chromium, explicitRoleOptions = _objectWithoutProperties(_ref81, _excluded1);
       var implicitRole3 = implicit_role_default(vNode, {
         chromium: chromium
       });
@@ -21095,8 +21180,8 @@
       return hasGlobalAria || _isFocusable(vNode);
     }
     function resolveRole(node) {
-      var _ref81 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noImplicit = _ref81.noImplicit, roleOptions = _objectWithoutProperties(_ref81, _excluded10);
+      var _ref82 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noImplicit = _ref82.noImplicit, roleOptions = _objectWithoutProperties(_ref82, _excluded10);
       var _nodeLookup15 = _nodeLookup(node), vNode = _nodeLookup15.vNode;
       if (vNode.props.nodeType !== 1) {
         return null;
@@ -21117,8 +21202,8 @@
       return explicitRole2;
     }
     function getRole(node) {
-      var _ref82 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var noPresentational = _ref82.noPresentational, options = _objectWithoutProperties(_ref82, _excluded11);
+      var _ref83 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var noPresentational = _ref83.noPresentational, options = _objectWithoutProperties(_ref83, _excluded11);
       var role = resolveRole(node, options);
       if (noPresentational && [ 'presentation', 'none' ].includes(role)) {
         return null;
@@ -21139,7 +21224,7 @@
     }
     var title_text_default = titleText;
     function namedFromContents(vNode) {
-      var _ref83 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref83.strict;
+      var _ref84 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, strict = _ref84.strict;
       vNode = vNode instanceof abstract_virtual_node_default ? vNode : get_node_from_tree_default(vNode);
       if (vNode.props.nodeType !== 1) {
         return false;
@@ -21613,8 +21698,8 @@
     function attrText(attr, vNode) {
       return vNode.attr(attr) || '';
     }
-    function descendantText(nodeName2, _ref84, context) {
-      var actualNode = _ref84.actualNode;
+    function descendantText(nodeName2, _ref85, context) {
+      var actualNode = _ref85.actualNode;
       nodeName2 = nodeName2.toLowerCase();
       var nodeNames2 = [ nodeName2, actualNode.nodeName.toLowerCase() ].join(',');
       var candidate = actualNode.querySelector(nodeNames2);
@@ -21779,7 +21864,7 @@
       locations: [ 'billing', 'shipping' ]
     };
     function isValidAutocomplete(autocompleteValue) {
-      var _ref85 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref85$looseTyped = _ref85.looseTyped, looseTyped = _ref85$looseTyped === void 0 ? false : _ref85$looseTyped, _ref85$stateTerms = _ref85.stateTerms, stateTerms = _ref85$stateTerms === void 0 ? [] : _ref85$stateTerms, _ref85$locations = _ref85.locations, locations = _ref85$locations === void 0 ? [] : _ref85$locations, _ref85$qualifiers = _ref85.qualifiers, qualifiers = _ref85$qualifiers === void 0 ? [] : _ref85$qualifiers, _ref85$standaloneTerm = _ref85.standaloneTerms, standaloneTerms = _ref85$standaloneTerm === void 0 ? [] : _ref85$standaloneTerm, _ref85$qualifiedTerms = _ref85.qualifiedTerms, qualifiedTerms = _ref85$qualifiedTerms === void 0 ? [] : _ref85$qualifiedTerms, _ref85$ignoredValues = _ref85.ignoredValues, ignoredValues = _ref85$ignoredValues === void 0 ? [] : _ref85$ignoredValues;
+      var _ref86 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref86$looseTyped = _ref86.looseTyped, looseTyped = _ref86$looseTyped === void 0 ? false : _ref86$looseTyped, _ref86$stateTerms = _ref86.stateTerms, stateTerms = _ref86$stateTerms === void 0 ? [] : _ref86$stateTerms, _ref86$locations = _ref86.locations, locations = _ref86$locations === void 0 ? [] : _ref86$locations, _ref86$qualifiers = _ref86.qualifiers, qualifiers = _ref86$qualifiers === void 0 ? [] : _ref86$qualifiers, _ref86$standaloneTerm = _ref86.standaloneTerms, standaloneTerms = _ref86$standaloneTerm === void 0 ? [] : _ref86$standaloneTerm, _ref86$qualifiedTerms = _ref86.qualifiedTerms, qualifiedTerms = _ref86$qualifiedTerms === void 0 ? [] : _ref86$qualifiedTerms, _ref86$ignoredValues = _ref86.ignoredValues, ignoredValues = _ref86$ignoredValues === void 0 ? [] : _ref86$ignoredValues;
       autocompleteValue = autocompleteValue.toLowerCase().trim();
       stateTerms = stateTerms.concat(_autocomplete.stateTerms);
       if (stateTerms.includes(autocompleteValue) || autocompleteValue === '') {
@@ -22049,8 +22134,8 @@
       if (hiddenTextElms.includes(elm.props.nodeName)) {
         return false;
       }
-      return elm.children.some(function(_ref86) {
-        var props = _ref86.props;
+      return elm.children.some(function(_ref87) {
+        var props = _ref87.props;
         return props.nodeType === 3 && props.nodeValue.trim();
       });
     }
@@ -22164,7 +22249,7 @@
     var blockLike = [ 'block', 'list-item', 'table', 'flex', 'grid' ];
     var inlineBlockLike = [ 'inline-block', 'inline-flex', 'inline-grid' ];
     function isInTextBlock(node) {
-      var _ref87 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref87.noLengthCompare, _ref87$includeInlineB = _ref87.includeInlineBlock, includeInlineBlock = _ref87$includeInlineB === void 0 ? false : _ref87$includeInlineB;
+      var _ref88 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, noLengthCompare = _ref88.noLengthCompare, _ref88$includeInlineB = _ref88.includeInlineBlock, includeInlineBlock = _ref88$includeInlineB === void 0 ? false : _ref88$includeInlineB;
       var _nodeLookup27 = _nodeLookup(node), vNode = _nodeLookup27.vNode, domNode = _nodeLookup27.domNode;
       if (isBlock(domNode) || !includeInlineBlock && isInlineBlockLike(vNode)) {
         return false;
@@ -22199,7 +22284,7 @@
             inBrBlock = 2;
           }
         }
-        if (nodeIsBlock || currNode.style.display === 'none' || currNode.style.overflow === 'hidden' || ![ '', null, 'none' ].includes(currNode.style['float']) || ![ '', null, 'relative' ].includes(currNode.style.position)) {
+        if (nodeIsBlock || !_isVisibleOnScreen(currNode)) {
           return false;
         } else if (get_role_type_default(currNode) === 'widget') {
           widgetText += currNode.textContent;
@@ -22464,23 +22549,24 @@
       }, {
         key: 'parseString',
         value: function parseString(colorString) {
-          var _color$alpha2;
           var parsedColors = cache_default.get('parsedColors', function() {
-            return {};
+            return new Map();
           });
-          var color = parsedColors[colorString];
-          if (!color) {
+          var channels = parsedColors.get(colorString);
+          if (!channels) {
             var cacheKey2 = colorString;
             try {
+              var _color3$alpha;
               var prototypeArrayFrom;
               if ('Prototype' in window && 'Version' in window.Prototype) {
                 prototypeArrayFrom = Array.from;
                 Array.from = import_from2['default'];
               }
-              color = new src_default(colorString).toGamut({
+              var _color3 = new src_default(colorString).toGamut({
                 space: 'srgb',
                 method: 'clip'
               }).to('srgb');
+              channels = [ _color3.r, _color3.g, _color3.b, +((_color3$alpha = _color3.alpha) !== null && _color3$alpha !== void 0 ? _color3$alpha : 0) ];
               if (prototypeArrayFrom) {
                 Array.from = prototypeArrayFrom;
                 prototypeArrayFrom = null;
@@ -22489,12 +22575,14 @@
               incomplete_data_default.set('colorParse', colorString);
               throw new Error('Unable to parse color "'.concat(colorString, '"'));
             }
-            parsedColors[cacheKey2] = color;
+            parsedColors.set(cacheKey2, channels);
           }
-          this.r = color.r;
-          this.g = color.g;
-          this.b = color.b;
-          this.alpha = +((_color$alpha2 = color.alpha) !== null && _color$alpha2 !== void 0 ? _color$alpha2 : 0);
+          var _channels = channels;
+          var _channels2 = _slicedToArray(_channels, 4);
+          this.r = _channels2[0];
+          this.g = _channels2[1];
+          this.b = _channels2[2];
+          this.alpha = _channels2[3];
           return this;
         }
       }, {
@@ -22617,7 +22705,26 @@
     }
     var is_opaque_default = isOpaque;
     function _isSeparateTarget(vNode, vOther) {
-      return get_role_type_default(vOther) === 'widget' && _isFocusable(vOther) && !_hasSameDestination(vNode, vOther);
+      return get_role_type_default(vOther) === 'widget' && _isFocusable(vOther) && !_hasSameDestination(vNode, vOther) && !isOnlyDescendantOfWidget(vNode, vOther);
+    }
+    function isOnlyDescendantOfWidget(vNode, vOther) {
+      var ancestor = _contains(vNode, vOther) ? vNode : _contains(vOther, vNode) ? vOther : null;
+      var widgetDescendant = ancestor === vNode ? vOther : vNode;
+      if (!ancestor) {
+        return false;
+      }
+      var descendant = ancestor;
+      while (descendant !== widgetDescendant) {
+        var children = descendant.children.filter(function(node) {
+          var _node$props$nodeValue;
+          return node.props.type === 1 || ((_node$props$nodeValue = node.props.nodeValue) === null || _node$props$nodeValue === void 0 ? void 0 : _node$props$nodeValue.trim()) !== '';
+        });
+        if (children.length !== 1) {
+          return false;
+        }
+        descendant = children[0];
+      }
+      return true;
     }
     function _isSkipLink(element) {
       if (!element.href) {
@@ -22683,8 +22790,8 @@
       if (!refs || !refs.length) {
         return false;
       }
-      return refs.some(function(_ref88) {
-        var actualNode = _ref88.actualNode;
+      return refs.some(function(_ref89) {
+        var actualNode = _ref89.actualNode;
         return isVisible(actualNode, screenReader, recursed);
       });
     }
@@ -22696,7 +22803,7 @@
       var vNode = el instanceof abstract_virtual_node_default ? el : get_node_from_tree_default(el);
       el = vNode ? vNode.actualNode : el;
       var cacheName = '_isVisible' + (screenReader ? 'ScreenReader' : '');
-      var _ref89 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref89.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref89.DOCUMENT_FRAGMENT_NODE;
+      var _ref90 = (_window$Node2 = window.Node) !== null && _window$Node2 !== void 0 ? _window$Node2 : {}, DOCUMENT_NODE = _ref90.DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE = _ref90.DOCUMENT_FRAGMENT_NODE;
       var nodeType = vNode ? vNode.props.nodeType : el.nodeType;
       var nodeName2 = vNode ? vNode.props.nodeName : el.nodeName.toLowerCase();
       if (vNode && typeof vNode[cacheName] !== 'undefined') {
@@ -23514,7 +23621,7 @@
         return {};
       }
       var navigator = win.navigator, innerHeight = win.innerHeight, innerWidth = win.innerWidth;
-      var _ref90 = getOrientation(win) || {}, angle = _ref90.angle, type2 = _ref90.type;
+      var _ref91 = getOrientation(win) || {}, angle = _ref91.angle, type2 = _ref91.type;
       return {
         userAgent: navigator.userAgent,
         windowWidth: innerWidth,
@@ -23523,12 +23630,12 @@
         orientationType: type2
       };
     }
-    function getOrientation(_ref91) {
-      var screen = _ref91.screen;
+    function getOrientation(_ref92) {
+      var screen = _ref92.screen;
       return screen.orientation || screen.msOrientation || screen.mozOrientation;
     }
-    function createFrameContext(frame, _ref92) {
-      var focusable = _ref92.focusable, page = _ref92.page;
+    function createFrameContext(frame, _ref93) {
+      var focusable = _ref93.focusable, page = _ref93.page;
       return {
         node: frame,
         include: [],
@@ -23742,8 +23849,8 @@
       }
       context.frames.push(createFrameContext(frame, context));
     }
-    function isPageContext(_ref93) {
-      var include = _ref93.include;
+    function isPageContext(_ref94) {
+      var include = _ref94.include;
       return include.length === 1 && include[0].actualNode === document.documentElement;
     }
     function validateContext(context) {
@@ -23752,8 +23859,8 @@
         throw new Error('No elements found for include in ' + env + ' Context');
       }
     }
-    function getRootNode2(_ref94) {
-      var include = _ref94.include, exclude = _ref94.exclude;
+    function getRootNode2(_ref95) {
+      var include = _ref95.include, exclude = _ref95.exclude;
       var selectors = Array.from(include).concat(Array.from(exclude));
       for (var _i21 = 0; _i21 < selectors.length; _i21++) {
         var item = selectors[_i21];
@@ -23772,8 +23879,8 @@
         return [];
       }
       var _Context = new Context(context), frames = _Context.frames;
-      return frames.map(function(_ref95) {
-        var node = _ref95.node, frameContext = _objectWithoutProperties(_ref95, _excluded12);
+      return frames.map(function(_ref96) {
+        var node = _ref96.node, frameContext = _objectWithoutProperties(_ref96, _excluded12);
         frameContext.initiator = false;
         var frameSelector = _getAncestry(node);
         return {
@@ -23783,8 +23890,8 @@
       });
     }
     function _getRule(ruleId) {
-      var rule = axe._audit.rules.find(function(_ref96) {
-        var id = _ref96.id;
+      var rule = axe._audit.rules.find(function(_ref97) {
+        var id = _ref97.id;
         return id === ruleId;
       });
       if (!rule) {
@@ -24016,8 +24123,8 @@
       }
       return !!standards_default.htmlElms[nodeName2];
     }
-    function _isNodeInContext(node, _ref97) {
-      var _ref97$include = _ref97.include, include = _ref97$include === void 0 ? [] : _ref97$include, _ref97$exclude = _ref97.exclude, exclude = _ref97$exclude === void 0 ? [] : _ref97$exclude;
+    function _isNodeInContext(node, _ref98) {
+      var _ref98$include = _ref98.include, include = _ref98$include === void 0 ? [] : _ref98$include, _ref98$exclude = _ref98.exclude, exclude = _ref98$exclude === void 0 ? [] : _ref98$exclude;
       var filterInclude = include.filter(function(candidate) {
         return _contains(candidate, node);
       });
@@ -24445,8 +24552,8 @@
       return matchExpressions(domTree, expressions, filter);
     }
     var query_selector_all_filter_default = querySelectorAllFilter;
-    function preloadCssom(_ref98) {
-      var _ref98$treeRoot = _ref98.treeRoot, treeRoot = _ref98$treeRoot === void 0 ? axe._tree[0] : _ref98$treeRoot;
+    function preloadCssom(_ref99) {
+      var _ref99$treeRoot = _ref99.treeRoot, treeRoot = _ref99$treeRoot === void 0 ? axe._tree[0] : _ref99$treeRoot;
       var rootNodes = getAllRootNodesInTree(treeRoot);
       if (!rootNodes.length) {
         return Promise.resolve();
@@ -24476,8 +24583,8 @@
     }
     function getCssomForAllRootNodes(rootNodes, convertDataToStylesheet) {
       var promises = [];
-      rootNodes.forEach(function(_ref99, index) {
-        var rootNode = _ref99.rootNode, shadowId = _ref99.shadowId;
+      rootNodes.forEach(function(_ref100, index) {
+        var rootNode = _ref100.rootNode, shadowId = _ref100.shadowId;
         var sheets = getStylesheetsOfRootNode(rootNode, shadowId, convertDataToStylesheet);
         if (!sheets) {
           return Promise.all(promises);
@@ -24563,10 +24670,10 @@
         return true;
       });
     }
-    function preloadMedia(_ref100) {
-      var _ref100$treeRoot = _ref100.treeRoot, treeRoot = _ref100$treeRoot === void 0 ? axe._tree[0] : _ref100$treeRoot;
-      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref101) {
-        var actualNode = _ref101.actualNode;
+    function preloadMedia(_ref101) {
+      var _ref101$treeRoot = _ref101.treeRoot, treeRoot = _ref101$treeRoot === void 0 ? axe._tree[0] : _ref101$treeRoot;
+      var mediaVirtualNodes = query_selector_all_filter_default(treeRoot, 'video[autoplay], audio[autoplay]', function(_ref102) {
+        var actualNode = _ref102.actualNode;
         if (actualNode.preload === 'none' && actualNode.readyState === 0 && actualNode.networkState !== actualNode.NETWORK_LOADING) {
           return false;
         }
@@ -24584,8 +24691,8 @@
         }
         return true;
       });
-      return Promise.all(mediaVirtualNodes.map(function(_ref102) {
-        var actualNode = _ref102.actualNode;
+      return Promise.all(mediaVirtualNodes.map(function(_ref103) {
+        var actualNode = _ref103.actualNode;
         return isMediaElementReady(actualNode);
       }));
     }
@@ -24906,10 +25013,10 @@
       return serial;
     }
     var RuleError = function(_Error) {
-      function RuleError(_ref104) {
+      function RuleError(_ref105) {
         var _error$name;
         var _this12;
-        var error = _ref104.error, ruleId = _ref104.ruleId, method = _ref104.method, errorNode = _ref104.errorNode;
+        var error = _ref105.error, ruleId = _ref105.ruleId, method = _ref105.method, errorNode = _ref105.errorNode;
         _classCallCheck(this, RuleError);
         _this12 = _callSuper(this, RuleError);
         _this12.name = (_error$name = error.name) !== null && _error$name !== void 0 ? _error$name : 'RuleError';
@@ -24943,8 +25050,8 @@
       }
     }
     function setScrollState(scrollState) {
-      scrollState.forEach(function(_ref105) {
-        var elm = _ref105.elm, top = _ref105.top, left = _ref105.left;
+      scrollState.forEach(function(_ref106) {
+        var elm = _ref106.elm, top = _ref106.top, left = _ref106.left;
         return setScroll(elm, top, left);
       });
     }
@@ -24972,8 +25079,8 @@
       }
       return selectAllRecursive(selectorArr, doc);
     }
-    function selectAllRecursive(_ref106, doc) {
-      var _ref107 = _toArray(_ref106), selectorStr = _ref107[0], restSelector = _arrayLikeToArray(_ref107).slice(1);
+    function selectAllRecursive(_ref107, doc) {
+      var _ref108 = _toArray(_ref107), selectorStr = _ref108[0], restSelector = _arrayLikeToArray(_ref108).slice(1);
       var elms = doc.querySelectorAll(selectorStr);
       if (restSelector.length === 0) {
         return Array.from(elms);
@@ -25153,9 +25260,9 @@
       nodeTypeToName[nodeNamesToTypes[nodeName2]] = nodeName2;
     });
     function normaliseProps(serialNode) {
-      var _serialNode$nodeName, _ref108, _serialNode$nodeType;
+      var _serialNode$nodeName, _ref109, _serialNode$nodeType;
       var nodeName2 = (_serialNode$nodeName = serialNode.nodeName) !== null && _serialNode$nodeName !== void 0 ? _serialNode$nodeName : nodeTypeToName[serialNode.nodeType];
-      var nodeType = (_ref108 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref108 !== void 0 ? _ref108 : 1;
+      var nodeType = (_ref109 = (_serialNode$nodeType = serialNode.nodeType) !== null && _serialNode$nodeType !== void 0 ? _serialNode$nodeType : nodeNamesToTypes[serialNode.nodeName]) !== null && _ref109 !== void 0 ? _ref109 : 1;
       assert_default(typeof nodeType === 'number', 'nodeType has to be a number, got \''.concat(nodeType, '\''));
       assert_default(typeof nodeName2 === 'string', 'nodeName has to be a string, got \''.concat(nodeName2, '\''));
       nodeName2 = nodeName2.toLowerCase();
@@ -25176,8 +25283,8 @@
       delete props.attributes;
       return Object.freeze(props);
     }
-    function normaliseAttrs(_ref109) {
-      var _ref109$attributes = _ref109.attributes, attributes2 = _ref109$attributes === void 0 ? {} : _ref109$attributes;
+    function normaliseAttrs(_ref110) {
+      var _ref110$attributes = _ref110.attributes, attributes2 = _ref110$attributes === void 0 ? {} : _ref110$attributes;
       var attrMap = {
         htmlFor: 'for',
         className: 'class'
@@ -25340,7 +25447,7 @@
     var getElementInternals2;
     var elementInternalsTimeout;
     function externalAPIs() {
-      var _ref110 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, internalsTimeout = _ref110.elementInternalsTimeout, getInternals = _ref110.getElementInternals;
+      var _ref111 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, internalsTimeout = _ref111.elementInternalsTimeout, getInternals = _ref111.getElementInternals;
       if (isNotNullOrUndefined(internalsTimeout)) {
         assert_default(typeof internalsTimeout === 'number', 'elementInternalsTimeout must be a number');
         elementInternalsTimeout = internalsTimeout;
@@ -25380,7 +25487,7 @@
     }
     function _loadElementInternals() {
       _loadElementInternals = _asyncToGenerator(_regenerator().m(function _callee2() {
-        var logger2, promiseValue, internalsMap, _i47, _internalsMap$_i, internals, ancestry, node, vNode, _i48, _Object$entries2, _Object$entries2$_i, _key14, val, type2, value, _args2 = arguments;
+        var logger2, promiseValue, internalsMap, _i47, _internalsMap$_i, internals, ancestry, node, vNode, _i48, _Object$entries2, _Object$entries2$_i, _key15, val, type2, value, _args2 = arguments;
         return _regenerator().w(function(_context3) {
           while (1) {
             switch (_context3.n) {
@@ -25458,7 +25565,7 @@
                 _context3.n = 12;
                 break;
               }
-              _Object$entries2$_i = _slicedToArray(_Object$entries2[_i48], 2), _key14 = _Object$entries2$_i[0], 
+              _Object$entries2$_i = _slicedToArray(_Object$entries2[_i48], 2), _key15 = _Object$entries2$_i[0], 
               val = _Object$entries2$_i[1];
               if (!(typeof val === 'string')) {
                 _context3.n = 10;
@@ -25469,15 +25576,15 @@
              case 10:
               type2 = val.type, value = val.value;
               if (!type2) {
-                logger2('externalAPIs.getElementInternals()['.concat(_i47, '].internals.').concat(_key14, ' is an object but has no "type" property'));
+                logger2('externalAPIs.getElementInternals()['.concat(_i47, '].internals.').concat(_key15, ' is an object but has no "type" property'));
               }
               if (!value) {
-                logger2('externalAPIs.getElementInternals()['.concat(_i47, '].internals.').concat(_key14, ' is an object but has no "value" property'));
+                logger2('externalAPIs.getElementInternals()['.concat(_i47, '].internals.').concat(_key15, ' is an object but has no "value" property'));
               }
               if (type2 === 'HTMLElement') {
-                setHTMLElement(internals, _key14, value);
+                setHTMLElement(internals, _key15, value);
               } else if (type2 === 'NodeList') {
-                setNodeList(internals, _key14, value);
+                setNodeList(internals, _key15, value);
               }
 
              case 11:
@@ -27872,8 +27979,8 @@
       nodeName: [ 'abbr', 'address', 'canvas', 'div', 'p', 'pre', 'blockquote', 'ins', 'del', 'output', 'span', 'table', 'tbody', 'thead', 'tfoot', 'td', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'br', 'wbr', 'th', 'tr' ]
     } ];
     lookupTable.evaluateRoleForElement = {
-      A: function A(_ref111) {
-        var node = _ref111.node, out = _ref111.out;
+      A: function A(_ref112) {
+        var node = _ref112.node, out = _ref112.out;
         if (node.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -27882,19 +27989,19 @@
         }
         return true;
       },
-      AREA: function AREA(_ref112) {
-        var node = _ref112.node;
+      AREA: function AREA(_ref113) {
+        var node = _ref113.node;
         return !node.href;
       },
-      BUTTON: function BUTTON(_ref113) {
-        var node = _ref113.node, role = _ref113.role, out = _ref113.out;
+      BUTTON: function BUTTON(_ref114) {
+        var node = _ref114.node, role = _ref114.role, out = _ref114.out;
         if (node.getAttribute('type') === 'menu') {
           return role === 'menuitem';
         }
         return out;
       },
-      IMG: function IMG(_ref114) {
-        var node = _ref114.node, role = _ref114.role, out = _ref114.out;
+      IMG: function IMG(_ref115) {
+        var node = _ref115.node, role = _ref115.role, out = _ref115.out;
         switch (node.alt) {
          case null:
           return out;
@@ -27906,8 +28013,8 @@
           return role !== 'presentation' && role !== 'none';
         }
       },
-      INPUT: function INPUT(_ref115) {
-        var node = _ref115.node, role = _ref115.role, out = _ref115.out;
+      INPUT: function INPUT(_ref116) {
+        var node = _ref116.node, role = _ref116.role, out = _ref116.out;
         switch (node.type) {
          case 'button':
          case 'image':
@@ -27937,32 +28044,32 @@
           return false;
         }
       },
-      LI: function LI(_ref116) {
-        var node = _ref116.node, out = _ref116.out;
+      LI: function LI(_ref117) {
+        var node = _ref117.node, out = _ref117.out;
         var hasImplicitListitemRole = axe.utils.matchesSelector(node, 'ol li, ul li');
         if (hasImplicitListitemRole) {
           return out;
         }
         return true;
       },
-      MENU: function MENU(_ref117) {
-        var node = _ref117.node;
+      MENU: function MENU(_ref118) {
+        var node = _ref118.node;
         if (node.getAttribute('type') === 'context') {
           return false;
         }
         return true;
       },
-      OPTION: function OPTION(_ref118) {
-        var node = _ref118.node;
+      OPTION: function OPTION(_ref119) {
+        var node = _ref119.node;
         var withinOptionList = axe.utils.matchesSelector(node, 'select > option, datalist > option, optgroup > option');
         return !withinOptionList;
       },
-      SELECT: function SELECT(_ref119) {
-        var node = _ref119.node, role = _ref119.role;
+      SELECT: function SELECT(_ref120) {
+        var node = _ref120.node, role = _ref120.role;
         return !node.multiple && node.size <= 1 && role === 'menu';
       },
-      SVG: function SVG(_ref120) {
-        var node = _ref120.node, out = _ref120.out;
+      SVG: function SVG(_ref121) {
+        var node = _ref121.node, out = _ref121.out;
         if (node.parentNode && node.parentNode.namespaceURI === 'http://www.w3.org/2000/svg') {
           return true;
         }
@@ -27987,7 +28094,7 @@
     }
     var is_accessible_ref_default = isAccessibleRef;
     function _isComboboxPopup(virtualNode) {
-      var _ref121 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref121.popupRoles;
+      var _ref122 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, popupRoles = _ref122.popupRoles;
       var role = get_role_default(virtualNode);
       popupRoles !== null && popupRoles !== void 0 ? popupRoles : popupRoles = aria_attrs_default['aria-haspopup'].values;
       if (!popupRoles.includes(role)) {
@@ -28276,8 +28383,8 @@
       if (!virtualNode.children) {
         return void 0;
       }
-      var titleNode = virtualNode.children.find(function(_ref122) {
-        var props = _ref122.props;
+      var titleNode = virtualNode.children.find(function(_ref123) {
+        var props = _ref123.props;
         return props.nodeName === 'title';
       });
       if (!titleNode) {
@@ -28476,13 +28583,13 @@
       var fontSize = parseFloat(vNode.getComputedStylePropertyValue('font-size'));
       return Math.round(parseFloat(value) / fontSize * 100) === Math.round(parseFloat(declared) * 100);
     }
-    function redeclares(_ref123, cssProperty) {
-      var actualNode = _ref123.actualNode;
+    function redeclares(_ref124, cssProperty) {
+      var actualNode = _ref124.actualNode;
       var value = actualNode.style.getPropertyValue(cssProperty);
       return value !== '' && value !== 'inherit' && value !== 'unset';
     }
-    function getNumberValue(vNode, _ref124) {
-      var cssProperty = _ref124.cssProperty, absoluteValues = _ref124.absoluteValues, normalValue = _ref124.normalValue;
+    function getNumberValue(vNode, _ref125) {
+      var cssProperty = _ref125.cssProperty, absoluteValues = _ref125.absoluteValues, normalValue = _ref125.normalValue;
       var cssPropValue = vNode.getComputedStylePropertyValue(cssProperty);
       if (cssPropValue === 'normal') {
         return normalValue;
@@ -28628,8 +28735,8 @@
       } else if (node !== document.body && has_content_default(node, true) && !isShallowlyHidden(virtualNode)) {
         return [ virtualNode ];
       } else {
-        return virtualNode.children.filter(function(_ref125) {
-          var actualNode = _ref125.actualNode;
+        return virtualNode.children.filter(function(_ref126) {
+          var actualNode = _ref126.actualNode;
           return actualNode.nodeType === 1;
         }).map(function(vNode) {
           return findRegionlessElms(vNode, options);
@@ -28777,7 +28884,7 @@
     var separatorRegex = /[;,\s]/;
     var validRedirectNumRegex = /^[0-9.]+$/;
     function metaRefreshEvaluate(node, options, virtualNode) {
-      var _ref126 = options || {}, minDelay = _ref126.minDelay, maxDelay = _ref126.maxDelay;
+      var _ref127 = options || {}, minDelay = _ref127.minDelay, maxDelay = _ref127.maxDelay;
       var content = (virtualNode.attr('content') || '').trim();
       var _content$split = content.split(separatorRegex), _content$split2 = _slicedToArray(_content$split, 1), redirectStr = _content$split2[0];
       if (!redirectStr.match(validRedirectNumRegex)) {
@@ -29084,7 +29191,6 @@
     }
     function _getBackgroundStack(node) {
       var stacks = get_text_element_stack_default(node).map(function(stack) {
-        stack = reduce_to_elements_below_floating_default(stack, node);
         stack = sortPageBackground(stack);
         return stack;
       });
@@ -29140,10 +29246,10 @@
     var OPAQUE_STROKE_OFFSET_MIN_PX = 1.5;
     var edges = [ 'top', 'right', 'bottom', 'left' ];
     function _getStrokeColorsFromShadows(parsedShadows) {
-      var _ref127 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref127$ignoreEdgeCou = _ref127.ignoreEdgeCount, ignoreEdgeCount = _ref127$ignoreEdgeCou === void 0 ? false : _ref127$ignoreEdgeCou;
+      var _ref128 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, _ref128$ignoreEdgeCou = _ref128.ignoreEdgeCount, ignoreEdgeCount = _ref128$ignoreEdgeCou === void 0 ? false : _ref128$ignoreEdgeCou;
       var shadowMap = getShadowColorsMap(parsedShadows);
-      var shadowsByColor = Object.entries(shadowMap).map(function(_ref128) {
-        var _ref129 = _slicedToArray(_ref128, 2), colorStr = _ref129[0], sides = _ref129[1];
+      var shadowsByColor = Object.entries(shadowMap).map(function(_ref129) {
+        var _ref130 = _slicedToArray(_ref129, 2), colorStr = _ref130[0], sides = _ref130[1];
         var edgeCount = edges.filter(function(side) {
           return sides[side].length !== 0;
         }).length;
@@ -29153,8 +29259,8 @@
           edgeCount: edgeCount
         };
       });
-      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref130) {
-        var edgeCount = _ref130.edgeCount;
+      if (!ignoreEdgeCount && shadowsByColor.some(function(_ref131) {
+        var edgeCount = _ref131.edgeCount;
         return edgeCount > 1 && edgeCount < 4;
       })) {
         return null;
@@ -29196,8 +29302,8 @@
       }
       return colorMap;
     }
-    function shadowGroupToColor(_ref131) {
-      var colorStr = _ref131.colorStr, sides = _ref131.sides, edgeCount = _ref131.edgeCount;
+    function shadowGroupToColor(_ref132) {
+      var colorStr = _ref132.colorStr, sides = _ref132.sides, edgeCount = _ref132.edgeCount;
       if (edgeCount !== 4) {
         return null;
       }
@@ -29248,8 +29354,8 @@
           throw new Error('Unable to process text-shadows: '.concat(str));
         }
       }
-      shadows.forEach(function(_ref132) {
-        var pixels = _ref132.pixels;
+      shadows.forEach(function(_ref133) {
+        var pixels = _ref133.pixels;
         if (pixels.length === 2) {
           pixels.push(0);
         }
@@ -29257,7 +29363,7 @@
       return shadows;
     }
     function _getTextShadowColors(node) {
-      var _ref133 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref133.minRatio, maxRatio = _ref133.maxRatio, ignoreEdgeCount = _ref133.ignoreEdgeCount;
+      var _ref134 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, minRatio = _ref134.minRatio, maxRatio = _ref134.maxRatio, ignoreEdgeCount = _ref134.ignoreEdgeCount;
       var shadowColors = [];
       var style = window.getComputedStyle(node);
       var textShadow = style.getPropertyValue('text-shadow');
@@ -29295,14 +29401,14 @@
             shadowColors.push.apply(shadowColors, _toConsumableArray(_strokeColors));
             thinShadows.splice(0, thinShadows.length);
           }
-          var _color3 = textShadowColor({
+          var _color4 = textShadowColor({
             colorStr: colorStr,
             offsetX: offsetX,
             offsetY: offsetY,
             blurRadius: blurRadius,
             fontSize: fontSize
           });
-          shadowColors.push(_color3);
+          shadowColors.push(_color4);
         }
       } catch (err) {
         _iterator26.e(err);
@@ -29320,8 +29426,8 @@
       }
       return shadowColors;
     }
-    function textShadowColor(_ref134) {
-      var colorStr = _ref134.colorStr, offsetX = _ref134.offsetX, offsetY = _ref134.offsetY, blurRadius = _ref134.blurRadius, fontSize = _ref134.fontSize;
+    function textShadowColor(_ref135) {
+      var colorStr = _ref135.colorStr, offsetX = _ref135.offsetX, offsetY = _ref135.offsetY, blurRadius = _ref135.blurRadius, fontSize = _ref135.fontSize;
       if (offsetX > blurRadius || offsetY > blurRadius) {
         return new color_default2(0, 0, 0, 0);
       }
@@ -29349,13 +29455,13 @@
         var _stackingOrder2;
         var bgVNode = get_node_from_tree_default(bgElm);
         var bgColor = getOwnBackgroundColor2(bgVNode);
-        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref135) {
-          var vNode = _ref135.vNode;
+        var stackingOrder = bgVNode._stackingOrder.filter(function(_ref136) {
+          var vNode = _ref136.vNode;
           return !!vNode;
         });
-        stackingOrder.forEach(function(_ref136, index) {
+        stackingOrder.forEach(function(_ref137, index) {
           var _stackingOrder;
-          var vNode = _ref136.vNode;
+          var vNode = _ref137.vNode;
           var ancestorVNode2 = (_stackingOrder = stackingOrder[index - 1]) === null || _stackingOrder === void 0 ? void 0 : _stackingOrder.vNode;
           var context2 = addToStackingContext(contextMap, vNode, ancestorVNode2);
           if (index === 0 && !contextMap.get(vNode)) {
@@ -29578,12 +29684,12 @@
       try {
         for (var _i33 = 0, _colorStack = colorStack; _i33 < _colorStack.length; _i33++) {
           var colorFn = _colorStack[_i33];
-          var _color4 = colorFn();
-          if (!_color4) {
+          var _color5 = colorFn();
+          if (!_color5) {
             continue;
           }
-          fgColors = fgColors.concat(_color4);
-          if (_color4.alpha === 1) {
+          fgColors = fgColors.concat(_color5);
+          if (_color5.alpha === 1) {
             break;
           }
         }
@@ -29609,8 +29715,8 @@
     function getTextColor(nodeStyle) {
       return new color_default2().parseString(nodeStyle.getPropertyValue('-webkit-text-fill-color') || nodeStyle.getPropertyValue('color'));
     }
-    function getStrokeColor(nodeStyle, _ref137) {
-      var _ref137$textStrokeEmM = _ref137.textStrokeEmMin, textStrokeEmMin = _ref137$textStrokeEmM === void 0 ? 0 : _ref137$textStrokeEmM;
+    function getStrokeColor(nodeStyle, _ref138) {
+      var _ref138$textStrokeEmM = _ref138.textStrokeEmMin, textStrokeEmMin = _ref138$textStrokeEmM === void 0 ? 0 : _ref138$textStrokeEmM;
       var strokeWidth = parseFloat(nodeStyle.getPropertyValue('-webkit-text-stroke-width'));
       if (strokeWidth === 0) {
         return null;
@@ -29772,8 +29878,8 @@
       if (results.length < 2) {
         return results;
       }
-      var incompleteResults = results.filter(function(_ref138) {
-        var result = _ref138.result;
+      var incompleteResults = results.filter(function(_ref139) {
+        var result = _ref139.result;
         return result !== void 0;
       });
       var uniqueResults = [];
@@ -29785,12 +29891,12 @@
         if (nameMap[name]) {
           return 1;
         }
-        var sameNameResults = incompleteResults.filter(function(_ref139, resultNum) {
-          var data = _ref139.data;
+        var sameNameResults = incompleteResults.filter(function(_ref140, resultNum) {
+          var data = _ref140.data;
           return data.name === name && resultNum !== index;
         });
-        var isSameUrl = sameNameResults.every(function(_ref140) {
-          var data = _ref140.data;
+        var isSameUrl = sameNameResults.every(function(_ref141) {
+          var data = _ref141.data;
           return isIdenticalObject(data.urlProps, urlProps);
         });
         if (sameNameResults.length && !isSameUrl) {
@@ -29816,7 +29922,7 @@
       var headingRole = role && role.includes('heading');
       var ariaHeadingLevel = _getAriaValue(vNode, 'aria-level').value;
       var ariaLevel = parseInt(ariaHeadingLevel, 10);
-      var _ref141 = vNode.props.nodeName.match(/h(\d)/) || [], _ref142 = _slicedToArray(_ref141, 2), headingLevel = _ref142[1];
+      var _ref142 = vNode.props.nodeName.match(/h(\d)/) || [], _ref143 = _slicedToArray(_ref142, 2), headingLevel = _ref143[1];
       if (!headingRole) {
         return -1;
       }
@@ -29858,8 +29964,22 @@
       var headingOrder = getHeadingOrder(results);
       results.forEach(function(result) {
         result.result = getHeadingOrderOutcome(result, headingOrder);
+        if (result.result === false) {
+          addPreviousHeading(result, headingOrder, results);
+        }
       });
       return results;
+    }
+    function addPreviousHeading(result, headingOrder, results) {
+      var index = findHeadingOrderIndex(headingOrder, result.node.ancestry);
+      var prevHeading = headingOrder[index - 1];
+      var prevResult = results.find(function(_ref144) {
+        var node = _ref144.node;
+        return _matchAncestry(node.ancestry, prevHeading.ancestry);
+      });
+      if (prevResult) {
+        result.relatedNodes = [ prevResult.node ];
+      }
     }
     function getHeadingOrderOutcome(result, headingOrder) {
       var _headingOrder$index$l, _headingOrder$index, _headingOrder$level, _headingOrder;
@@ -29876,14 +29996,14 @@
     }
     function getHeadingOrder(results) {
       results = _toConsumableArray(results);
-      results.sort(function(_ref143, _ref144) {
-        var nodeA = _ref143.node;
-        var nodeB = _ref144.node;
+      results.sort(function(_ref145, _ref146) {
+        var nodeA = _ref145.node;
+        var nodeB = _ref146.node;
         return nodeA.ancestry.length - nodeB.ancestry.length;
       });
       var headingOrder = results.reduce(mergeHeadingOrder, []);
-      return headingOrder.filter(function(_ref145) {
-        var level = _ref145.level;
+      return headingOrder.filter(function(_ref147) {
+        var level = _ref147.level;
         return level !== -1;
       });
     }
@@ -30080,8 +30200,8 @@
       return _contains(vAncestor, vNode) && !_isInTabOrder(vNode);
     }
     function mapActualNodes(vNodes) {
-      return vNodes.map(function(_ref146) {
-        var actualNode = _ref146.actualNode;
+      return vNodes.map(function(_ref148) {
+        var actualNode = _ref148.actualNode;
         return actualNode;
       });
     }
@@ -30143,8 +30263,8 @@
         });
         return true;
       }
-      this.relatedNodes(closeNeighbors.map(function(_ref147) {
-        var actualNode = _ref147.actualNode;
+      this.relatedNodes(closeNeighbors.map(function(_ref149) {
+        var actualNode = _ref149.actualNode;
         return actualNode;
       }));
       if (!closeNeighbors.some(_isInTabOrder)) {
@@ -30164,54 +30284,61 @@
     function roundToSingleDecimal(num) {
       return Math.round(num * 10) / 10;
     }
+    var USER_SCALABLE_ALLOWED = [ 'yes', 'device-width', 'device-height' ];
+    var MAXIMUM_SCALE_ALLOWED = [ 'device-width', 'device-height' ];
     function metaViewportScaleEvaluate(node, options, virtualNode) {
-      var _ref148 = options || {}, _ref148$scaleMinimum = _ref148.scaleMinimum, scaleMinimum = _ref148$scaleMinimum === void 0 ? 2 : _ref148$scaleMinimum, _ref148$lowerBound = _ref148.lowerBound, lowerBound = _ref148$lowerBound === void 0 ? false : _ref148$lowerBound;
+      var _ref150 = options || {}, _ref150$scaleMinimum = _ref150.scaleMinimum, scaleMinimum = _ref150$scaleMinimum === void 0 ? 2 : _ref150$scaleMinimum, _ref150$lowerBound = _ref150.lowerBound, lowerBound = _ref150$lowerBound === void 0 ? false : _ref150$lowerBound;
       var content = virtualNode.attr('content') || '';
       if (!content) {
         return true;
       }
-      var result = content.split(/[;,]/).reduce(function(out, item) {
-        var contentValue = item.trim();
-        if (!contentValue) {
-          return out;
+      var items = content.toLowerCase().split(/[;,]/);
+      var _iterator30 = _createForOfIteratorHelper(items), _step30;
+      try {
+        for (_iterator30.s(); !(_step30 = _iterator30.n()).done; ) {
+          var item = _step30.value;
+          var _item$split$map = item.split('=').map(function(part) {
+            return part.trim();
+          }), _item$split$map2 = _slicedToArray(_item$split$map, 2), _key11 = _item$split$map2[0], value = _item$split$map2[1];
+          if (!_key11 || !value) {
+            continue;
+          }
+          var floatValue = parseFloat(value);
+          if (_key11 === 'user-scalable') {
+            if (lowerBound) {
+              continue;
+            }
+            var invalidString = isNaN(floatValue) && !USER_SCALABLE_ALLOWED.includes(value);
+            var invalidNumber = floatValue > -1 && floatValue < 1;
+            if (invalidString || invalidNumber) {
+              this.data('user-scalable='.concat(value));
+              return false;
+            }
+          }
+          if (_key11 === 'maximum-scale') {
+            if (floatValue < 0) {
+              continue;
+            }
+            var _invalidString = isNaN(floatValue) && !MAXIMUM_SCALE_ALLOWED.includes(value);
+            if (lowerBound && (_invalidString || floatValue < lowerBound)) {
+              continue;
+            }
+            if (_invalidString || floatValue < scaleMinimum) {
+              this.data('maximum-scale='.concat(value));
+              return false;
+            }
+          }
         }
-        var _contentValue$split = contentValue.split('='), _contentValue$split2 = _slicedToArray(_contentValue$split, 2), key = _contentValue$split2[0], value = _contentValue$split2[1];
-        if (!key || !value) {
-          return out;
-        }
-        var curatedKey = key.toLowerCase().trim();
-        var curatedValue = value.toLowerCase().trim();
-        if (curatedKey === 'maximum-scale' && curatedValue === 'yes') {
-          curatedValue = 1;
-        }
-        if (curatedKey === 'maximum-scale' && parseFloat(curatedValue) < 0) {
-          return out;
-        }
-        out[curatedKey] = curatedValue;
-        return out;
-      }, {});
-      if (lowerBound && result['maximum-scale'] && parseFloat(result['maximum-scale']) < lowerBound) {
-        return true;
-      }
-      if (!lowerBound && result['user-scalable'] === 'no') {
-        this.data('user-scalable=no');
-        return false;
-      }
-      var userScalableAsFloat = parseFloat(result['user-scalable']);
-      if (!lowerBound && result['user-scalable'] && (userScalableAsFloat || userScalableAsFloat === 0) && userScalableAsFloat > -1 && userScalableAsFloat < 1) {
-        this.data('user-scalable');
-        return false;
-      }
-      if (result['maximum-scale'] && parseFloat(result['maximum-scale']) < scaleMinimum) {
-        this.data('maximum-scale');
-        return false;
+      } catch (err) {
+        _iterator30.e(err);
+      } finally {
+        _iterator30.f();
       }
       return true;
     }
-    var meta_viewport_scale_evaluate_default = metaViewportScaleEvaluate;
     function cssOrientationLockEvaluate(node, options, virtualNode, context) {
-      var _ref149 = context || {}, _ref149$cssom = _ref149.cssom, cssom = _ref149$cssom === void 0 ? void 0 : _ref149$cssom;
-      var _ref150 = options || {}, _ref150$degreeThresho = _ref150.degreeThreshold, degreeThreshold = _ref150$degreeThresho === void 0 ? 0 : _ref150$degreeThresho;
+      var _ref151 = context || {}, _ref151$cssom = _ref151.cssom, cssom = _ref151$cssom === void 0 ? void 0 : _ref151$cssom;
+      var _ref152 = options || {}, _ref152$degreeThresho = _ref152.degreeThreshold, degreeThreshold = _ref152$degreeThresho === void 0 ? 0 : _ref152$degreeThresho;
       if (!cssom || !cssom.length) {
         return void 0;
       }
@@ -30225,8 +30352,8 @@
         if (!orientationRules.length) {
           return 1;
         }
-        orientationRules.forEach(function(_ref151) {
-          var cssRules = _ref151.cssRules;
+        orientationRules.forEach(function(_ref153) {
+          var cssRules = _ref153.cssRules;
           Array.from(cssRules).forEach(function(cssRule) {
             var locked = getIsOrientationLocked(cssRule);
             if (locked && cssRule.selectorText.toUpperCase() !== 'HTML') {
@@ -30250,8 +30377,8 @@
       }
       return false;
       function groupCssomByDocument(cssObjectModel) {
-        return cssObjectModel.reduce(function(out, _ref152) {
-          var sheet = _ref152.sheet, root = _ref152.root, shadowId = _ref152.shadowId;
+        return cssObjectModel.reduce(function(out, _ref154) {
+          var sheet = _ref154.sheet, root = _ref154.root, shadowId = _ref154.shadowId;
           var key = shadowId ? shadowId : 'topDocument';
           if (!out[key]) {
             out[key] = {
@@ -30267,15 +30394,15 @@
           return out;
         }, {});
       }
-      function isMediaRuleWithOrientation(_ref153) {
-        var type2 = _ref153.type, cssText = _ref153.cssText;
+      function isMediaRuleWithOrientation(_ref155) {
+        var type2 = _ref155.type, cssText = _ref155.cssText;
         if (type2 !== 4) {
           return false;
         }
         return /orientation:\s*landscape/i.test(cssText) || /orientation:\s*portrait/i.test(cssText);
       }
-      function getIsOrientationLocked(_ref154) {
-        var selectorText = _ref154.selectorText, style = _ref154.style;
+      function getIsOrientationLocked(_ref156) {
+        var selectorText = _ref156.selectorText, style = _ref156.style;
         if (!selectorText || style.length <= 0) {
           return false;
         }
@@ -30330,7 +30457,7 @@
         }
       }
       function getAngleInDegrees(angleWithUnit) {
-        var _ref155 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref156 = _slicedToArray(_ref155, 1), unit = _ref156[0];
+        var _ref157 = angleWithUnit.match(/(deg|grad|rad|turn)/) || [], _ref158 = _slicedToArray(_ref157, 1), unit = _ref158[0];
         if (!unit) {
           return 0;
         }
@@ -30624,8 +30751,8 @@
       this.relatedNodes(relatedNodes);
       return true;
     }
-    function getInvalidSelector(vChild, nested, _ref157) {
-      var _ref157$validRoles = _ref157.validRoles, validRoles = _ref157$validRoles === void 0 ? [] : _ref157$validRoles, _ref157$validNodeName = _ref157.validNodeNames, validNodeNames = _ref157$validNodeName === void 0 ? [] : _ref157$validNodeName;
+    function getInvalidSelector(vChild, nested, _ref159) {
+      var _ref159$validRoles = _ref159.validRoles, validRoles = _ref159$validRoles === void 0 ? [] : _ref159$validRoles, _ref159$validNodeName = _ref159.validNodeNames, validNodeNames = _ref159$validNodeName === void 0 ? [] : _ref159$validNodeName;
       var _vChild$props = vChild.props, nodeName2 = _vChild$props.nodeName, nodeType = _vChild$props.nodeType, nodeValue = _vChild$props.nodeValue;
       var selector = nested ? 'div > ' : '';
       if (nodeType === 3 && nodeValue.trim() !== '') {
@@ -30835,19 +30962,19 @@
         return text.split(/\s+/).filter(Boolean);
       }
       var words = [];
-      var _iterator30 = _createForOfIteratorHelper(WORD_SEGMENTER.segment(text)), _step30;
+      var _iterator31 = _createForOfIteratorHelper(WORD_SEGMENTER.segment(text)), _step31;
       try {
-        for (_iterator30.s(); !(_step30 = _iterator30.n()).done; ) {
-          var segment = _step30.value.segment;
+        for (_iterator31.s(); !(_step31 = _iterator31.n()).done; ) {
+          var segment = _step31.value.segment;
           var trimmed = segment.trim();
           if (trimmed) {
             words.push(trimmed);
           }
         }
       } catch (err) {
-        _iterator30.e(err);
+        _iterator31.e(err);
       } finally {
-        _iterator30.f();
+        _iterator31.f();
       }
       return words;
     }
@@ -31149,8 +31276,8 @@
     }
     var focusable_no_name_evaluate_default = focusableNoNameEvaluate;
     function focusableModalOpenEvaluate(node, options, virtualNode) {
-      var tabbableElements = virtualNode.tabbableElements.map(function(_ref158) {
-        var actualNode = _ref158.actualNode;
+      var tabbableElements = virtualNode.tabbableElements.map(function(_ref160) {
+        var actualNode = _ref160.actualNode;
         return actualNode;
       });
       if (!tabbableElements || !tabbableElements.length) {
@@ -31552,7 +31679,7 @@
       var bold = parseFloat(fontWeight) >= boldValue || fontWeight === 'bold';
       var ptSize = Math.ceil(fontSize * 72) / 96;
       var isSmallFont = bold && ptSize < boldTextPt || !bold && ptSize < largeTextPt;
-      var _ref159 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref159.expected, minThreshold = _ref159.minThreshold, maxThreshold = _ref159.maxThreshold;
+      var _ref161 = isSmallFont ? contrastRatio.normal : contrastRatio.large, expected = _ref161.expected, minThreshold = _ref161.minThreshold, maxThreshold = _ref161.maxThreshold;
       var pseudoElm = findPseudoElement(virtualNode, {
         ignorePseudo: ignorePseudo,
         pseudoSizeThreshold: pseudoSizeThreshold
@@ -31651,8 +31778,8 @@
       }
       return isValid;
     }
-    function findPseudoElement(vNode, _ref160) {
-      var _ref160$pseudoSizeThr = _ref160.pseudoSizeThreshold, pseudoSizeThreshold = _ref160$pseudoSizeThr === void 0 ? .25 : _ref160$pseudoSizeThr, _ref160$ignorePseudo = _ref160.ignorePseudo, ignorePseudo = _ref160$ignorePseudo === void 0 ? false : _ref160$ignorePseudo;
+    function findPseudoElement(vNode, _ref162) {
+      var _ref162$pseudoSizeThr = _ref162.pseudoSizeThreshold, pseudoSizeThreshold = _ref162$pseudoSizeThr === void 0 ? .25 : _ref162$pseudoSizeThr, _ref162$ignorePseudo = _ref162.ignorePseudo, ignorePseudo = _ref162$ignorePseudo === void 0 ? false : _ref162$ignorePseudo;
       if (ignorePseudo) {
         return;
       }
@@ -31696,7 +31823,7 @@
     }
     function parseUnit(str) {
       var unitRegex = /^([0-9.]+)([a-z]+)$/i;
-      var _ref161 = str.match(unitRegex) || [], _ref162 = _slicedToArray(_ref161, 3), _ref162$ = _ref162[1], value = _ref162$ === void 0 ? '' : _ref162$, _ref162$2 = _ref162[2], unit = _ref162$2 === void 0 ? '' : _ref162$2;
+      var _ref163 = str.match(unitRegex) || [], _ref164 = _slicedToArray(_ref163, 3), _ref164$ = _ref164[1], value = _ref164$ === void 0 ? '' : _ref164$, _ref164$2 = _ref164[2], unit = _ref164$2 === void 0 ? '' : _ref164$2;
       return {
         value: parseFloat(value),
         unit: unit.toLowerCase()
@@ -31885,10 +32012,10 @@
       var aria = /^aria-/;
       var skipAttrs = [ 'aria-errormessage' ];
       var preChecks = {
-        'aria-controls': function ariaControls() {
+        'aria-controls': function ariaControls(validValue) {
           var _getAriaValue$value5;
           var hasPopup = ![ 'false', null ].includes((_getAriaValue$value5 = _getAriaValue(virtualNode, 'aria-haspopup').value) !== null && _getAriaValue$value5 !== void 0 ? _getAriaValue$value5 : null);
-          if (hasPopup) {
+          if (hasPopup && !validValue) {
             needsReview = 'aria-controls="'.concat(_getAriaValue(virtualNode, 'aria-controls').value, '"');
             messageKey = 'controlsWithinPopup';
           }
@@ -32084,26 +32211,26 @@
         return true;
       }
       var ownedRoles = getOwnedRoles(virtualNode, required);
-      var unallowed = ownedRoles.filter(function(_ref163) {
-        var role = _ref163.role, vNode = _ref163.vNode;
+      var unallowed = ownedRoles.filter(function(_ref165) {
+        var role = _ref165.role, vNode = _ref165.vNode;
         return vNode.props.nodeType === 1 && !required.includes(role) && !isAllowedInContext(role, explicitRole2);
       });
       if (unallowed.length) {
-        this.relatedNodes(unallowed.map(function(_ref164) {
-          var vNode = _ref164.vNode;
+        this.relatedNodes(unallowed.map(function(_ref166) {
+          var vNode = _ref166.vNode;
           return vNode;
         }));
         var messageKey = 'unallowed';
-        var selectors = unallowed.map(function(_ref165) {
-          var vNode = _ref165.vNode, attr = _ref165.attr;
+        var selectors = unallowed.map(function(_ref167) {
+          var vNode = _ref167.vNode, attr = _ref167.attr;
           return getUnallowedSelector(vNode, attr);
         });
         if (_getAriaValue(virtualNode, 'aria-busy').value === 'true') {
           messageKey = 'aria-busy-fail';
         } else if (unallowed.every(isPresentationalConflict)) {
           messageKey = 'unallowedPresentational';
-          selectors = unallowed.map(function(_ref166) {
-            var attr = _ref166.attr;
+          selectors = unallowed.map(function(_ref168) {
+            var attr = _ref168.attr;
             return '['.concat(attr, ']');
           });
         }
@@ -32174,8 +32301,8 @@
       return !!context && context.includes(parentRole);
     }
     function hasRequiredChildren(required, ownedRoles) {
-      return ownedRoles.some(function(_ref167) {
-        var role = _ref167.role;
+      return ownedRoles.some(function(_ref169) {
+        var role = _ref169.role;
         return role && required.includes(role);
       });
     }
@@ -32184,8 +32311,8 @@
         return vNode.hasAttr(attr);
       });
     }
-    function isPresentationalConflict(_ref168) {
-      var vNode = _ref168.vNode, attr = _ref168.attr;
+    function isPresentationalConflict(_ref170) {
+      var vNode = _ref170.vNode, attr = _ref170.attr;
       return !!attr && !is_natively_focusable_default(vNode) && PRESENTATIONAL_ROLES.includes(get_explicit_role_default(vNode));
     }
     function getUnallowedSelector(vNode, attr) {
@@ -32210,8 +32337,8 @@
       }
       return nodeName2;
     }
-    function isContent(_ref169) {
-      var vNode = _ref169.vNode;
+    function isContent(_ref171) {
+      var vNode = _ref171.vNode;
       if (vNode.props.nodeType === 3) {
         return vNode.props.nodeValue.trim().length > 0;
       }
@@ -32435,7 +32562,7 @@
     }
     function ariaConditionalRowAttr(node) {
       var _invalidTableRowAttrs, _invalidTableRowAttrs2;
-      var _ref170 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref170.invalidTableRowAttrs;
+      var _ref172 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {}, invalidTableRowAttrs = _ref172.invalidTableRowAttrs;
       var virtualNode = arguments.length > 2 ? arguments[2] : undefined;
       var invalidAttrs = (_invalidTableRowAttrs = invalidTableRowAttrs === null || invalidTableRowAttrs === void 0 || (_invalidTableRowAttrs2 = invalidTableRowAttrs.filter) === null || _invalidTableRowAttrs2 === void 0 ? void 0 : _invalidTableRowAttrs2.call(invalidTableRowAttrs, function(invalidAttr) {
         return virtualNode.hasAttr(invalidAttr);
@@ -32567,18 +32694,18 @@
       if (Array.isArray(options[role])) {
         allowed = unique_array_default(options[role].concat(allowed));
       }
-      var _iterator31 = _createForOfIteratorHelper(virtualNode.attrNames), _step31;
+      var _iterator32 = _createForOfIteratorHelper(virtualNode.attrNames), _step32;
       try {
-        for (_iterator31.s(); !(_step31 = _iterator31.n()).done; ) {
-          var _attrName = _step31.value;
+        for (_iterator32.s(); !(_step32 = _iterator32.n()).done; ) {
+          var _attrName = _step32.value;
           if (validate_attr_default(_attrName) && !allowed.includes(_attrName) && !ignoredAttrs(_attrName, virtualNode.attr(_attrName), virtualNode)) {
             invalid.push(_attrName);
           }
         }
       } catch (err) {
-        _iterator31.e(err);
+        _iterator32.e(err);
       } finally {
-        _iterator31.f();
+        _iterator32.f();
       }
       if (!invalid.length) {
         var caseSensitiveFailures = [];
@@ -32588,10 +32715,10 @@
           return values2;
         }, {});
         Object.assign(defaultValues, options.ariaFallbackValues || {});
-        var _iterator32 = _createForOfIteratorHelper(virtualNode.attrNames), _step32;
+        var _iterator33 = _createForOfIteratorHelper(virtualNode.attrNames), _step33;
         try {
-          for (_iterator32.s(); !(_step32 = _iterator32.n()).done; ) {
-            var attrName = _step32.value;
+          for (_iterator33.s(); !(_step33 = _iterator33.n()).done; ) {
+            var attrName = _step33.value;
             if (!validate_attr_default(attrName)) {
               continue;
             }
@@ -32611,9 +32738,9 @@
             caseSensitiveFailures.push(values2);
           }
         } catch (err) {
-          _iterator32.e(err);
+          _iterator33.e(err);
         } finally {
-          _iterator32.f();
+          _iterator33.f();
         }
         if (caseSensitiveFailures.length) {
           this.data({
@@ -32666,18 +32793,18 @@
       var allowedAriaAttrs = elmSpec.allowedAriaAttrs;
       var globalAriaAttrs = get_global_aria_attrs_default();
       var invalid = [];
-      var _iterator33 = _createForOfIteratorHelper(virtualNode.attrNames), _step33;
+      var _iterator34 = _createForOfIteratorHelper(virtualNode.attrNames), _step34;
       try {
-        for (_iterator33.s(); !(_step33 = _iterator33.n()).done; ) {
-          var attrName = _step33.value;
+        for (_iterator34.s(); !(_step34 = _iterator34.n()).done; ) {
+          var attrName = _step34.value;
           if (globalAriaAttrs.includes(attrName) && !allowedAriaAttrs.includes(attrName)) {
             invalid.push(attrName);
           }
         }
       } catch (err) {
-        _iterator33.e(err);
+        _iterator34.e(err);
       } finally {
-        _iterator33.f();
+        _iterator34.f();
       }
       if (!invalid.length) {
         return true;
@@ -32841,7 +32968,7 @@
       if (!role || [ 'none', 'presentation' ].includes(role)) {
         return true;
       }
-      var _ref171 = aria_roles_default[role] || {}, accessibleNameRequired = _ref171.accessibleNameRequired;
+      var _ref173 = aria_roles_default[role] || {}, accessibleNameRequired = _ref173.accessibleNameRequired;
       if (accessibleNameRequired || _isFocusable(virtualNode)) {
         return true;
       }
@@ -33380,7 +33507,7 @@
       'listitem-evaluate': listitemEvaluate,
       'matches-definition-evaluate': matches_definition_evaluate_default,
       'meta-refresh-evaluate': metaRefreshEvaluate,
-      'meta-viewport-scale-evaluate': meta_viewport_scale_evaluate_default,
+      'meta-viewport-scale-evaluate': metaViewportScaleEvaluate,
       'multiple-label-evaluate': multiple_label_evaluate_default,
       'nested-interactive-matches': nested_interactive_matches_default,
       'no-autoplay-audio-evaluate': no_autoplay_audio_evaluate_default,
@@ -34036,11 +34163,11 @@
         value: function _applyFailureSummaries(messages) {
           var keys = Object.keys(messages);
           for (var _i45 = 0; _i45 < keys.length; _i45++) {
-            var _key11 = keys[_i45];
-            if (!this.data.failureSummaries[_key11]) {
-              throw new Error('Locale provided for unknown failureMessage: "'.concat(_key11, '"'));
+            var _key12 = keys[_i45];
+            if (!this.data.failureSummaries[_key12]) {
+              throw new Error('Locale provided for unknown failureMessage: "'.concat(_key12, '"'));
             }
-            this.data.failureSummaries[_key11] = mergeFailureMessage(this.data.failureSummaries[_key11], messages[_key11]);
+            this.data.failureSummaries[_key12] = mergeFailureMessage(this.data.failureSummaries[_key12], messages[_key12]);
           }
         }
       }, {
@@ -34068,10 +34195,10 @@
         value: function setAllowedOrigins(allowedOrigins) {
           var defaultOrigin = getDefaultOrigin();
           this.allowedOrigins = [];
-          var _iterator34 = _createForOfIteratorHelper(allowedOrigins), _step34;
+          var _iterator35 = _createForOfIteratorHelper(allowedOrigins), _step35;
           try {
-            for (_iterator34.s(); !(_step34 = _iterator34.n()).done; ) {
-              var origin = _step34.value;
+            for (_iterator35.s(); !(_step35 = _iterator35.n()).done; ) {
+              var origin = _step35.value;
               if (origin === constants_default.allOrigins) {
                 this.allowedOrigins = [ '*' ];
                 return;
@@ -34082,9 +34209,9 @@
               }
             }
           } catch (err) {
-            _iterator34.e(err);
+            _iterator35.e(err);
           } finally {
-            _iterator34.f();
+            _iterator35.f();
           }
         }
       }, {
@@ -34393,7 +34520,7 @@
       };
     }
     function createIncompleteErrorResult(rule, error) {
-      var errorNode = error.errorNode;
+      var node = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : error.errorNode || new dq_element_default(document.documentElement);
       var serialError = _serializeError(error);
       var none = [ {
         id: 'error-occurred',
@@ -34401,7 +34528,6 @@
         data: serialError,
         relatedNodes: []
       } ];
-      var node = errorNode || new dq_element_default(document.documentElement);
       return Object.assign(new rule_result_default(rule), {
         error: serialError,
         result: constants_default.CANTTELL,
@@ -34413,8 +34539,8 @@
         } ]
       });
     }
-    function getHelpUrl(_ref172, ruleId, version) {
-      var brand = _ref172.brand, application = _ref172.application, lang = _ref172.lang;
+    function getHelpUrl(_ref174, ruleId, version) {
+      var brand = _ref174.brand, application = _ref174.application, lang = _ref174.lang;
       return constants_default.helpUrlBase + brand + '/' + (version || axe.version.substring(0, axe.version.lastIndexOf('.'))) + '/' + ruleId + '?application=' + encodeURIComponent(application) + (lang && lang !== 'en' ? '&lang=' + encodeURIComponent(lang) : '');
     }
     function setupGlobals(context) {
@@ -34631,7 +34757,17 @@
         size: {},
         flatTree: []
       };
-      var rawResults = rule.runSync(context, options);
+      var ruleResult = rule.runSync(context, options);
+      var rawResults;
+      try {
+        rawResults = rule.after(ruleResult, options);
+      } catch (err2) {
+        var _err2$errorNode;
+        if (options.debug) {
+          throw err2;
+        }
+        rawResults = createIncompleteErrorResult(rule, err2, (_err2$errorNode = err2.errorNode) !== null && _err2$errorNode !== void 0 ? _err2$errorNode : null);
+      }
       _publishMetaData(rawResults);
       _finalizeRuleResult(rawResults);
       var results = aggregate_result_default([ rawResults ]);
@@ -34644,9 +34780,9 @@
         toolOptions: options
       });
     }
-    function normalizeRunParams(_ref173) {
-      var _ref175, _options$reporter, _axe$_audit2;
-      var _ref174 = _slicedToArray(_ref173, 3), context = _ref174[0], options = _ref174[1], callback = _ref174[2];
+    function normalizeRunParams(_ref175) {
+      var _ref177, _options$reporter, _axe$_audit2;
+      var _ref176 = _slicedToArray(_ref175, 3), context = _ref176[0], options = _ref176[1], callback = _ref176[2];
       var typeErr = new TypeError('axe.run arguments are invalid');
       if (!_isContextSpec(context)) {
         if (callback !== void 0) {
@@ -34667,7 +34803,7 @@
         throw typeErr;
       }
       options = clone2(options);
-      options.reporter = (_ref175 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref175 !== void 0 ? _ref175 : 'v1';
+      options.reporter = (_ref177 = (_options$reporter = options.reporter) !== null && _options$reporter !== void 0 ? _options$reporter : (_axe$_audit2 = axe._audit) === null || _axe$_audit2 === void 0 ? void 0 : _axe$_audit2.reporter) !== null && _ref177 !== void 0 ? _ref177 : 'v1';
       return {
         context: context,
         options: options,
@@ -34676,8 +34812,8 @@
     }
     var noop2 = function noop2() {};
     function run4() {
-      for (var _len9 = arguments.length, args = new Array(_len9), _key12 = 0; _key12 < _len9; _key12++) {
-        args[_key12] = arguments[_key12];
+      for (var _len9 = arguments.length, args = new Array(_len9), _key13 = 0; _key13 < _len9; _key13++) {
+        args[_key13] = arguments[_key13];
       }
       setupGlobals(args[0]);
       var _normalizeRunParams = normalizeRunParams(args), context = _normalizeRunParams.context, options = _normalizeRunParams.options, _normalizeRunParams$c = _normalizeRunParams.callback, callback = _normalizeRunParams$c === void 0 ? noop2 : _normalizeRunParams$c;
@@ -34773,8 +34909,8 @@
       throw err2;
     }
     function runPartial() {
-      for (var _len0 = arguments.length, args = new Array(_len0), _key13 = 0; _key13 < _len0; _key13++) {
-        args[_key13] = arguments[_key13];
+      for (var _len0 = arguments.length, args = new Array(_len0), _key14 = 0; _key14 < _len0; _key14++) {
+        args[_key14] = arguments[_key14];
       }
       var _normalizeRunParams2 = normalizeRunParams(args), options = _normalizeRunParams2.options, context = _normalizeRunParams2.context;
       assert_default(axe._audit, 'Axe is not configured. Audit is missing.');
@@ -34794,8 +34930,8 @@
           performance_timer_default.auditEnd();
         }
         results = node_serializer_default.mapRawResults(results);
-        var frames = contextObj.frames.map(function(_ref176) {
-          var node = _ref176.node;
+        var frames = contextObj.frames.map(function(_ref178) {
+          var node = _ref178.node;
           return node_serializer_default.toSpec(node);
         });
         var environmentData;
@@ -34816,14 +34952,14 @@
       });
     }
     function finishRun(partialResults) {
-      var _ref178, _options$reporter2, _axe$_audit3;
+      var _ref180, _options$reporter2, _axe$_audit3;
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       options = clone2(options);
-      var _ref177 = partialResults.find(function(r) {
+      var _ref179 = partialResults.find(function(r) {
         return r.environmentData;
-      }) || {}, environmentData = _ref177.environmentData;
+      }) || {}, environmentData = _ref179.environmentData;
       _normalizeRunOptions(options);
-      options.reporter = (_ref178 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit3 = axe._audit) === null || _axe$_audit3 === void 0 ? void 0 : _axe$_audit3.reporter) !== null && _ref178 !== void 0 ? _ref178 : 'v1';
+      options.reporter = (_ref180 = (_options$reporter2 = options.reporter) !== null && _options$reporter2 !== void 0 ? _options$reporter2 : (_axe$_audit3 = axe._audit) === null || _axe$_audit3 === void 0 ? void 0 : _axe$_audit3.reporter) !== null && _ref180 !== void 0 ? _ref180 : 'v1';
       setFrameSpec(partialResults);
       var results = merge_results_default(partialResults);
       results = axe._audit.after(results, options);
@@ -34835,10 +34971,10 @@
     }
     function setFrameSpec(partialResults) {
       var frameStack = [];
-      var _iterator35 = _createForOfIteratorHelper(partialResults), _step35;
+      var _iterator36 = _createForOfIteratorHelper(partialResults), _step36;
       try {
-        for (_iterator35.s(); !(_step35 = _iterator35.n()).done; ) {
-          var partialResult = _step35.value;
+        for (_iterator36.s(); !(_step36 = _iterator36.n()).done; ) {
+          var partialResult = _step36.value;
           var frameSpec = frameStack.shift();
           if (!partialResult) {
             continue;
@@ -34848,13 +34984,13 @@
           frameStack.unshift.apply(frameStack, _toConsumableArray(frameSpecs));
         }
       } catch (err) {
-        _iterator35.e(err);
+        _iterator36.e(err);
       } finally {
-        _iterator35.f();
+        _iterator36.f();
       }
     }
-    function getMergedFrameSpecs(_ref179) {
-      var childFrameSpecs = _ref179.frames, parentFrameSpec = _ref179.frameSpec;
+    function getMergedFrameSpecs(_ref181) {
+      var childFrameSpecs = _ref181.frames, parentFrameSpec = _ref181.frameSpec;
       if (!parentFrameSpec) {
         return childFrameSpecs;
       }
@@ -37251,7 +37387,7 @@
       selector: 'th:not([role]), [role="rowheader"], [role="columnheader"]',
       tags: [ 'cat.name-role-value', 'best-practice' ],
       all: [],
-      any: [ 'has-visible-text' ],
+      any: [ 'has-visible-text', 'presentational-role' ],
       none: []
     }, {
       id: 'focus-order-semantics',
